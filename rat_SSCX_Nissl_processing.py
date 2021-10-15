@@ -151,7 +151,7 @@ def compute_densities(s1_geo, cells_dataframe, pixel_size, z_thicknes, nb_slices
     ax.invert_yaxis()
     ax.set_ylabel("y (um)")
     ax.set_xlabel("x (um)")
-    ax.grid(axis='x')
+
     ax.title.set_text("Cells coordinates in S1 and Densities per slice")
 
     #fig.grid(axis='y')
@@ -165,7 +165,7 @@ def compute_densities(s1_geo, cells_dataframe, pixel_size, z_thicknes, nb_slices
 
     '''
     for polygon in split_polygons:
-        ax.plot(polygon.exterior.coords.xy[0], polygon.exterior.coords.xy[1], color='red')
+        ax.plot(polygon.exterior.coords.xy[0], polygon.exterior.coords.xy[1], color='red', linewidth=.5)
 
     ax.legend()
     #plt.subplot(122)
@@ -173,8 +173,8 @@ def compute_densities(s1_geo, cells_dataframe, pixel_size, z_thicknes, nb_slices
     ax2 = ax.twiny()
     ax2.tick_params(axis='y', labelcolor='black')
     #ax2.invert_yaxis()
-    ax2.plot(densities, slides_y_centroid, '--bo', color='black', label='cells desitites per slcies')
-
+    ax2.plot(densities, slides_y_centroid, '--bx', color='black', label='cells desitites per slices', markersize=5., linewidth=1.)
+    ax2.grid(axis='x')
     ax2.set_ylabel("Slices y centroid (mm)")
     ax2.set_xlabel("Cell density (cells/mm3)")
     ax2.legend()
