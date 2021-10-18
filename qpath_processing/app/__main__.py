@@ -36,3 +36,22 @@ def process(config_file_path, cell_position_file_path, s1_geojson_path, pixel_fi
     dataframe = compute_densities(s1_geo, cells_dataframe, pixel_size, thickness_cut, nb_slices, visualisation_flag)
     save_results(dataframe, output_file_path)
 
+@click.version_option(VERSION)
+@click.command()
+@click.option('--config-file-path', required=False, help='Configuration file path')
+def batch(config_file_path):
+    if config_file_path:
+        config = configparser.ConfigParser()
+        config.sections()
+        config.read(config_file_path)
+        cell_position_file_path = config['DEFAULT']['cell_position_file_path']
+        s1_geojson_path = config['DEFAULT']['s1_geojson_path']
+        pixel_file_path = config['DEFAULT']['pixel_file_path']
+        thickness_cut = float(config['DEFAULT']['thickness_cut'])
+        nb_slices = int(config['DEFAULT']['nb_slices'])
+        output_file_path = config['DEFAULT']['output_file_path']
+
+    cells_dataframe, s1_geo, pixel_size = process_inputs(cell_position_file_path, s1_geojson_path, pixel_file_path)
+    dataframe = compute_densities(s1_geo, cells_dataframe, pixel_size, thickness_cut, nb_slices, False)
+    save_results(dataframe, output_file_path)
+
