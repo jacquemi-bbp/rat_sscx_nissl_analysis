@@ -21,6 +21,62 @@ from shapely.geometry import Point, LineString, Polygon
 # ## Convert QuPath Cell detection data to pandas
 # #### 404_cell_position.txt are created thanks to QuPath script: export-annotation_geojson.groovy
 
+def process_cell_pos(cell_position_file_path):
+    """
+
+    :param cell_position_file_path(str): path to cells position file
+    :return:  Pandas dataframe with cells information
+    """
+
+    wb = openpyxl.Workbook()
+    ws = wb.worksheets[0]
+
+    with open(cell_position_file_path, 'r') as data:
+        reader = csv.reader(data, delimiter='\t')
+        for row in reader:
+            ws.append(row)
+
+    data = ws.values
+    cols = next(data)[1:]
+    data = list(data)
+    idx = [r[0] for r in data]
+    data = (islice(r, 1, None) for r in data)
+    cells_dataframe = pd.DataFrame(data, index=idx, columns=cols)
+    return cells_dataframe
+
+
+def process_pixel_size(pixel_file_path):
+    """
+    :param pixel_file_path(str):
+    :return:  float. Pixel size (um)
+    """
+    with open(pixel_file_path, 'r') as f:
+        read_pixel_size = float(f.readline())
+    print("pixel size:", read_pixel_size)
+    return read_pixel_size
+
+
+def process_layers_inputs(cell_position_file_path, layers_geojson_path, pixel_file_path):
+    """
+    Process inputs file to produce cells position, s1 Polygon and get pixel size
+    :param cell_position_file_path(str): path to cells position file
+    :param layers_geojson_path(str): path to layer annotations geojson file
+    :param pixel_file_path(str): path to pixel size information file
+    :return:
+    tuple of:
+
+        pixel_size (float): File containing one float value (um)
+        list of layers annotation geometry (geojson)
+
+
+    """
+    cells_dataframe = process_cell_pos(cell_position_file_path)
+    read_pixel_size = process_pixel_size(pixel_file_path)
+
+    s1_geometry = geojson.load(open(layers_geojson_path,'rb'))
+    return cells_dataframe, s1_geometry, read_pixel_size
+
+
 
 def process_inputs(cell_position_file_path, s1_geojson_path, pixel_file_path):
     """
@@ -36,26 +92,8 @@ def process_inputs(cell_position_file_path, s1_geojson_path, pixel_file_path):
 
 
     """
-    wb = openpyxl.Workbook()
-    ws = wb.worksheets[0]
-
-    with open(cell_position_file_path, 'r') as data:
-        reader = csv.reader(data, delimiter='\t')
-        for row in reader:
-            ws.append(row)
-
-    data = ws.values
-    cols = next(data)[1:]
-    data = list(data)
-    idx = [r[0] for r in data]
-    data = (islice(r, 1, None) for r in data)
-    cells_dataframe = pd.DataFrame(data, index=idx, columns=cols)
-
-
-    if pixel_file_path:
-        with open(pixel_file_path, 'r') as f:
-            read_pixel_size = float(f.readline())
-        print("pixel size:", read_pixel_size)
+    cells_dataframe = process_cell_pos(cell_position_file_path)
+    read_pixel_size = process_pixel_size(pixel_file_path)
 
     s1_geometry = geojson.load(open(s1_geojson_path,'rb'))
     return cells_dataframe, s1_geometry, read_pixel_size
