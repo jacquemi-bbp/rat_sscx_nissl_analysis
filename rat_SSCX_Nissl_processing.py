@@ -61,6 +61,71 @@ def process_inputs(cell_position_file_path, s1_geojson_path, pixel_file_path):
     return cells_dataframe, s1_geometry, read_pixel_size
 
 
+def plot_densities(densities, slides_y_centroid, cells_centroid_x, cells_centroid_y, splitted_polygons):
+    """
+    Plot denstities VS slide y centroid, cells and splitted polygon
+    :param densities(np.array): shape (nb_cells, )
+    :param slides_y_centroid(np.array): shape (nb_cells, )
+    :param cells_centroid_x(np.array): shape (nb_cells, )
+    :param cells_centroid_y(np.array): shape (nb_cells, )
+    :param splitted_polygons(lilst): list of Polygons
+    """
+    fig = plt.figure()
+    ax = fig.add_subplot(111, label="1", frame_on=False)
+    ax.axis('equal')
+    _ = plt.scatter(cells_centroid_x, cells_centroid_y, s=.5, label='cells position')
+    ax.tick_params(axis='x', colors="blue")
+    ax.invert_yaxis()
+    ax.set_ylabel("y (um)")
+    ax.set_xlabel("x (um)")
+    ax.title.set_text("Cells coordinates in S1 and Densities per slice")
+    for polygon in splitted_polygons:
+        ax.plot(polygon.exterior.coords.xy[0], polygon.exterior.coords.xy[1], color='red', linewidth=.3)
+    ax.legend()
+    # plt.subplot(122)
+    # Generate a new Axes instance, on the twin-X axes (same position)
+    ax2 = ax.twiny()
+    ax2.tick_params(axis='y', labelcolor='black')
+    # ax2.invert_yaxis()
+    ax2.plot(densities, slides_y_centroid, '--bx', color='black', label='cells desitites per slices', markersize=5.,
+             linewidth=1.)
+    ax2.grid(axis='x')
+    ax2.set_ylabel("Slices y centroid (mm)")
+    ax2.set_xlabel("Cell density (cells/mm3)")
+    ax2.legend()
+    plt.show()
+
+
+def split_polygons(s1_polygon, slice_y_length, s1_coordinates):
+    """
+    pqram: s1_polygon
+    parma: slice_y_length
+    param: s1_coordinates
+    :return:
+    """
+    # Create lines that will be used to split S1 polygon
+    s1_button=s1_coordinates[:,1].min()
+    s1_top=s1_coordinates[:,1].max()
+    split_lines_y_coord = np.arange(s1_button + slice_y_length, s1_top, slice_y_length)
+    s1_x_min = s1_coordinates[:,0].min() - 1
+    s1_x_max = s1_coordinates[:,0].max() + 1
+    split_lines = []
+    for split_line_y_coord in split_lines_y_coord:
+        split_lines.append(LineString([[s1_x_min-1, split_line_y_coord], [s1_x_max+1, split_line_y_coord]]))
+    # Split s1 polygon
+    split_polygons = []
+    polygon_to_split = s1_polygon
+    for line in split_lines:
+        split_result = split(polygon_to_split, line)
+        split_polygons.append(split_result[0])
+        polygon_to_split = split_result[1]
+    split_polygons.append(polygon_to_split)
+    split_polygon_areas = [(polygon.area / 1e6) for polygon in split_polygons]
+    total_area = sum(split_polygon_areas)
+    print('Recomputed area {:.2f} %'.format((total_area / (s1_polygon.area / 1e6)) * 100))
+    return split_polygons, split_polygon_areas
+
+
 def compute_densities(s1_geo, cells_dataframe, pixel_size, thickness_cut, nb_slices, visualistation_flag):
     """
     Compute cell density (cells / mm3)
@@ -72,7 +137,6 @@ def compute_densities(s1_geo, cells_dataframe, pixel_size, thickness_cut, nb_sli
     :param visualistation_flag(bool)
     :return:
     """
-
     # Compute s1 geometry
     s1_coordinates = np.array(s1_geo["features"][0]["geometry"]["coordinates"][0]) * pixel_size
     s1_button=s1_coordinates[:,1].min()
@@ -81,37 +145,17 @@ def compute_densities(s1_geo, cells_dataframe, pixel_size, thickness_cut, nb_sli
     cells_centroid_x = cells_dataframe['Centroid X µm'].to_numpy(dtype=float)
     cells_centroid_y = cells_dataframe['Centroid Y µm'].to_numpy(dtype=float)
     slice_y_length = s1_length / nb_slices
-
-    # Create lines that will be used to split S1 polygon
-    split_lines_y_coord = np.arange(s1_button + slice_y_length, s1_top, slice_y_length)
-    s1_x_min = s1_coordinates[:,0].min() - 1
-    s1_x_max = s1_coordinates[:,0].max() + 1
-    split_lines = []
-    for split_line_y_coord in split_lines_y_coord:
-        split_lines.append(LineString([[s1_x_min-1, split_line_y_coord], [s1_x_max+1, split_line_y_coord]]))
-
-    # Split s1 polygon
     s1_polygon = Polygon(s1_coordinates)
-    split_polygons = []
-    polygon_to_split = s1_polygon
-    for line in split_lines:
-        split_result = split(polygon_to_split, line)
-        split_polygons.append(split_result[0])
-        polygon_to_split = split_result[1]
-    split_polygons.append(polygon_to_split)
-    split_polygon_areas = [(polygon.area / 1e6) for polygon in split_polygons]
-    total_area = sum(split_polygon_areas)
-    print('Recomputed area {:.2f} %'.format((total_area / (s1_polygon.area / 1e6)) * 100))
+    splitted_polygons, split_polygon_areas = split_polygons(s1_polygon, slice_y_length, s1_coordinates)
     
     # Compute the number of cells per slice
-    nb_cells_per_bin = np.zeros(len(split_polygons), dtype=int)
-    for index, polygon in enumerate(split_polygons):
+    nb_cells_per_bin = np.zeros(len(splitted_polygons), dtype=int)
+    for index, polygon in enumerate(splitted_polygons):
         nb_cells_per_bin[index] = \
         np.where((cells_centroid_y >= polygon.bounds[1]) & (cells_centroid_y < polygon.bounds[3]))[0].shape[0]
 
     # Compute densities per slice # nb_cells / mm3
     densities = nb_cells_per_bin / (np.array(split_polygon_areas) * (thickness_cut/1e3))
-
 
     # Compute average density
     nb_cell = len(cells_dataframe)
@@ -123,31 +167,8 @@ def compute_densities(s1_geo, cells_dataframe, pixel_size, thickness_cut, nb_sli
     step = slice_y_length
     slides_y_centroid = np.arange(start, s1_top, step)
 
-    print('visualistation_flag: ', visualistation_flag)
     if visualistation_flag:
-        fig=plt.figure()
-        ax=fig.add_subplot(111, label="1", frame_on=False)
-        ax.axis('equal')
-        _ = plt.scatter(cells_centroid_x, cells_centroid_y, s=.5, label='cells position')
-        ax.tick_params(axis='x', colors="blue")
-        ax.invert_yaxis()
-        ax.set_ylabel("y (um)")
-        ax.set_xlabel("x (um)")
-        ax.title.set_text("Cells coordinates in S1 and Densities per slice")
-        for polygon in split_polygons:
-            ax.plot(polygon.exterior.coords.xy[0], polygon.exterior.coords.xy[1], color='red', linewidth=.3)
-        ax.legend()
-        #plt.subplot(122)
-        # Generate a new Axes instance, on the twin-X axes (same position)
-        ax2 = ax.twiny()
-        ax2.tick_params(axis='y', labelcolor='black')
-        #ax2.invert_yaxis()
-        ax2.plot(densities, slides_y_centroid, '--bx', color='black', label='cells desitites per slices', markersize=5., linewidth=1.)
-        ax2.grid(axis='x')
-        ax2.set_ylabel("Slices y centroid (mm)")
-        ax2.set_xlabel("Cell density (cells/mm3)")
-        ax2.legend()
-        plt.show()
+        plot_densities(densities, slides_y_centroid, cells_centroid_x, cells_centroid_y, splitted_polygons)
 
     final_df = pd.DataFrame({'layers_y_centroid': slides_y_centroid, 'densities': densities})
     return final_df
@@ -181,5 +202,3 @@ if __name__ == '__main__':
     cells_dataframe, s1_geo, pixel_size = process_inputs(cell_position_file_path, s1_geojson_path, pixel_file_path)
     dataframe = compute_densities(s1_geo, cells_dataframe, pixel_size, thickness_cut, nb_slices, visualistation_flag)
     save_results(dataframe, output_file_path)
-
-
