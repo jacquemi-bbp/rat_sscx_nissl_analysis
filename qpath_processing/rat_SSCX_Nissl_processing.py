@@ -183,22 +183,3 @@ def save_results(dataframe, output_file_path):
     #dataframe.to_excel(output_file_path, sheet_name=sheet_name, header=True, index=False)
     dataframe.to_excel(output_file_path, header=True, index=False)
 
-
-if __name__ == '__main__':
-    if len(sys.argv) != 7 and len(sys.argv) != 8:
-        print('Usage: rat_SSCX_Nissl_processing.py cell_position_file_path s1_geojson_path'
-              ' pixel_file_path thickness_cut(um) nb_slices output_file_path visualistation_flag')
-        sys.exit(1)
-    cell_position_file_path = sys.argv[1]
-    s1_geojson_path = sys.argv[2]
-    pixel_file_path = sys.argv[3]
-    thickness_cut = float(sys.argv[4])
-    nb_slices = int(sys.argv[5])
-    output_file_path = sys.argv[6]
-    visualistation_flag = False
-    if len(sys.argv) == 8:
-        if sys.argv[7]=='True' or sys.argv[7]=='true' or sys.argv[7]=='1':
-            visualistation_flag = True
-    cells_dataframe, s1_geo, pixel_size = process_inputs(cell_position_file_path, s1_geojson_path, pixel_file_path)
-    dataframe = compute_densities(s1_geo, cells_dataframe, pixel_size, thickness_cut, nb_slices, visualistation_flag)
-    save_results(dataframe, output_file_path)
