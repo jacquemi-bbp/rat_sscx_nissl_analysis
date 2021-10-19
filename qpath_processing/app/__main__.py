@@ -7,6 +7,7 @@ from qpath_processing.rat_SSCX_Nissl_processing import (
     process_inputs,
     process_layers_inputs,
     compute_densities,
+    compute_layers_densities,
     save_results)
 from qpath_processing.version import VERSION
 
@@ -73,7 +74,7 @@ def layers(config_file_path):
         nb_slices = int(config['DEFAULT']['nb_slices'])
         output_file_path = config['DEFAULT']['output_file_path']
 
-    cells_dataframe, s1_geo, pixel_size = process_layers_inputs(cell_position_file_path, layers_geojson_path, pixel_file_path)
-    dataframe = compute_densities(s1_geo, cells_dataframe, pixel_size, thickness_cut, nb_slices, False)
+    cells_dataframe, layers_geometries, pixel_size = process_layers_inputs(cell_position_file_path, layers_geojson_path, pixel_file_path)
+    dataframe = compute_layers_densities(layers_geometries, cells_dataframe, pixel_size, thickness_cut, False)
     save_results(dataframe, output_file_path)
 

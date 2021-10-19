@@ -24,7 +24,7 @@ from shapely.geometry import Point, LineString, Polygon
 def process_cell_pos(cell_position_file_path):
     """
 
-    :param cell_position_file_path(str): path to cells position file
+    :param cell_position_file_path:(str): path to cells position file
     :return:  Pandas dataframe with cells information
     """
 
@@ -47,7 +47,7 @@ def process_cell_pos(cell_position_file_path):
 
 def process_pixel_size(pixel_file_path):
     """
-    :param pixel_file_path(str):
+    :param pixel_file_path:(str):
     :return:  float. Pixel size (um)
     """
     with open(pixel_file_path, 'r') as f:
@@ -59,9 +59,9 @@ def process_pixel_size(pixel_file_path):
 def process_layers_inputs(cell_position_file_path, layers_geojson_path, pixel_file_path):
     """
     Process inputs file to produce cells position, s1 Polygon and get pixel size
-    :param cell_position_file_path(str): path to cells position file
-    :param layers_geojson_path(str): path to layer annotations geojson file
-    :param pixel_file_path(str): path to pixel size information file
+    :param cell_position_file_path:(str): path to cells position file
+    :param layers_geojson_path:(str): path to layer annotations geojson file
+    :param pixel_file_path:(str): path to pixel size information file
     :return:
     tuple of:
 
@@ -73,8 +73,14 @@ def process_layers_inputs(cell_position_file_path, layers_geojson_path, pixel_fi
     cells_dataframe = process_cell_pos(cell_position_file_path)
     read_pixel_size = process_pixel_size(pixel_file_path)
 
-    s1_geometry = geojson.load(open(layers_geojson_path,'rb'))
-    return cells_dataframe, s1_geometry, read_pixel_size
+    layers_geojson = geojson.load(open(layers_geojson_path,'rb'))
+
+    layers_geometries = {}
+    for entry in layers_geojson:
+        name = (entry["properties"]["classification"]["name"])
+        layers_geometries[name] = np.array(entry["geometry"]["coordinates"][0])
+
+    return cells_dataframe, layers_geometries, read_pixel_size
 
 
 
@@ -94,8 +100,8 @@ def process_inputs(cell_position_file_path, s1_geojson_path, pixel_file_path):
     """
     cells_dataframe = process_cell_pos(cell_position_file_path)
     read_pixel_size = process_pixel_size(pixel_file_path)
-
     s1_geometry = geojson.load(open(s1_geojson_path,'rb'))
+
     return cells_dataframe, s1_geometry, read_pixel_size
 
 
@@ -164,9 +170,59 @@ def split_polygons(s1_polygon, slice_y_length, s1_coordinates):
     return split_polygons, split_polygon_areas
 
 
+def compute_layers_densities(layers_geometries, cells_dataframe, pixel_size, thickness_cut, visualistation_flag):
+    """
+    Compute cell density (cells / mm3) by layers
+    :param layers_geometries: (dict) key: layer name, values numpy array of shape (nb_points, 2) of layers geometry
+    :param cells_dataframe:
+    :param pixel_size(float): (um)
+    :param thickness_cut(float): thickness cut (um)
+    :param nb_slices (int):
+    :param visualistation_flag(bool)
+    :return:
+    """
+    # Compute geometries
+    layers_name = []
+    densities = []
+    nb_cells_per_layer = []
+    volumes = []
+    for name, coordinates in layers_geometries.items():
+        if name == 'SliceContour' or name == 'S1' or name == 'OutsidePia' or name == 'WM (white matter)':
+            continue
+        layers_name.append(name)
+        cells_centroid_y = cells_dataframe['Centroid Y µm'].to_numpy(dtype=float)
+        #slice_y_length = s1_length / nb_slices
+        print('--------> Name:', name)
+        print('coordinate shape:', coordinates.shape)
+        polygon = Polygon(coordinates)
+
+        # Compute the number of cells for the current layers
+        '''
+        nb_cells_per_bin = np.zeros(len(splitted_polygons), dtype=int)
+        for index, polygon in enumerate(splitted_polygons):
+            nb_cells_per_bin[index] = \
+                np.where((cells_centroid_y >= polygon.bounds[1]) & (cells_centroid_y < polygon.bounds[3]))[0].shape[0]
+        '''
+        nb_cells = np.where((cells_centroid_y >= polygon.bounds[1]) & (cells_centroid_y < polygon.bounds[3]))[0].shape[0]
+        nb_cells_per_layer.append(nb_cells)
+        print('nb_cells:', nb_cells)
+        print('volume: ', np.array(polygon.area) * (thickness_cut / 1e3))
+        # Compute densities per slice # nb_cells / mm3
+        volume = (np.array(polygon.area) * (thickness_cut / 1e3))
+        volumes.append(volume)
+        density = nb_cells / volume
+        print('Density for layer {} = {} cell/mm3='.format(name,  density))
+        densities.append(density)
+
+
+    final_df = pd.DataFrame({'layers': layers_name, 'nb_cells_per_layer' : nb_cells_per_layer,
+                             'volumes': volume, 'densities': densities})
+    return final_df
+
+
 def compute_densities(s1_geo, cells_dataframe, pixel_size, thickness_cut, nb_slices, visualistation_flag):
     """
-    Compute cell density (cells / mm3)
+    Compute cell density (cells / mm3) by slice
     :param s1_geo:
     :param cells_dataframe:
     :param pixel_size(float): (um)
