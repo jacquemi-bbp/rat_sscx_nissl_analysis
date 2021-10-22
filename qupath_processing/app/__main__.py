@@ -3,7 +3,7 @@ Produces astrocyte morphology in HDF5 format from 3D meshes
 """
 import configparser
 import click
-from qupath_processing.rat_SSCX_Nissl_processing import (
+from qupath_processing.rat_sscx_nissl_processing import (
     single_image_process)
 from qupath_processing.io import (
     write_densities_csv, read_pixel_size, list_images
@@ -42,6 +42,7 @@ def process(config_file_path, cell_position_file_path, annotations_geojson_path,
     print('INFO: Process single image')
     densities_dataframe = single_image_process(cell_position_file_path, annotations_geojson_path, pixel_size, thickness_cut,
                          nb_row, nb_col, visualisation_flag)
+    print('INFO: ', densities_dataframe)
     print('INFO: Write results')
     write_densities_csv(densities_dataframe, output_file_path)
 
@@ -70,5 +71,6 @@ def batch(config_file_path):
         densities_dataframe = single_image_process(values['CELL_POSITIONS_PATH'], values['ANNOTATIONS_PATH'],
                                                    pixel_size, thickness_cut,
                                                    grid_nb_row, grid_nb_col)
+        print('INFO: ', densities_dataframe)
         print('INFO: Write results for image {}'.format(image_prefix))
         write_densities_csv(densities_dataframe, output_directory + '/' + image_prefix + '.xlsx')

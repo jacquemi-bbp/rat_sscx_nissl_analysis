@@ -88,15 +88,19 @@ def write_densities_csv(dataframe, output_file_path):
     dataframe.to_excel(output_file_path, header=True, index=False)
 
 
-def list_images(input_directory, cell_position_suffix, annotations_geojson_suffix):
+def list_images(input_directory, cell_position_suffix,
+                annotations_geojson_suffix):
     """
     Create a list of images nme prefix from the content of the input_directory
-    :param input_directory: input directory that contains export image information fromn QuPath
+    :param input_directory:input directory that contains export image
+                           information fromn QuPath
     :param cell_position_suffix:(str) The one defined in config.ini
     :param annotations_geojson_suffix:(str) The one defined in config.ini
-    :return: dictionary: key image prefix, values dictionary of file relative to image_prefix
+    :return: dictionary: key image prefix, values dictionary of file relative
+                    to image_prefix
     """
-    onlyfiles = [f for f in listdir(input_directory) if isfile(join(input_directory, f))]
+    onlyfiles = [f for f in listdir(input_directory) if
+                 isfile(join(input_directory, f))]
     image_dictionary = {}
     for filename in onlyfiles:
         prefix_pos = filename.find('_cell_position.txt')
@@ -104,12 +108,14 @@ def list_images(input_directory, cell_position_suffix, annotations_geojson_suffi
             image_name = filename[:prefix_pos]
             if image_name + '_annotations.geojson' in onlyfiles:
                 image_dictionary[image_name] = dict()
-                image_dictionary[image_name]['CELL_POSITIONS_PATH'] = input_directory + '/' + \
-                                                                      image_name + cell_position_suffix
-                image_dictionary[image_name]['ANNOTATIONS_PATH'] = input_directory + '/' + \
-                                                                      image_name + annotations_geojson_suffix
+                image_dictionary[image_name]['CELL_POSITIONS_PATH'] =\
+                    input_directory + '/' + image_name + cell_position_suffix
+                image_dictionary[image_name]['ANNOTATIONS_PATH'] = \
+                    input_directory + '/' + image_name +\
+                    annotations_geojson_suffix
             else:
-                print('ERROR: {} does not exist for image {}'.format(image_name + '_annotations.geojson', image_name))
+                print('ERROR: {} does not exist for image {}'.
+                      format(image_name + '_annotations.geojson', image_name))
 
     return image_dictionary
 

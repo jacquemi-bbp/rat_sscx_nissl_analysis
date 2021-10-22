@@ -34,7 +34,7 @@ def get_extrapoled_segement(segment_endpoints_coordinates, extrapol_ratio=1.5):
 
 def create_grid(quadrilateral, s1_coordinates, nb_row, nb_col):
     """
-    Create of grid on a polygon defined by s1_coordinates.
+    Create a grid on a polygon defined by s1_coordinates.
     - The vertical lines are straight. There endpoints coordinates are computed from the quadrilateral top and bottom
      lines in order to split them in a regular way.
     - The horizontal "lines" are composed of several segments that "follow" the quadrilateral top and bottom
@@ -46,9 +46,25 @@ def create_grid(quadrilateral, s1_coordinates, nb_row, nb_col):
     :param nb_row:(int) grid number of rows
     :param nb_col:(int) grid number of columns
     :return: tuple:
-        - list of vertical LineString that defined the grid
         - list of horizontal LineString that defined the grid
 
+    """
+    vertical_lines = vertical_line_splitter(quadrilateral, s1_coordinates, nb_col)
+    return horizontal_line_splitter(vertical_lines, nb_row)
+
+
+def vertical_line_splitter(quadrilateral, s1_coordinates, nb_col):
+    """
+       Create some vertical lined on a polygon defined by s1_coordinates.
+       - The vertical lines are straight. There endpoints coordinates are computed from the quadrilateral top and bottom
+        lines in order to split them in a regular way.
+
+       :param quadrilateral:(np.array) of shape(5, 2) containing the following points coordinates(mm)
+                           in clockwise direction: top_left, top_right, bottom_right, bottom_left, top_left
+       :param s1_coordinates:(np.array) of shape (nb_vertices, 2) containing S1 polygon coordinates (mm)
+       :param nb_col:(int) number of columns
+
+       :return  list of vertical LineString
     """
     top_left = quadrilateral[0]
     top_right = quadrilateral[1]
@@ -64,27 +80,42 @@ def create_grid(quadrilateral, s1_coordinates, nb_row, nb_col):
         intersection_line = Polygon(s1_coordinates).intersection(LineString(line_coordinates)).coords
         vertical_lines.append(intersection_line)
     vertical_lines.append(LineString([top_right, bottom_right]))
+    return vertical_lines
 
-    # Horizontal lines
+
+def horizontal_line_splitter(vertical_lines, nb_row):
+    """
+        Create a grid on a polygon defined by s1_coordinates.
+        - The vertical lines are straight. There endpoints coordinates are computed from the quadrilateral top and bottom
+         lines in order to split them in a regular way.
+        - The horizontal "lines" are composed of several segments that "follow" the quadrilateral top and bottom
+         lines shape to represent the brain's depth
+
+        :param vertical_lines: list of vertical LineString that defined the grid
+        :param nb_row:(int) grid number of rows
+        :return list of horizontal LineString
+        """
     horizontal_lines = []
     for i in range(nb_row - 1):
         horizontal_points = []
-        for index, line in enumerate(vertical_lines):
+        for line in vertical_lines:
             line_coord = np.array(line)
             point = line_coord[0] + (line_coord[1] - line_coord[0]) / nb_row * (i + 1)
             horizontal_points.append(point)
         horizontal_line = LineString(horizontal_points)
         horizontal_lines.append(horizontal_line)
-
-    return vertical_lines, horizontal_lines
+    return horizontal_lines
 
 
 def create_depth_polygons(s1_coordinates, horizontal_lines):
     """
-    Create shapely polygon defined by horizontal lines and the polygon defined by s1_coordinates
-    :param s1_coordinates:(np.array) of shape (nb_vertices, 2) containing S1 polygon coordinates (mm)
+    Create shapely polygon defined by horizontal lines and the polygon defined
+     by s1_coordinates
+    :param s1_coordinates:(np.array) of shape (nb_vertices, 2) containing
+                          S1 polygon coordinates (mm)
     :param horizontal_lines: list of horizontal LineString that defined the grid
-    :return: list of shapely polygons representing S1 layers as fonction if brain depth
+    :return: list of shapely polygons representing S1 layers as fonction
+             if brain depth
     """
     split_polygons = []
     polygon_to_split = Polygon(s1_coordinates)
@@ -98,18 +129,21 @@ def create_depth_polygons(s1_coordinates, horizontal_lines):
     return split_polygons
 
 
-def count_nb_cell_per_polygon(cells_centroid_x, cells_centroid_y, split_polygons):
+def count_nb_cell_per_polygon(cells_centroid_x, cells_centroid_y,
+                              split_polygons):
     """
-    Count the number of cells located inside each polygons of split_polygons list
+    Count the number of cells located inside each polygon of split_polygons list
     :param cells_centroid_x:np.array of shape (number of cells, ) of type float
     :param cells_centroid_y:np.array of shape (number of cells, ) of type float
-    :param split_polygons:list of shapely polygons representing S1 layers as function if brain depth
-    :return: list of int: The number of cells located inside each polygons of split_polygons
+    :param split_polygons:list of shapely polygons representing S1 layers as
+                          function if brain depth
+    :return: list of int:The number of cells located inside each polygons of
+                         split_polygons
     """
     nb_cell_per_polygon = [0] * len(split_polygons)
-    for x, y in zip (cells_centroid_x, cells_centroid_y):
+    for x_coord, y_coord in zip (cells_centroid_x, cells_centroid_y):
         for index, polygon in enumerate(split_polygons):
-            if polygon.contains(Point([x,y])):
+            if polygon.contains(Point([x_coord,y_coord])):
                 nb_cell_per_polygon[index]+=1
     return nb_cell_per_polygon
 
@@ -117,13 +151,15 @@ def count_nb_cell_per_polygon(cells_centroid_x, cells_centroid_y, split_polygons
 def compute_cells_depth(split_polygons, cells_centroid_x, cells_centroid_y):
     """
     Plot polygons and cells depth
-    :param split_polygons: list of shapely polygons representing S1 layers as function if brain depth
+    :param split_polygons: list of shapely polygons representing S1 layers as
+                           function if brain depth
     :param cells_centroid_x: np.array of shape (number of cells, ) of type float
     :param cells_centroid_y: np.array of shape (number of cells, ) of type float
     """
     depthes = [-1] * len(cells_centroid_x)
-    for cell_index, (x, y) in enumerate(zip(cells_centroid_x, cells_centroid_y)):
+    for cell_index, (x_coord, y_coord) in enumerate(zip(cells_centroid_x,
+                                            cells_centroid_y)):
         for index, polygon in enumerate(split_polygons):
-            if polygon.contains(Point([x, y])):
+            if polygon.contains(Point([x_coord, y_coord])):
                 depthes[cell_index] = index
     return depthes
