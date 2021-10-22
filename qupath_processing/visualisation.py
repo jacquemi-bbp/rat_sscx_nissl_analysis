@@ -4,7 +4,7 @@ visualisation module
 
 import matplotlib.pyplot as plt
 import numpy as np
-from qpath_processing.geometry import compute_cells_depth
+from qupath_processing.geometry import compute_cells_depth
 
 
 def plot_densities(percentages, densities):

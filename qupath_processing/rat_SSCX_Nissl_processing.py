@@ -1,12 +1,12 @@
 import pandas as pd
-from qpath_processing.io import (
+from qupath_processing.io import (
     read_qupath_annotations, read_cells_coordinate,
     )
-from qpath_processing.geometry import (
+from qupath_processing.geometry import (
     create_depth_polygons, create_grid, count_nb_cell_per_polygon
 )
 
-from qpath_processing.visualisation import plot_densities, plot_split_polygons_and_cell_depth
+from qupath_processing.visualisation import plot_densities, plot_split_polygons_and_cell_depth
 """
 Module that computes density as function of brain percentage of depth
 """
