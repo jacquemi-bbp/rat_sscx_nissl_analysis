@@ -106,9 +106,24 @@ def count_nb_cell_per_polygon(cells_centroid_x, cells_centroid_y, split_polygons
     :param split_polygons:list of shapely polygons representing S1 layers as function if brain depth
     :return: list of int: The number of cells located inside each polygons of split_polygons
     """
-    nb_cell_per_slide = [0] * len(split_polygons)
+    nb_cell_per_polygon = [0] * len(split_polygons)
     for x, y in zip (cells_centroid_x, cells_centroid_y):
         for index, polygon in enumerate(split_polygons):
             if polygon.contains(Point([x,y])):
-                nb_cell_per_slide[index]+=1
-    return nb_cell_per_slide
+                nb_cell_per_polygon[index]+=1
+    return nb_cell_per_polygon
+
+
+def compute_cells_depth(split_polygons, cells_centroid_x, cells_centroid_y):
+    """
+    Plot polygons and cells depth
+    :param split_polygons: list of shapely polygons representing S1 layers as function if brain depth
+    :param cells_centroid_x: np.array of shape (number of cells, ) of type float
+    :param cells_centroid_y: np.array of shape (number of cells, ) of type float
+    """
+    depthes = [-1] * len(cells_centroid_x)
+    for cell_index, (x, y) in enumerate(zip(cells_centroid_x, cells_centroid_y)):
+        for index, polygon in enumerate(split_polygons):
+            if polygon.contains(Point([x, y])):
+                depthes[cell_index] = index
+    return depthes

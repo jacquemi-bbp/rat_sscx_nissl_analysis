@@ -11,7 +11,7 @@ from qpath_processing.io import (
 from qpath_processing.geometry import (
     create_depth_polygons, create_grid, count_nb_cell_per_polygon
 )
-from qpath_processing.visualisation import plot_densities
+from qpath_processing.visualisation import plot_densities, plot_split_polygons_and_cell_depth
 from qpath_processing.version import VERSION
 
 @click.version_option(VERSION)
@@ -59,7 +59,9 @@ def process(config_file_path, cell_position_file_path, annotations_geojson_path,
     write_densities_csv(densities_dataframe, output_file_path)
 
     if visualisation_flag:
+        plot_split_polygons_and_cell_depth(split_polygons, s1_coordinates, cells_centroid_x, cells_centroid_y)
         plot_densities(depth_percentage, densities)
+
 
 '''
 @click.version_option(VERSION)
