@@ -30,6 +30,7 @@ setup(
     entry_points={
         'console_scripts': ['pyqupath_processing=qpath_processing.app.__main__:process',
                             #'pyqupath_batch_processing=qpath_processing.app.__main__:batch',
-                            'pyqupath_layers_processing=qpath_processing.app.__main__:layers']
+                            #'pyqupath_layers_processing=qpath_processing.app.__main__:layers']
+                            ]
     }
 )
