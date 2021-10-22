@@ -3,6 +3,7 @@ Produces astrocyte morphology in HDF5 format from 3D meshes
 """
 import configparser
 import click
+import pandas as pd
 from qpath_processing.rat_SSCX_Nissl_processing import (
     compute_cell_density)
 from qpath_processing.io import (
@@ -10,6 +11,7 @@ from qpath_processing.io import (
 from qpath_processing.geometry import (
     create_depth_polygons, create_grid, count_nb_cell_per_polygon
 )
+from qpath_processing.visualisation import plot_densities
 from qpath_processing.version import VERSION
 
 @click.version_option(VERSION)
@@ -50,10 +52,14 @@ def process(config_file_path, cell_position_file_path, annotations_geojson_path,
 
     print('INFO: Computes the cells densities as function of percentage depth')
     nb_cell_per_slide = count_nb_cell_per_polygon(cells_centroid_x, cells_centroid_y, split_polygons)
-    densities_dataframe = compute_cell_density(nb_cell_per_slide, split_polygons, thickness_cut/1e3)
+    depth_percentage, densities = compute_cell_density(nb_cell_per_slide, split_polygons, thickness_cut/1e3)
+    densities_dataframe = pd.DataFrame({'depth_percentage': depth_percentage, 'densities': densities})
 
     print('INFO: Write results')
     write_densities_csv(densities_dataframe, output_file_path)
+
+    if visualisation_flag:
+        plot_densities(depth_percentage, densities)
 
 '''
 @click.version_option(VERSION)
