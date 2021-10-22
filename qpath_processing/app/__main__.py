@@ -38,7 +38,6 @@ def process(config_file_path, cell_position_file_path, annotations_geojson_path,
         nb_row = int(config['DEFAULT']['grid_nb_row'])
         nb_col = int(config['DEFAULT']['grid_nb_col'])
         output_file_path = config['DEFAULT']['output_file_path']
-
     pixel_size = read_pixel_size(pixel_file_path)
     print('INFO: Process single image')
     densities_dataframe = single_image_process(cell_position_file_path, annotations_geojson_path, pixel_size, thickness_cut,
@@ -66,4 +65,12 @@ def batch(config_file_path):
     grid_nb_col = int(config['BATCH']['grid_nb_col'])
 
     image_dictionary = list_images(input_directory, cell_position_suffix, annotations_geojson_suffix)
-    print(image_dictionary)
+    for image_prefix, values in image_dictionary.items():
+        print('INFO: Process single image {}'.format(image_prefix))
+        densities_dataframe = single_image_process(values['CELL_POSITIONS_PATH'], values['ANNOTATIONS_PATH'],
+                                                   pixel_size, thickness_cut,
+                                                   grid_nb_row, grid_nb_col)
+        print('INFO: Write results for image {}'.format(image_prefix))
+        write_densities_csv(densities_dataframe, output_directory + '/' + image_prefix + '.xlsx')
+
+
