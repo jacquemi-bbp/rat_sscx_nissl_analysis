@@ -1,4 +1,4 @@
-# QuPath porcessing for rat somatosensory cortex Nissl data [![pipeline status](https://bbpgitlab.epfl.ch/molsys/skeletonizer/badges/main/pipeline.svg)](https://bbpgitlab.epfl.ch/molsys/skeletonizer/-/commits/main) [![coverage report](https://bbpgitlab.epfl.ch/molsys/skeletonizer/badges/main/coverage.svg)](https://bbpgitlab.epfl.ch/molsys/qupath_processing/-/commits/main)
+# Processing for rat somatosensory cortex  QuPath Nissl data [![pipeline status](https://bbpgitlab.epfl.ch/molsys/skeletonizer/badges/main/pipeline.svg)](https://bbpgitlab.epfl.ch/molsys/skeletonizer/-/commits/main) [![coverage report](https://bbpgitlab.epfl.ch/molsys/skeletonizer/badges/main/coverage.svg)](https://bbpgitlab.epfl.ch/molsys/qupath_processing/-/commits/main)
 
 ## General idea
 
@@ -23,9 +23,8 @@ $ pip install .
 
 ```
 ### Third parties 
-```shell
-pip install ...
-```
+python third parties libraries are installed during package installation.
+see requirements.txt
 
 # Run the pipeline on test astrocyte
 ```shell
