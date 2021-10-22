@@ -7,42 +7,45 @@ import numpy as np
 from shapely.geometry import Point, LineString, Polygon
 from shapely.ops import split
 
-def distance(p1, p2):
+def distance(pt1, pt2):
     """
     Return the euclidian distance from two 2D points
-    :param p1:  np.array of shape (2,): X,Y coordinates
-    :param p2:  np.array of shape (2,): X,Y coordinates
-    :return: 
-        float : The euclidian distance  form p1 to p2
+    :param pt1:  np.array of shape (2,): X,Y coordinates
+    :param pt2:  np.array of shape (2,): X,Y coordinates
+    :return:  float : The euclidian distance  form p1 to p2
+
     """
-    return sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2)
+    return sqrt((pt1[0]-pt2[0])**2 + (pt1[1]-pt2[1])**2)
 
 
 def get_extrapoled_segement(segment_endpoints_coordinates, extrapol_ratio=1.5):
     """
     Extrapolates a segment in both directions of extrapol_ratio ratio
-    :param segment_endpoints_coordinates:(np.array) of shape(2, 2): coordinates of the segment's endpoints
+    :param segment_endpoints_coordinates:(np.array) of shape(2, 2): coordinates of the segment's
+     endpoints
     :param extrapol_ratio: Ratio used to extrapolate the segment endpoints coordianates
     :return: (np.array) of shape(2, 2) the extrapolated segment's endpoints
     """
-    p1=segment_endpoints_coordinates[0]
-    p2=segment_endpoints_coordinates[1]
-    a = (p2[0]+extrapol_ratio*(p1[0]-p2[0]), p2[1]+extrapol_ratio*(p1[1]-p2[1]))
-    b = (p1[0]+extrapol_ratio*(p2[0]-p1[0]), p1[1]+extrapol_ratio*(p2[1]-p1[1]))
-    return np.array([a, b])
+    pt1=segment_endpoints_coordinates[0]
+    pt2=segment_endpoints_coordinates[1]
+    new_pt1 = (pt2[0]+extrapol_ratio*(pt1[0]-pt2[0]), pt2[1]+extrapol_ratio*(pt1[1]-pt2[1]))
+    new_pt2 = (pt1[0]+extrapol_ratio*(pt2[0]-pt1[0]), pt1[1]+extrapol_ratio*(pt2[1]-pt1[1]))
+    return np.array([new_pt1, new_pt2])
 
 
 def create_grid(quadrilateral, s1_coordinates, nb_row, nb_col):
     """
     Create a grid on a polygon defined by s1_coordinates.
-    - The vertical lines are straight. There endpoints coordinates are computed from the quadrilateral top and bottom
+    - The vertical lines are straight. There endpoints coordinates are computed from the
+         quadrilateral top and bottom
      lines in order to split them in a regular way.
-    - The horizontal "lines" are composed of several segments that "follow" the quadrilateral top and bottom
+    - The horizontal "lines" are composed of several segments that "follow" the quadrilateral
+         top and bottom
      lines shape to represent the brain's depth
 
     :param quadrilateral:(np.array) of shape(5, 2) containing the following points coordinates(mm)
-                        in clockwise direction: top_left, top_right, bottom_right, bottom_left, top_left
-    :param s1_coordinates:(np.array) of shape (nb_vertices, 2) containing S1 polygon coordinates (mm)
+                        direction:top_left, top_right, bottom_right, bottom_left, top_left
+    :param s1_coordinates:(np.array) shape (nb_vertices, 2) containing S1 polygon coordinates (mm)
     :param nb_row:(int) grid number of rows
     :param nb_col:(int) grid number of columns
     :return: tuple:
@@ -56,12 +59,15 @@ def create_grid(quadrilateral, s1_coordinates, nb_row, nb_col):
 def vertical_line_splitter(quadrilateral, s1_coordinates, nb_col):
     """
        Create some vertical lined on a polygon defined by s1_coordinates.
-       - The vertical lines are straight. There endpoints coordinates are computed from the quadrilateral top and bottom
+       - The vertical lines are straight. There endpoints coordinates are computed from the
+        quadrilateral top and bottom
         lines in order to split them in a regular way.
 
-       :param quadrilateral:(np.array) of shape(5, 2) containing the following points coordinates(mm)
-                           in clockwise direction: top_left, top_right, bottom_right, bottom_left, top_left
-       :param s1_coordinates:(np.array) of shape (nb_vertices, 2) containing S1 polygon coordinates (mm)
+       :param quadrilateral:(np.array) shape(5, 2) containing the following points coordinates(mm)
+                           in clockwise direction: top_left, top_right, bottom_right, bottom_left,
+                           top_left
+       :param s1_coordinates:(np.array) of shape (nb_vertices, 2) containing S1 polygon coordinates
+                             (mm)
        :param nb_col:(int) number of columns
 
        :return  list of vertical LineString
@@ -71,13 +77,16 @@ def vertical_line_splitter(quadrilateral, s1_coordinates, nb_col):
     bottom_right = quadrilateral[2]
     bottom_left = quadrilateral[3]
     # Vertical lines
-    vertical_lines = [LineString([[top_left[0] - 10, top_left[1]], [bottom_left[0] - 10, bottom_left[1]]])]
+    vertical_lines = [LineString([[top_left[0] - 10, top_left[1]],
+                                  [bottom_left[0] - 10, bottom_left[1]]])]
     for i in range(nb_col - 1):
         top_point = top_left + (top_right - top_left) / nb_col * (i + 1)
         bottom_point = bottom_left + (bottom_right - bottom_left) / nb_col * (i + 1)
         #line = LineString([(top_point[0], top_point[1]), (bottom_point[0], bottom_point[1])])
-        line_coordinates = get_extrapoled_segement([(top_point[0], top_point[1]), (bottom_point[0], bottom_point[1])], 1.3)
-        intersection_line = Polygon(s1_coordinates).intersection(LineString(line_coordinates)).coords
+        line_coordinates = get_extrapoled_segement([(top_point[0], top_point[1]),
+                                                    (bottom_point[0], bottom_point[1])], 1.3)
+        intersection_line = \
+            Polygon(s1_coordinates).intersection(LineString(line_coordinates)).coords
         vertical_lines.append(intersection_line)
     vertical_lines.append(LineString([top_right, bottom_right]))
     return vertical_lines
@@ -86,9 +95,11 @@ def vertical_line_splitter(quadrilateral, s1_coordinates, nb_col):
 def horizontal_line_splitter(vertical_lines, nb_row):
     """
         Create a grid on a polygon defined by s1_coordinates.
-        - The vertical lines are straight. There endpoints coordinates are computed from the quadrilateral top and bottom
+        - The vertical lines are straight. There endpoints coordinates are computed from the
+              quadrilateral top and bottom
          lines in order to split them in a regular way.
-        - The horizontal "lines" are composed of several segments that "follow" the quadrilateral top and bottom
+        - The horizontal "lines" are composed of several segments that "follow" the quadrilateral
+              top and bottom
          lines shape to represent the brain's depth
 
         :param vertical_lines: list of vertical LineString that defined the grid

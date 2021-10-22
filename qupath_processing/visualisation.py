@@ -40,8 +40,8 @@ def plot_split_polygons_and_cell_depth(split_polygons, s1_coordinates,
     plt.axis('equal')
     plt.gca().invert_yaxis()
     for polygon in split_polygons:
-        x, y = polygon.exterior.xy
-        plt.plot(x, y)
+        x_coord, y_coord = polygon.exterior.xy
+        plt.plot(x_coord, y_coord)
     plt.plot(s1_coordinates[:, 0], s1_coordinates[:, 1], 'r')
     plt.scatter(cells_centroid_x, cells_centroid_y,
                 c=np.array(cells_depth) / 100, s=1)
