@@ -56,17 +56,23 @@ def read_qupath_annotations(file_path):
     annotations = {}
     for entry in annotations_geo:
         try:
+            ## 'bottom_left', 'bottom_right', 'top_left', 'top_right' annotations
             if "name" in entry["properties"].keys():
                 annotations[entry["properties"]["name"]] = \
                     np.array(entry["geometry"]["coordinates"])
+            ## S1 annotation has a classification key b4 name
+            if "classification" in entry["properties"].keys():
+                if "name" in entry["properties"]["classification"].keys():
+                    annotations[entry["properties"]["classification"]["name"]] = \
+                        np.array(entry["geometry"]["coordinates"])
         except KeyError:  # annotation without name
             pass
 
     s1_pixel_coordinates = annotations['S1'][0]
     # These 4 points can not be find via an algo, so we need QuPath annotation
-    quadrilateral_pixel_coordinates = np.array([annotations['TOP_LEFT'], annotations['TOP_RIGHT'],
-                                                annotations['BOTTOM_RIGHT'],
-                              annotations['BOTTOM_LEFT'], annotations['TOP_LEFT']])
+    quadrilateral_pixel_coordinates = np.array([annotations['top_left'], annotations['top_right'],
+                                                annotations['bottom_right'],
+                              annotations['bottom_left'], annotations['top_left']])
 
     return s1_pixel_coordinates, quadrilateral_pixel_coordinates
 
