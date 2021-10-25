@@ -6,8 +6,9 @@ import click
 from qupath_processing.rat_sscx_nissl_processing import (
     single_image_process)
 from qupath_processing.io import (
-    write_densities_csv, read_pixel_size, list_images
+    write_densities_file, read_pixel_size, list_images
 )
+from qupath_processing.utilities import concat_dataframe
 '''
 from qupath_processing.io import (
     write_densities_csv, read_pixel_size, list_images)
@@ -66,11 +67,15 @@ def batch(config_file_path):
     grid_nb_col = int(config['BATCH']['grid_nb_col'])
 
     image_dictionary = list_images(input_directory, cell_position_suffix, annotations_geojson_suffix)
+
+    final_dataframe = None
     for image_prefix, values in image_dictionary.items():
         print('INFO: Process single image {}'.format(image_prefix))
         densities_dataframe = single_image_process(values['CELL_POSITIONS_PATH'], values['ANNOTATIONS_PATH'],
                                                    pixel_size, thickness_cut,
-                                                   grid_nb_row, grid_nb_col)
+                                                   grid_nb_row, grid_nb_col, image_prefix)
         print('INFO: ', densities_dataframe)
-        print('INFO: Write results for image {}'.format(image_prefix))
-        write_densities_csv(densities_dataframe, output_directory + '/' + image_prefix + '.xlsx')
+        print('INFO: Concatenate results for image {}'.format(image_prefix))
+        final_dataframe = concat_dataframe(densities_dataframe, final_dataframe)
+
+    write_densities_file(final_dataframe, output_directory + '/rat_sscx_densities')

@@ -16,7 +16,7 @@ from qupath_processing.visualisation import plot_densities,\
 #pylint: disable=too-many-arguments
 #pylint: disable=too-many-locals
 def single_image_process(cell_position_file_path, annotations_geojson_path, pixel_size,
-                         thickness_cut, nb_row, nb_col, visualisation_flag = False):
+                         thickness_cut, nb_row, nb_col, image_prefix, visualisation_flag = False):
     """
     :param cell_position_file_path:(dtr)
     :param annotations_geojson_path:(str)
@@ -24,6 +24,7 @@ def single_image_process(cell_position_file_path, annotations_geojson_path, pixe
     :param thickness_cut:(float) um
     :param nb_row:(int)
     :param nb_col:(int)
+    :param image_prefix(str)
     :param visualisation_flag:(bool)
     :return: densities_dataframe(pandas dataframe)
     """
@@ -47,7 +48,8 @@ def single_image_process(cell_position_file_path, annotations_geojson_path, pixe
     depth_percentage, densities = compute_cell_density(nb_cell_per_slide,
                                                        split_polygons,
                                                        thickness_cut / 1e3)
-    densities_dataframe = pd.DataFrame({'depth_percentage': depth_percentage,
+    densities_dataframe = pd.DataFrame({'image': [image_prefix] * len(depth_percentage),
+                                        'depth_percentage': depth_percentage,
                                         'densities': densities})
 
     if visualisation_flag:
