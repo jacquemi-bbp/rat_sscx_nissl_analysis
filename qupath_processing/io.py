@@ -9,6 +9,7 @@ import numpy as np
 import geojson
 import pandas as pd
 import openpyxl
+from qupath_processing.utilities import NotValidImage
 
 
 def read_cells_coordinate(file_path):
@@ -33,9 +34,12 @@ def read_cells_coordinate(file_path):
     idx = [r[0] for r in data]
     data = (islice(r, 1, None) for r in data)
     df_404 = pd.DataFrame(data, index=idx, columns=cols)
-    cells_centroid_x = df_404['Centroid X µm'].to_numpy(dtype=float)
-    cells_centroid_y = df_404['Centroid Y µm'].to_numpy(dtype=float)
-    return cells_centroid_x, cells_centroid_y
+    try:
+        cells_centroid_x = df_404['Centroid X µm'].to_numpy(dtype=float)
+        cells_centroid_y = df_404['Centroid Y µm'].to_numpy(dtype=float)
+        return cells_centroid_x, cells_centroid_y
+    except KeyError:
+        raise NotValidImage
 
 
 def read_qupath_annotations(file_path):
@@ -95,7 +99,7 @@ def write_densities_file(dataframe, output_file_path):
     :param output_file_path(str):
     """
     dataframe.to_excel(output_file_path + '.xlsx', header=True, index=False)
-    dataframe.to_pickle(output_file_path + 'pkl')
+    dataframe.to_pickle(output_file_path + '.pkl')
 
 
 
@@ -113,10 +117,10 @@ def list_images(input_directory, cell_position_suffix,
                  isfile(join(input_directory, file_name))]
     image_dictionary = {}
     for filename in onlyfiles:
-        prefix_pos = filename.find('_cell_position.txt')
+        prefix_pos = filename.find(cell_position_suffix) # SLD_0000521.vsi - 20x_01 Detections.txt
         if prefix_pos != -1:
             image_name = filename[:prefix_pos]
-            if image_name + '_annotations.geojson' in onlyfiles:
+            if image_name + annotations_geojson_suffix in onlyfiles:
                 image_dictionary[image_name] = {}
                 image_dictionary[image_name]['CELL_POSITIONS_PATH'] =\
                     input_directory + '/' + image_name + cell_position_suffix
@@ -124,7 +128,8 @@ def list_images(input_directory, cell_position_suffix,
                     input_directory + '/' + image_name +\
                     annotations_geojson_suffix
             else:
-                print(f"ERROR: {image_name + '_annotations.geojson'} "
+                print(f"ERROR: {image_name + annotations_geojson_suffix} "
                       f"does not exist for image {image_name}")
 
     return image_dictionary
+

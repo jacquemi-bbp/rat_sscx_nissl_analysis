@@ -8,11 +8,9 @@ from qupath_processing.rat_sscx_nissl_processing import (
 from qupath_processing.io import (
     write_densities_file, read_pixel_size, list_images
 )
-from qupath_processing.utilities import concat_dataframe
-'''
-from qupath_processing.io import (
-    write_densities_csv, read_pixel_size, list_images)
-'''
+from qupath_processing.utilities import (
+        concat_dataframe, NotValidImage
+)
 from qupath_processing.version import VERSION
 
 @click.version_option(VERSION)
@@ -58,8 +56,8 @@ def batch(config_file_path):
     config.read(config_file_path)
 
     input_directory = config['BATCH']['input_directory']
-    cell_position_suffix = config['BATCH']['cell_position_suffix']
-    annotations_geojson_suffix = config['BATCH']['annotations_geojson_suffix']
+    cell_position_suffix = config['BATCH']['cell_position_suffix'].replace("\"","")
+    annotations_geojson_suffix = config['BATCH']['annotations_geojson_suffix'].replace("\"","")
     output_directory = config['BATCH']['output_directory']
     pixel_size = float(config['BATCH']['pixel_size'])
     thickness_cut = float(config['BATCH']['thickness_cut'])
@@ -67,15 +65,17 @@ def batch(config_file_path):
     grid_nb_col = int(config['BATCH']['grid_nb_col'])
 
     image_dictionary = list_images(input_directory, cell_position_suffix, annotations_geojson_suffix)
-
     final_dataframe = None
     for image_prefix, values in image_dictionary.items():
         print('INFO: Process single image {}'.format(image_prefix))
-        densities_dataframe = single_image_process(values['CELL_POSITIONS_PATH'], values['ANNOTATIONS_PATH'],
-                                                   pixel_size, thickness_cut,
-                                                   grid_nb_row, grid_nb_col, image_prefix)
-        print('INFO: ', densities_dataframe)
-        print('INFO: Concatenate results for image {}'.format(image_prefix))
-        final_dataframe = concat_dataframe(densities_dataframe, final_dataframe)
+        try:
+            densities_dataframe = single_image_process(values['CELL_POSITIONS_PATH'], values['ANNOTATIONS_PATH'],
+                                                       pixel_size, thickness_cut,
+                                                       grid_nb_row, grid_nb_col, image_prefix)
+            print('INFO: ', densities_dataframe)
+            print('INFO: Concatenate results for image {}'.format(image_prefix))
+            final_dataframe = concat_dataframe(densities_dataframe, final_dataframe)
+        except NotValidImage:
+            print('WARNING. No position data for {}'.format(image_prefix))
 
     write_densities_file(final_dataframe, output_directory + '/rat_sscx_densities')

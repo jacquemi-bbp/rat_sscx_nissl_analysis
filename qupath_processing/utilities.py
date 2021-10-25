@@ -4,6 +4,10 @@ Utilities module
 
 import pandas as pd
 
+class NotValidImage(Exception):
+    pass
+
+
 def concat_dataframe(dest, source=None):
     """
     Concatenate source dataframe to dest

@@ -6,6 +6,7 @@ from math import sqrt
 import numpy as np
 from shapely.geometry import Point, LineString, Polygon
 from shapely.ops import split
+from qupath_processing.utilities import NotValidImage
 
 def distance(pt1, pt2):
     """
@@ -128,16 +129,19 @@ def create_depth_polygons(s1_coordinates, horizontal_lines):
     :return: list of shapely polygons representing S1 layers as fonction
              if brain depth
     """
-    split_polygons = []
-    polygon_to_split = Polygon(s1_coordinates)
-    for line in horizontal_lines:
-        split_result = split(polygon_to_split, line)
+    try:
+        split_polygons = []
+        polygon_to_split = Polygon(s1_coordinates)
+        for line in horizontal_lines:
+            split_result = split(polygon_to_split, line)
 
-        polygon_to_split = split_result[1]
-        split_polygons.append(split_result[0])
+            polygon_to_split = split_result[1]
+            split_polygons.append(split_result[0])
 
-    split_polygons.append(polygon_to_split)
-    return split_polygons
+        split_polygons.append(polygon_to_split)
+        return split_polygons
+    except IndexError:
+        raise NotValidImage
 
 
 def count_nb_cell_per_polygon(cells_centroid_x, cells_centroid_y,

@@ -13,6 +13,8 @@ from qupath_processing.geometry import (
 from qupath_processing.visualisation import plot_densities,\
     plot_split_polygons_and_cell_depth
 
+from qupath_processing.utilities import NotValidImage
+
 #pylint: disable=too-many-arguments
 #pylint: disable=too-many-locals
 def single_image_process(cell_position_file_path, annotations_geojson_path, pixel_size,
@@ -30,35 +32,40 @@ def single_image_process(cell_position_file_path, annotations_geojson_path, pixe
     """
 
     print('INFO: Read input files')
-    cells_centroid_x, cells_centroid_y = \
-        read_cells_coordinate(cell_position_file_path)
-    s1_pixel_coordinates, quadrilateral_pixel_coordinates =\
-        read_qupath_annotations(annotations_geojson_path)
-    print('INFO: Convert coodonates from pixel to mm')
-    s1_coordinates = s1_pixel_coordinates * pixel_size
-    quadrilateral_coordinates = quadrilateral_pixel_coordinates * pixel_size
-    print('INFO: Create S1 grid as function of brain depth')
-    horizontal_lines = create_grid(quadrilateral_coordinates,
-                                    s1_coordinates, nb_row, nb_col)
-    split_polygons = create_depth_polygons(s1_coordinates, horizontal_lines)
-    print('INFO: Computes the cells densities as function of percentage depth')
-    nb_cell_per_slide = count_nb_cell_per_polygon(cells_centroid_x,
-                                                  cells_centroid_y,
-                                                  split_polygons)
-    depth_percentage, densities = compute_cell_density(nb_cell_per_slide,
-                                                       split_polygons,
-                                                       thickness_cut / 1e3)
-    densities_dataframe = pd.DataFrame({'image': [image_prefix] * len(depth_percentage),
-                                        'depth_percentage': depth_percentage,
-                                        'densities': densities})
+    try:
+        cells_centroid_x, cells_centroid_y = \
+            read_cells_coordinate(cell_position_file_path)
+        s1_pixel_coordinates, quadrilateral_pixel_coordinates =\
+            read_qupath_annotations(annotations_geojson_path)
+        print('INFO: Convert coodonates from pixel to mm')
+        s1_coordinates = s1_pixel_coordinates * pixel_size
+        quadrilateral_coordinates = quadrilateral_pixel_coordinates * pixel_size
+        print('INFO: Create S1 grid as function of brain depth')
+        horizontal_lines = create_grid(quadrilateral_coordinates,
+                                        s1_coordinates, nb_row, nb_col)
+        split_polygons = create_depth_polygons(s1_coordinates, horizontal_lines)
+        print('INFO: Computes the cells densities as function of percentage depth')
+        nb_cell_per_slide = count_nb_cell_per_polygon(cells_centroid_x,
+                                                      cells_centroid_y,
+                                                      split_polygons)
+        depth_percentage, densities = compute_cell_density(nb_cell_per_slide,
+                                                           split_polygons,
+                                                           thickness_cut / 1e3)
+        densities_dataframe = pd.DataFrame({'image': [image_prefix] * len(depth_percentage),
+                                            'depth_percentage': depth_percentage,
+                                            'densities': densities})
 
-    if visualisation_flag:
         if visualisation_flag:
-            plot_split_polygons_and_cell_depth(split_polygons, s1_coordinates,
-                                               cells_centroid_x,
-                                               cells_centroid_y)
-            plot_densities(depth_percentage, densities)
-    return densities_dataframe
+            if visualisation_flag:
+                plot_split_polygons_and_cell_depth(split_polygons, s1_coordinates,
+                                                   cells_centroid_x,
+                                                   cells_centroid_y)
+                plot_densities(depth_percentage, densities)
+        return densities_dataframe
+    except KeyError:
+        raise NotValidImage
+    except IndexError:
+        raise NotValidImage
 
 
 def compute_cell_density(nb_cell_per_slide, split_polygons, z_length):
@@ -80,3 +87,4 @@ def compute_cell_density(nb_cell_per_slide, split_polygons, z_length):
     depth_percentage = [i/len(split_polygons) for i in
                         range(len(split_polygons))]
     return depth_percentage, densities
+
