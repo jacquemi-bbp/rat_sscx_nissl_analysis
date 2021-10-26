@@ -30,6 +30,7 @@ def single_image_process(cell_position_file_path, annotations_geojson_path, pixe
     :param visualisation_flag:(bool)
     :return: densities_dataframe(pandas dataframe)
     """
+    print("DEBUG visualisation_flag:", visualisation_flag)
 
     print('INFO: Read input files')
     try:
@@ -56,11 +57,10 @@ def single_image_process(cell_position_file_path, annotations_geojson_path, pixe
                                             'densities': densities})
 
         if visualisation_flag:
-            if visualisation_flag:
-                plot_split_polygons_and_cell_depth(split_polygons, s1_coordinates,
-                                                   cells_centroid_x,
-                                                   cells_centroid_y)
-                plot_densities(depth_percentage, densities)
+            plot_split_polygons_and_cell_depth(split_polygons, s1_coordinates,
+                                               cells_centroid_x,
+                                               cells_centroid_y)
+            plot_densities(depth_percentage, densities)
         return densities_dataframe
     except KeyError:
         raise NotValidImage

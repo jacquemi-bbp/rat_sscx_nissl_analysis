@@ -67,7 +67,8 @@ def read_qupath_annotations(file_path):
             ## S1 annotation has a classification key b4 name
             if "classification" in entry["properties"].keys():
                 if "name" in entry["properties"]["classification"].keys():
-                    if entry["properties"]["classification"]["name"] != "SliceContour":
+                    if entry["properties"]["classification"]["name"] != "SliceContour" and\
+                            entry["properties"]["classification"]["name"] != 'Other':
                         annotations[entry["properties"]["classification"]["name"]] = np.array(entry["geometry"]["coordinates"])
         except KeyError:  # annotation without name
             pass

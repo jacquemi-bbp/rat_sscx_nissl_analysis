@@ -38,12 +38,14 @@ def process(config_file_path, cell_position_file_path, annotations_geojson_path,
         nb_col = int(config['DEFAULT']['grid_nb_col'])
         output_file_path = config['DEFAULT']['output_file_path']
     pixel_size = read_pixel_size(pixel_file_path)
-    print('INFO: Process single image')
+    image_name = cell_position_file_path[cell_position_file_path.rfind('/')+1:cell_position_file_path.rfind('.')]
+    print('INFO: Process single image ', image_name)
     densities_dataframe = single_image_process(cell_position_file_path, annotations_geojson_path, pixel_size, thickness_cut,
-                         nb_row, nb_col, visualisation_flag)
+                         nb_row, nb_col, image_name,  visualisation_flag=visualisation_flag)
     print('INFO: ', densities_dataframe)
     print('INFO: Write results')
-    write_densities_csv(densities_dataframe, output_file_path)
+    output_directory = '/tmp/'
+    write_densities_file(densities_dataframe, output_directory + '/rat_sscx_densities')
 
 
 
