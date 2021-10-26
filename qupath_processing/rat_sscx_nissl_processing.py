@@ -61,6 +61,8 @@ def single_image_process(cell_position_file_path, annotations_geojson_path, pixe
                                                cells_centroid_y)
             plot_densities(depth_percentage, densities)
         return densities_dataframe
+    except NotValidImage:
+        raise NotValidImage
     except KeyError:
         raise NotValidImage
     except IndexError:
