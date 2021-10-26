@@ -30,7 +30,6 @@ def single_image_process(cell_position_file_path, annotations_geojson_path, pixe
     :param visualisation_flag:(bool)
     :return: densities_dataframe(pandas dataframe)
     """
-    print("DEBUG visualisation_flag:", visualisation_flag)
 
     print('INFO: Read input files')
     try:

@@ -70,14 +70,14 @@ def batch(config_file_path):
     final_dataframe = None
     for image_prefix, values in image_dictionary.items():
         print('INFO: Process single image {}'.format(image_prefix))
-        try:
-            densities_dataframe = single_image_process(values['CELL_POSITIONS_PATH'], values['ANNOTATIONS_PATH'],
-                                                       pixel_size, thickness_cut,
-                                                       grid_nb_row, grid_nb_col, image_prefix)
-            print('INFO: ', densities_dataframe)
-            print('INFO: Concatenate results for image {}'.format(image_prefix))
-            final_dataframe = concat_dataframe(densities_dataframe, final_dataframe)
-        except NotValidImage:
-            print('WARNING. No position data for {}'.format(image_prefix))
+        #try:
+        densities_dataframe = single_image_process(values['CELL_POSITIONS_PATH'], values['ANNOTATIONS_PATH'],
+                                                   pixel_size, thickness_cut,
+                                                   grid_nb_row, grid_nb_col, image_prefix)
+        print('INFO: ', densities_dataframe)
+        print('INFO: Concatenate results for image {}'.format(image_prefix))
+        final_dataframe = concat_dataframe(densities_dataframe, final_dataframe)
+        #except NotValidImage:
+        #    print('WARNING. No position data for {}'.format(image_prefix))
 
     write_densities_file(final_dataframe, output_directory + '/rat_sscx_densities')

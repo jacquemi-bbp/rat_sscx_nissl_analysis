@@ -78,18 +78,31 @@ def vertical_line_splitter(quadrilateral, s1_coordinates, nb_col):
     bottom_right = quadrilateral[2]
     bottom_left = quadrilateral[3]
     # Vertical lines
-    vertical_lines = [LineString([[top_left[0] - 10, top_left[1]],
-                                  [bottom_left[0] - 10, bottom_left[1]]])]
+    vertical_lines = [LineString([[top_left[0] - 100, top_left[1]],
+                                  [bottom_left[0] - 100, bottom_left[1]]])]
     for i in range(nb_col - 1):
         top_point = top_left + (top_right - top_left) / nb_col * (i + 1)
         bottom_point = bottom_left + (bottom_right - bottom_left) / nb_col * (i + 1)
         #line = LineString([(top_point[0], top_point[1]), (bottom_point[0], bottom_point[1])])
         line_coordinates = get_extrapoled_segement([(top_point[0], top_point[1]),
                                                     (bottom_point[0], bottom_point[1])], 1.3)
-        intersection_line = \
-            Polygon(s1_coordinates).intersection(LineString(line_coordinates)).coords
-        vertical_lines.append(intersection_line)
-    vertical_lines.append(LineString([top_right, bottom_right]))
+        try:
+            intersection_line = \
+                Polygon(s1_coordinates).intersection(LineString(line_coordinates)).coords
+            vertical_lines.append(intersection_line)
+
+        except NotImplementedError:
+            print('WARNING: A VerticalLine on {} not created'.format(nb_col))
+            '''
+             In some case, several point of S1 intersect with the LineString and produce
+             shapely NotImplementedError error. In this case, we just de not create the
+             corresponding vertical line. If the number of row is important (~100). This will
+             not change the result a lot. Just the "shape" of corresponding polygon will be average
+             from prev and next VerticalLine
+            '''
+
+    vertical_lines.append(LineString([[top_right[0]+100, top_right[1]],
+                                      [bottom_right[0]+100,bottom_right[1]]]))
     return vertical_lines
 
 

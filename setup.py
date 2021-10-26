@@ -11,7 +11,7 @@ VERSION = module.VERSION
 
 with open('requirements.txt') as f:
     requirements = f.readlines()
-print('DEBUG requirements', requirements)
+
 setup(
     classifiers=[
         'Programming Language :: Python :: 3.8',

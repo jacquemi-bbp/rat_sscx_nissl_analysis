@@ -26,7 +26,5 @@ def test_single_image_process():
                                                       annotations_geojson_path, pixel_size,
                                                       thickness_cut, grid_nb_row, grid_nb_col,
                                                       'test')
-
     reference_dataframe = pd.read_pickle(DATA_DIR / '539_02_dataframe.pkl')
-
     assert_frame_equal(reference_dataframe, densities_dataframe)
