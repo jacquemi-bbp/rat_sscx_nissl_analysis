@@ -13,8 +13,8 @@ logger.info("Save folder: {}", saveFolderPath)
 def saveFolder = new File(saveFolderPath)
 
 // Specify the model directory (you will need to change this!)
-//def model = 'julie.meystre_LNMC\01413828_RH_Nissl_2_QuPath_StaDist_Training\Training_20210910'
 def model = 'julie-nissl-round2_nissl-2_r16_p128_g2_k3_e400_se100_b32_aug.pb'
+//def model = 'julie-1-slice_nissl_r16_p128_g2_k3_e400_se100_b32_aug.pb'
 
 
 // Pick up current image name to append to the resulting files

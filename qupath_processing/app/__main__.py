@@ -67,6 +67,10 @@ def batch(config_file_path):
     grid_nb_col = int(config['BATCH']['grid_nb_col'])
 
     image_dictionary = list_images(input_directory, cell_position_suffix, annotations_geojson_suffix)
+    print(f'INFO: input files: {list(image_dictionary.keys())}')
+    if len(image_dictionary) == 0:
+        print('WARNING: No input files to proccess.')
+        return
     final_dataframe = None
     for image_prefix, values in image_dictionary.items():
         print('INFO: Process single image {}'.format(image_prefix))
@@ -78,6 +82,6 @@ def batch(config_file_path):
             print('INFO: Concatenate results for image {}'.format(image_prefix))
             final_dataframe = concat_dataframe(densities_dataframe, final_dataframe)
         except NotValidImage:
-            print('WARNING. No position data for {}'.format(image_prefix))
+            print('WARNING. No cells position data for {}'.format(image_prefix))
 
     write_densities_file(final_dataframe, output_directory + '/rat_sscx_densities')
