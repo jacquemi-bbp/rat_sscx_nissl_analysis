@@ -64,8 +64,3 @@ $ pyqupath_batch_processing --config-file-path ./Config/batch_config.ini
 ```shell
 ./run_pipeline.sh
 ```
-
-# Documentation
-[Online Documentation]()
-
-### Integration test
