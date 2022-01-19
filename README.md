@@ -5,6 +5,7 @@ EPFL LNMC laboratory provides some rat somatosensory cortex Nissl microscopy ima
 From these images and some QuPath annotations, this pipeline generates
  cells densities as a function of the percentage of depth inside the somatosensory cortex.
 
+![cells_density_view_10x10_grid](cells_density_view_10x10_grid.png)
 
 # The pipeline consists of two main steps:
 1. (groovy + QuPath) Cells detection, export annotations, and cells coordinates
