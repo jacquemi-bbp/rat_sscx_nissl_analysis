@@ -41,13 +41,13 @@ def process(config_file_path, cell_position_file_path, annotations_geojson_path,
         if output_path == None:
             print('ERROR --output-path is required')
 
-        image_name = cell_position_file_path[cell_position_file_path.rfind('/')+1:cell_position_file_path.rfind('.')]
-        print('INFO: Process single image ', image_name)
-        densities_dataframe = single_image_process(cell_position_file_path, annotations_geojson_path, pixel_size, thickness_cut,
-                             nb_row, nb_col, image_name,  visualisation_flag=visualisation_flag)
-        print('INFO: ', densities_dataframe)
-        print('INFO: Write results')
-        write_densities_file(densities_dataframe, image_name, output_path)
+    image_name = cell_position_file_path[cell_position_file_path.rfind('/')+1:cell_position_file_path.rfind('.')]
+    print('INFO: Process single image ', image_name)
+    densities_dataframe = single_image_process(cell_position_file_path, annotations_geojson_path, pixel_size, thickness_cut,
+                         nb_row, nb_col, image_name,  visualisation_flag=visualisation_flag)
+    print('INFO: ', densities_dataframe)
+    print('INFO: Write results')
+    write_densities_file(densities_dataframe, image_name, output_path)
 
 
 
