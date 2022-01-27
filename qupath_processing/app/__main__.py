@@ -63,6 +63,7 @@ def batch(config_file_path):
     cell_position_suffix = config['BATCH']['cell_position_suffix'].replace("\"","")
     annotations_geojson_suffix = config['BATCH']['annotations_geojson_suffix'].replace("\"","")
     output_directory = config['BATCH']['output_directory']
+    output_file_prefix = config['BATCH']['output_file_prefix']
     pixel_size = float(config['BATCH']['pixel_size'])
     thickness_cut = float(config['BATCH']['thickness_cut'])
     grid_nb_row = int(config['BATCH']['grid_nb_row'])
@@ -86,4 +87,4 @@ def batch(config_file_path):
         except NotValidImage:
             print('WARNING. No cells position data for {}'.format(image_prefix))
 
-    write_densities_file(final_dataframe, output_directory + '/rat_sscx_densities')
+    write_densities_file(final_dataframe, output_file_prefix,  output_directory)
