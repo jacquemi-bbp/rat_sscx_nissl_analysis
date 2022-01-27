@@ -31,7 +31,7 @@ def single_image_process(cell_position_file_path, annotations_geojson_path, pixe
     :return: densities_dataframe(pandas dataframe)
     """
 
-    print('INFO: Read input files')
+    print(f'INFO: Read input files {cell_position_file_path} and {annotations_geojson_path}')
     try:
         cells_centroid_x, cells_centroid_y = \
             read_cells_coordinate(cell_position_file_path)

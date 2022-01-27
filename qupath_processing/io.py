@@ -93,14 +93,14 @@ def read_pixel_size(pixel_file_path):
     return readed_pixel_size
 
 
-def write_densities_file(dataframe, output_file_path):
+def write_densities_file(dataframe, image_name, output_path):
     """
     export and save result to xlsx file
     :param dataframe (pandas Dataframe):
-    :param output_file_path(str):
+    :param output_path(str):
     """
-    dataframe.to_excel(output_file_path + '.xlsx', header=True, index=False)
-    dataframe.to_pickle(output_file_path + '.pkl')
+    dataframe.to_excel(output_path + '/' + image_name + '.xlsx', header=True, index=False)
+    dataframe.to_pickle(output_path + '/' + image_name + '.pkl')
 
 
 
