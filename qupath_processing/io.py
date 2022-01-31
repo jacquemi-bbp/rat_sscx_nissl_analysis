@@ -48,7 +48,7 @@ def read_qupath_annotations(file_path):
     :param file_path:
     :return:
         tuple:
-            - s1_coordinates: np.array(float) of shape (nb_vertices, 2) containing S1 polygon
+            - s1_coordinates: np.array(float) of shape (nb_vertices, 2) containing S1HL polygon
             coordinates
             - quadrilateral: np.array(float) o shape (5, 2): ClockWise coordinates defined by
             TOP_LEFT, TOP_RIGHT, BOTTOM_RIGHT, BOTTOM_LEFT and TOP_LEFT coordinates
@@ -64,7 +64,7 @@ def read_qupath_annotations(file_path):
             if "name" in entry["properties"].keys():
                 annotations[entry["properties"]["name"]] = \
                     np.array(entry["geometry"]["coordinates"])
-            ## S1 annotation has a classification key b4 name
+            ## S1HL annotation has a classification key b4 name
             if "classification" in entry["properties"].keys():
                 if "name" in entry["properties"]["classification"].keys():
                     if entry["properties"]["classification"]["name"] != "SliceContour" and\
@@ -73,7 +73,7 @@ def read_qupath_annotations(file_path):
         except KeyError:  # annotation without name
             pass
 
-    s1_pixel_coordinates = annotations['S1'][0]
+    s1_pixel_coordinates = annotations['S1HL'][0]
     # These 4 points can not be find via an algo, so we need QuPath annotation
     quadrilateral_pixel_coordinates = np.array([annotations['top_left'], annotations['top_right'],
                                                 annotations['bottom_right'],
