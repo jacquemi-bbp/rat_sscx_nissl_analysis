@@ -21,7 +21,8 @@ def plot_densities(percentages, densities):
 
 
 def plot_split_polygons_and_cell_depth(split_polygons, s1_coordinates,
-                                       cells_centroid_x, cells_centroid_y):
+                                       cells_centroid_x, cells_centroid_y,
+                                       vertical_lines=None):
     """
     Plot splitted S1 polgygons and cell coordiantes and depth
     :param split_polygons: list of shapely polygons representing S1 layers as
@@ -44,5 +45,9 @@ def plot_split_polygons_and_cell_depth(split_polygons, s1_coordinates,
         plt.plot(x_coord, y_coord)
     plt.plot(s1_coordinates[:, 0], s1_coordinates[:, 1], 'r')
     plt.scatter(cells_centroid_x, cells_centroid_y,
-                c=np.array(cells_depth) / 100, s=1)
+               c=np.array(cells_depth) / 100, s=1)
+    if vertical_lines:
+        for line in vertical_lines:
+            line = np.array(line)
+            plt.axline((line[0][0], line[0][1]), (line[1][0], line[1][1]), color='red')
     plt.show()

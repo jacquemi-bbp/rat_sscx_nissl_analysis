@@ -4,7 +4,7 @@ Geometry module that contains geometric functions
 
 from math import sqrt
 import numpy as np
-from shapely.geometry import Point, LineString, Polygon
+from shapely.geometry import Point, LineString, Polygon, MultiLineString, shape
 from shapely.ops import split
 from qupath_processing.utilities import NotValidImage
 
@@ -54,7 +54,7 @@ def create_grid(quadrilateral, s1_coordinates, nb_row, nb_col):
 
     """
     vertical_lines = vertical_line_splitter(quadrilateral, s1_coordinates, nb_col)
-    return horizontal_line_splitter(vertical_lines, nb_row)
+    return horizontal_line_splitter(vertical_lines, nb_row), vertical_lines
 
 
 def vertical_line_splitter(quadrilateral, s1_coordinates, nb_col):
@@ -78,14 +78,21 @@ def vertical_line_splitter(quadrilateral, s1_coordinates, nb_col):
     bottom_right = quadrilateral[2]
     bottom_left = quadrilateral[3]
     # Vertical lines
-    vertical_lines = [LineString([[top_left[0] - 100, top_left[1]],
-                                  [bottom_left[0] - 100, bottom_left[1]]])]
+    vertical_lines = [LineString([[top_left[0] - 2000, top_left[1]],
+                                  [bottom_left[0] - 2000, bottom_left[1]]])]
     for i in range(nb_col - 1):
         top_point = top_left + (top_right - top_left) / nb_col * (i + 1)
         bottom_point = bottom_left + (bottom_right - bottom_left) / nb_col * (i + 1)
-        #line = LineString([(top_point[0], top_point[1]), (bottom_point[0], bottom_point[1])])
         line_coordinates = get_extrapoled_segement([(top_point[0], top_point[1]),
                                                     (bottom_point[0], bottom_point[1])], 1.3)
+        intersection_line = LineString(line_coordinates).intersection(Polygon(s1_coordinates))
+        if isinstance(intersection_line, MultiLineString):
+            for line in intersection_line:
+                vertical_lines.append(line)
+                break
+        else:
+            vertical_lines.append(intersection_line)
+        """
         try:
             intersection_line = \
                 Polygon(s1_coordinates).intersection(LineString(line_coordinates)).coords
@@ -100,9 +107,9 @@ def vertical_line_splitter(quadrilateral, s1_coordinates, nb_col):
              not change the result a lot. Just the "shape" of corresponding polygon will be average
              from prev and next VerticalLine
             '''
-
-    vertical_lines.append(LineString([[top_right[0]+100, top_right[1]],
-                                      [bottom_right[0]+100,bottom_right[1]]]))
+        """
+    vertical_lines.append(LineString([[top_right[0]+2000, top_right[1]],
+                                      [bottom_right[0]+2000, bottom_right[1]]]))
     return vertical_lines
 
 
@@ -125,8 +132,10 @@ def horizontal_line_splitter(vertical_lines, nb_row):
         horizontal_points = []
         for line in vertical_lines:
             line_coord = np.array(line)
+
             point = line_coord[0] + (line_coord[1] - line_coord[0]) / nb_row * (i + 1)
             horizontal_points.append(point)
+
         horizontal_line = LineString(horizontal_points)
         horizontal_lines.append(horizontal_line)
     return horizontal_lines
@@ -142,19 +151,22 @@ def create_depth_polygons(s1_coordinates, horizontal_lines):
     :return: list of shapely polygons representing S1 layers as fonction
              if brain depth
     """
-    try:
-        split_polygons = []
-        polygon_to_split = Polygon(s1_coordinates)
-        for line in horizontal_lines:
-            split_result = split(polygon_to_split, line)
-
+    #try:
+    split_polygons = []
+    polygon_to_split = Polygon(s1_coordinates)
+    for line in horizontal_lines:
+        split_result = split(polygon_to_split, line)
+        try:
             polygon_to_split = split_result[1]
             split_polygons.append(split_result[0])
+        except IndexError:
+            print('------ ======= DEBUG IndexError ------ =======')
+            pass
 
-        split_polygons.append(polygon_to_split)
-        return split_polygons
-    except IndexError:
-        raise NotValidImage
+    split_polygons.append(polygon_to_split)
+    return split_polygons
+    #except IndexError:
+        #raise NotValidImage
 
 
 def count_nb_cell_per_polygon(cells_centroid_x, cells_centroid_y,
