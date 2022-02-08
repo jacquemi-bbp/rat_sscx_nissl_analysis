@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import DBSCAN
 
-from qupath_processing.io import get_cells_coordinate_dataframe
+from qupath_processing.io import to_dataframe
 
 
 
@@ -17,9 +17,7 @@ def get_cell_coordinate_by_layers(cell_position_file_path):
     :param cell_position_file_path: (str)
     :return: dict: key -> Layer name, values np.array of shape (N, 2)
     """
-    df = get_cells_coordinate_dataframe(cell_position_file_path)
-    foo = df[df["Class"] == 'Layer 1']
-    print(f'DEBUG {foo}')
+    df = to_dataframe(cell_position_file_path)
     layer_points = {}
     for layer_name in ['Layer 1',
                        'Layer 2',
@@ -71,31 +69,34 @@ def clustering(layer_name, X, _eps=100, log=False, figure=False):
         class_member_mask = labels == k
 
         xy = X[class_member_mask & ~core_samples_mask]
-        plt.plot(
-            xy[:, 0],
-            xy[:, 1],
-            "o",
-            markerfacecolor=tuple(col),
-            markeredgecolor="k",
-            markersize=3,
-        )
+        if figure:
+            plt.plot(
+                xy[:, 0],
+                xy[:, 1],
+                "o",
+                markerfacecolor=tuple(col),
+                markeredgecolor="k",
+                markersize=3,
+            )
 
         xy = X[class_member_mask & core_samples_mask]
-        plt.plot(
-            xy[:, 0],
-            xy[:, 1],
-            "o",
-            markerfacecolor=tuple(col),
-            markeredgecolor="k",
-            markersize=12,
-        )
+        if figure:
+            plt.plot(
+                xy[:, 0],
+                xy[:, 1],
+                "o",
+                markerfacecolor=tuple(col),
+                markeredgecolor="k",
+                markersize=12,
+            )
 
         # KEEP points from the bigger cluster  only
         if len(xy) > len(return_coordinates):
             return_coordinates = xy
 
-    plt.gca().invert_yaxis()
-    title = f'{layer_name} keep {len(return_coordinates) / X.shape[0] * 100:.2f} % of original points in main cluster'
-    plt.title(title)
-    plt.show()
+    if figure:
+        plt.gca().invert_yaxis()
+        title = f'{layer_name} keep {len(return_coordinates) / X.shape[0] * 100:.2f} % of original points in main cluster'
+        plt.title(title)
+        plt.show()
     return return_coordinates

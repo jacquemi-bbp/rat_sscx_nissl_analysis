@@ -12,7 +12,7 @@ import openpyxl
 from qupath_processing.utilities import NotValidImage
 
 
-def get_cells_coordinate_dataframe(file_path):
+def to_dataframe(file_path):
     """
     Ream input file and return and panf=das data frame
     :param file_path: (str). Path to the fiule that containns cell cordinates
@@ -136,3 +136,20 @@ def list_images(input_directory, cell_position_suffix,
 
     return image_dictionary
 
+
+
+def get_top_line_coordinates(annotation_position_file_path):
+    """
+    Read TOP_LEFT and TOP_RIGHT point from file located at annotation_position_file_path
+    :param annotation_position_file_path: (str)
+    :return: np.array of shape (2,2) containing top left and right points
+    """
+    df_annotation = to_dataframe(annotation_position_file_path)
+    position={}
+    for point_str in ['TOP_LEFT', 'TOP_RIGHT', 'BOTTOM_RIGHT', 'BOTTOM_FEFT']:
+        annotation = df_annotation[df_annotation["Name"] == point_str]
+        position[point_str] = [annotation['Centroid X µm'].to_numpy(dtype=float),
+                               annotation['Centroid Y µm'].to_numpy(dtype=float) ]
+    top_left = position['TOP_LEFT']
+    top_right = position['TOP_RIGHT']
+    return np.array(top_left), np.array(top_right)
