@@ -23,8 +23,6 @@ setup(
     packages=find_packages(),
     name='qupath_processing',
     entry_points={
-        'console_scripts': ['pyqupath_processing=qupath_processing.app.__main__:process',
-                            'pyqupath_batch_processing=qupath_processing.app.__main__:batch',
-                            ]
+        'console_scripts': ['pyqupath_processing=qupath_processing.app.__main__:app'  ]
     }
 )

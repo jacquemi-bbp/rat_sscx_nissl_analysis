@@ -118,7 +118,7 @@ def list_images(input_directory, cell_position_suffix,
                  isfile(join(input_directory, file_name))]
     image_dictionary = {}
     for filename in onlyfiles:
-        prefix_pos = filename.find(cell_position_suffix) # SLD_0000521.vsi - 20x_01 Detections.txt
+        prefix_pos = filename.find(cell_position_suffix)  # SLD_0000521.vsi - 20x_01 Detections.txt
         if prefix_pos != -1:
             image_name = filename[:prefix_pos]
             if image_name + annotations_geojson_suffix in onlyfiles:
