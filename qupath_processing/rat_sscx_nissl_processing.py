@@ -4,7 +4,7 @@ QuPath porcessing for rat somatosensory cortex Nissl data module
 
 import pandas as pd
 from qupath_processing.io import (
-    read_qupath_annotations, read_cells_coordinate,
+    read_qupath_annotations, read_cells_coordinate, get_cells_coordinate_dataframe
     )
 from qupath_processing.geometry import (
     create_depth_polygons, create_grid, count_nb_cell_per_polygon
@@ -33,8 +33,9 @@ def single_image_process(cell_position_file_path, annotations_geojson_path, pixe
 
     print(f'INFO: Read input files {cell_position_file_path} and {annotations_geojson_path}')
     #try:
+    datgaframe = get_cells_coordinate_dataframe(cell_position_file_path)
     cells_centroid_x, cells_centroid_y = \
-        read_cells_coordinate(cell_position_file_path)
+        read_cells_coordinate(datgaframe)
     s1_pixel_coordinates, quadrilateral_pixel_coordinates =\
         read_qupath_annotations(annotations_geojson_path)
     print('INFO: Convert coodonates from pixel to mm')

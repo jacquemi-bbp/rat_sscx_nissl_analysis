@@ -6,6 +6,8 @@ import click
 
 from qupath_processing.app.density.single import density
 from qupath_processing.app.density.batch import batch_density
+from qupath_processing.app.boundary.boundary_cmd import cmd
+
 from qupath_processing.version import VERSION
 
 @click.group('pyqupath_processing', help=__doc__.format(esc='\b'))
@@ -18,6 +20,7 @@ def app(verbose=0):
 
 app.add_command(name='density', cmd=density)
 app.add_command(name='batch_density', cmd=batch_density)
+app.add_command(name='boundary', cmd=cmd)
 
 if __name__ == '__main__':
     app()

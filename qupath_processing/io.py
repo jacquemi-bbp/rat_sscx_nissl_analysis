@@ -12,14 +12,11 @@ import openpyxl
 from qupath_processing.utilities import NotValidImage
 
 
-def read_cells_coordinate(file_path):
+def get_cells_coordinate_dataframe(file_path):
     """
-    Read file that contains cell positions and create cells centroids x,y position
-    :param file_path:(str) Path to the file that contains cell positions exported form QuPath
-    :return:
-        tuple:
-            - cells_centroid_x np.array of shape (number of cells, ) of type float
-            - cells_centroid_y np.array of shape (number of cells, ) of type float
+    Ream input file and return and panf=das data frame
+    :param file_path: (str). Path to the fiule that containns cell cordinates
+    :return: Pandas ddataframe containing data from input file_path
     """
     workbook = openpyxl.Workbook()
     worksheets = workbook.worksheets[0]
@@ -33,10 +30,24 @@ def read_cells_coordinate(file_path):
     data = list(data)
     idx = [r[0] for r in data]
     data = (islice(r, 1, None) for r in data)
-    df_404 = pd.DataFrame(data, index=idx, columns=cols)
+    dataframe = pd.DataFrame(data, index=idx, columns=cols)
+    return dataframe
+
+
+
+def read_cells_coordinate(dataframe):
+    """
+    Read file that contains cell positions and create cells centroids x,y position
+    :param file_path:(str) Pandas ddataframe containing cells coordinate and metadata (layer, ...)
+    :return:
+        tuple:
+            - cells_centroid_x np.array of shape (number of cells, ) of type float
+            - cells_centroid_y np.array of shape (number of cells, ) of type float
+    """
+
     try:
-        cells_centroid_x = df_404['Centroid X µm'].to_numpy(dtype=float)
-        cells_centroid_y = df_404['Centroid Y µm'].to_numpy(dtype=float)
+        cells_centroid_x = dataframe['Centroid X µm'].to_numpy(dtype=float)
+        cells_centroid_y = dataframe['Centroid Y µm'].to_numpy(dtype=float)
         return cells_centroid_x, cells_centroid_y
     except KeyError:
         raise NotValidImage
@@ -82,15 +93,6 @@ def read_qupath_annotations(file_path):
     return s1_pixel_coordinates, quadrilateral_pixel_coordinates
 
 
-def read_pixel_size(pixel_file_path):
-    """
-    Read pixel size information in a file
-    :param pixel_file_path:(str):
-    :return:  float. Pixel size (um)
-    """
-    with open(pixel_file_path, 'r', encoding="utf-8") as pixel_file:
-        readed_pixel_size = float(pixel_file.readline())
-    return readed_pixel_size
 
 
 def write_densities_file(dataframe, image_name, output_path):

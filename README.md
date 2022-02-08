@@ -25,7 +25,7 @@ The following definitions will stay in effect throughout the code.
 
 ## Installation
 - QuPath: https://qupath.github.io/
-- Python libray
+- Python library
 ```shell
 $ git clone ssh://bbpcode.epfl.ch/molecularsystems/qupath_processing
 $ cd qupath_processing
@@ -55,13 +55,6 @@ see requirements.txt
 - modify ./Config/batch_config.ini with your configuration
 - execute the python script
 ```shell
-$ pyqupath_batch_processing --config-file-path ./Config/batch_config.ini 
+$ pyqupath_processing batch_density --config-file-path ./Config/batch_config.ini 
 ```
 
-# Run the full pipeline
-- modify ./run_pipeline.sh with your pathes
-- modify ./Config/batch_config.ini with your configuration
-- execute the pipeline
-```shell
-./run_pipeline.sh
-```

@@ -3,7 +3,7 @@ import click
 from qupath_processing.rat_sscx_nissl_processing import (
     single_image_process)
 from qupath_processing.io import (
-    write_densities_file, read_pixel_size, list_images
+    write_densities_file,
 )
 from qupath_processing.utilities import (
         concat_dataframe, NotValidImage
