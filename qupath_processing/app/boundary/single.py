@@ -27,6 +27,7 @@ from qupath_processing.visualisation import (
 @click.option('--visualisation-flag', is_flag=True)
 def cmd(config_file_path, visualisation_flag):
 
+    # READ configuration
     config = configparser.ConfigParser()
     config.sections()
     config.read(config_file_path)

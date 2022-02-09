@@ -11,10 +11,9 @@ from qupath_processing.io import to_dataframe
 from qupath_processing.utilities import get_angle
 
 
-
 def get_cell_coordinate_by_layers(cell_position_file_path):
     """
-
+    Read cells' coordinates from input file to fill a dictionary
     :param cell_position_file_path: (str)
     :return: dict: key -> Layer name, values np.array of shape (N, 2)
     """
@@ -35,16 +34,32 @@ def get_cell_coordinate_by_layers(cell_position_file_path):
 
 
 def rotate_points_list(points, theta):
+    """
+    Rotate points to thetha radian angle
+    :param points: (numpt.array) of shape (N, 2)
+    :param theta: (float) angle to rotate
+    :return: numpy.ndarray of shape (N, 2) The inputs point rotated
+    """
+
     if len(points) > 0:
         rotated_point = points.copy()
         c, s = np.cos(theta), np.sin(theta)
         R = np.array(((c, -s), (s, c)))
         rotated_point = np.dot(rotated_point, R.T)
         return rotated_point
-    return np.zeros(((0, 0)), dtype=float)
+    return np.zeros((0, 0), dtype=float)
 
 
 def rotated_cells_from_top_line(top_left, top_right, layer_clustered_points):
+    """
+    Compute angle theta between the line defined by top_left and to right.
+    The rotate points to the theta angle
+    :param top_left: (numpy.array) of shape (2, 2) cartesian coordinates
+    :param top_right: (numpy.array) of shape (2, 2) cartesian coordinates
+    :param layer_clustered_points: dict key
+     -> layer name values -> numpy.ndarray od shape (N, 2)
+    :return:
+    """
     theta = - get_angle(top_left, top_right)
     layer_rotatated_points = {}
     for layer_label, XY in layer_clustered_points.items():
@@ -58,12 +73,13 @@ def rotated_cells_from_top_line(top_left, top_right, layer_clustered_points):
 
 def compute_dbscan_eps(cell_position_file_path, layers_name, factor=4):
     """
-    Compute DBSCAN eps value per layer in function of delaunay mean value  of
+    Compute DBSCAN eps value per layer in function of Delaunay mean value of
     each cell from of a layer
-    :param cell_position_file_path:
-    :param layers_name:
+    :param cell_position_file_path: (str) the input path containing data
+    :param layers_name: (str) The current layer name
     :param factor: (float): factor to multiply the Delaunay mean value
-    :return:
+    :return: list of float of DBSCAN eps values per layer
+    (https://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html)
     """
     layer_dbscan_eps = []
     df = to_dataframe(cell_position_file_path)
@@ -74,20 +90,39 @@ def compute_dbscan_eps(cell_position_file_path, layers_name, factor=4):
         layer_dbscan_eps.append(cells_mean_delaunay)
     return layer_dbscan_eps
 
+
 def get_main_cluster(layers_name, layer_dbscan_eps, layer_points):
+    """
+    Apply DBSCAN algorithm on cells for a specific layer and return
+    the main cluster. Used to remove cells that are far away from other cells
+    of the same layer
+    :param layers_name: (list of str) The layer names
+    :param layer_dbscan_eps: list of float value representing DBSCAN eps values
+    :param layer_points: dict: key -> (str) layer name values -> numpy.ndarray of shape (N, 2)
+    :return: points from main cluster dict: key -> (str) layer name values -> numpy.ndarray of shape (N, 2)
+    """
+
     layer_clustered_points = {}
     for layer_name, eps_value in zip(layers_name, layer_dbscan_eps):
         layer_clustered_points[layer_name] = clustering(layer_name,
                                                         layer_points[layer_name],
-                                                        eps_value, log=False,
-                                                        figure=True)
+                                                        eps_value, figure=False)
+
         if len(layer_clustered_points[layer_name]) == 0:
             print(f'Clustering for layer {layer_name} returns zeros cells. Please change layer_dbscan_eps.')
             return None
     return layer_clustered_points
 
 
-def clustering(layer_name, X, _eps=100, log=False, figure=False):
+def clustering(layer_name, X, _eps=100, figure=False):
+    """
+    (https://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html)
+    :param layer_name:
+    :param X:
+    :param _eps:
+    :param figure:
+    :return:
+    """
     labels_true = []
     labels_true.extend([layer_name] * X.shape[0])
 
