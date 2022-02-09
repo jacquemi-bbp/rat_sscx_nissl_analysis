@@ -71,7 +71,6 @@ def read_qupath_annotations(file_path):
     annotations = {}
     for entry in annotations_geo:
         try:
-            ## 'bottom_left', 'bottom_right', 'top_left', 'top_right' annotations
             if "name" in entry["properties"].keys():
                 annotations[entry["properties"]["name"]] = \
                     np.array(entry["geometry"]["coordinates"])
@@ -93,7 +92,6 @@ def read_qupath_annotations(file_path):
     return s1_pixel_coordinates, quadrilateral_pixel_coordinates
 
 
-
 def write_dataframe_to_file(dataframe, image_name, output_path):
     """
     export and save result to xlsx file
@@ -102,7 +100,6 @@ def write_dataframe_to_file(dataframe, image_name, output_path):
     """
     dataframe.to_excel(output_path + '/' + image_name + '.xlsx', header=True, index=False)
     dataframe.to_pickle(output_path + '/' + image_name + '.pkl')
-
 
 
 def list_images(input_directory, cell_position_suffix,
@@ -136,7 +133,6 @@ def list_images(input_directory, cell_position_suffix,
     return image_dictionary
 
 
-
 def get_top_line_coordinates(annotation_position_file_path):
     """
     Read TOP_LEFT and TOP_RIGHT point from file located at annotation_position_file_path
@@ -152,18 +148,3 @@ def get_top_line_coordinates(annotation_position_file_path):
     top_left = position['TOP_LEFT']
     top_right = position['TOP_RIGHT']
     return np.array(top_left), np.array(top_right)
-
-
-# Importing library
-
-
-# data to be written row-wise in csv fil
-data = [['Geeks'], [4], ['geeks !']]
-
-# opening the csv file in 'w+' mode
-file = open('g4g.csv', 'w+', newline='')
-
-# writing the data into the file
-with file:
-    write = csv.writer(file)
-    write.writerows(data)

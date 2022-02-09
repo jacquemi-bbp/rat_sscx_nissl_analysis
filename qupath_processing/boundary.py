@@ -106,7 +106,7 @@ def get_main_cluster(layers_name, layer_dbscan_eps, layer_points):
     for layer_name, eps_value in zip(layers_name, layer_dbscan_eps):
         layer_clustered_points[layer_name] = clustering(layer_name,
                                                         layer_points[layer_name],
-                                                        eps_value, figure=False)
+                                                        eps_value, visualisation=False)
 
         if len(layer_clustered_points[layer_name]) == 0:
             print(f'Clustering for layer {layer_name} returns zeros cells. Please change layer_dbscan_eps.')
@@ -114,29 +114,25 @@ def get_main_cluster(layers_name, layer_dbscan_eps, layer_points):
     return layer_clustered_points
 
 
-def clustering(layer_name, X, _eps=100, figure=False):
+def clustering(layer_name, coordinates, _eps=100, visualisation=False):
     """
+    Perform DBSCAN clustering from vector array or distance matrix.
     (https://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html)
-    :param layer_name:
-    :param X:
-    :param _eps:
-    :param figure:
-    :return:
+    :param layer_name: (str) The layer name
+    :param coordinates: (numpy.array) of shape (N, 2)
+    :param _eps: (float) eps value use for the DBSCAN algorithm
+    :param visualisation: (bool) enable visualisation
+    :return: Coordinates of main cluster (numpy.array) of shape (N, 2)
     """
     labels_true = []
-    labels_true.extend([layer_name] * X.shape[0])
+    labels_true.extend([layer_name] * coordinates.shape[0])
 
     # #############################################################################
     # Compute DBSCAN
-    db = DBSCAN(eps=_eps, min_samples=10).fit(X)
+    db = DBSCAN(eps=_eps, min_samples=10).fit(coordinates)
     core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
     core_samples_mask[db.core_sample_indices_] = True
     labels = db.labels_
-    # Number of clusters in labels, ignoring noise if present.
-    n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
-    # #############################################################################
-    # Plot result
-
 
     # Black removed and is used for noise instead.
     unique_labels = set(labels)
@@ -149,8 +145,8 @@ def clustering(layer_name, X, _eps=100, figure=False):
             col = [0, 0, 0, 1]
         class_member_mask = labels == k
 
-        xy = X[class_member_mask & ~core_samples_mask]
-        if figure:
+        xy = coordinates[class_member_mask & ~core_samples_mask]
+        if visualisation:
             plt.plot(
                 xy[:, 0],
                 xy[:, 1],
@@ -160,8 +156,8 @@ def clustering(layer_name, X, _eps=100, figure=False):
                 markersize=3,
             )
 
-        xy = X[class_member_mask & core_samples_mask]
-        if figure:
+        xy = coordinates[class_member_mask & core_samples_mask]
+        if visualisation:
             plt.plot(
                 xy[:, 0],
                 xy[:, 1],
@@ -175,9 +171,30 @@ def clustering(layer_name, X, _eps=100, figure=False):
         if len(xy) > len(return_coordinates):
             return_coordinates = xy
 
-    if figure:
+    if visualisation:
         plt.gca().invert_yaxis()
         title = f'{layer_name} keep {len(return_coordinates) / X.shape[0] * 100:.2f} % of original points in main cluster'
         plt.title(title)
         plt.show()
     return return_coordinates
+
+
+def locate_layers_bounderies(layer_rotatated_points, layers_name):
+    """
+    Compute layers boundaries. The bottom of each layer is used
+    :param layer_rotatated_points:
+    :param layers_name:
+    :return:
+    """
+    y_origin = layer_rotatated_points['Layer 1'][:, 1].min()
+
+    final_result = {}
+    y_lines = []
+    for layer_label in layers_name:
+        XY = layer_rotatated_points[layer_label]
+        y_coors = XY[:, 1]
+        layer_ymax = y_coors[y_coors.argsort()[-10:-1]].mean()
+        y_lines.append(layer_ymax)
+        final_result[layer_label] = layer_ymax - y_origin
+    return final_result, y_lines, y_origin
+

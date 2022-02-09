@@ -56,14 +56,16 @@ def plot_split_polygons_and_cell_depth(split_polygons, s1_coordinates,
 def plot_layers_cells(top_left, top_right, layer_points, layer_clustered_points,
                       rotated_top_line, layer_rotatated_points):
     """
-
+    Display 3 plots:
+        - The original cells coordinates with top_line
+        - The main cluster per layers cells with top_line
+        - The rotated main cluster per layers cells with rotated top_line
     :param top_left:
     :param top_right:
     :param layer_points:
     :param layer_clustered_points:
     :param rotated_top_line:
     :param layer_rotatated_points:
-    :return:
     """
     x_values = [top_left[0], top_right[0]]
     y_values = [top_left[1], top_right[1]]
@@ -97,14 +99,13 @@ def plot_layers_cells(top_left, top_right, layer_points, layer_clustered_points,
 def plot_layers_bounderies(layer_rotatated_points, final_result, y_lines,
                            rotated_top_line, y_origin, layers_name):
     """
-
+    Display layers boundaries
     :param layer_rotatated_points:
     :param final_result:
     :param y_lines:
     :param rotated_top_line:
     :param y_origin:
     :param layers_name:
-    :return:
     """
     plt.figure(figsize=(8, 8))
     plt.gca().invert_yaxis()
@@ -128,25 +129,5 @@ def plot_layers_bounderies(layer_rotatated_points, final_result, y_lines,
         plt.text(xmean, y - y_origin + half_letter_size, layer_name,
                  size='xx-large')
         y_0 = y_1
-
     plt.show()
 
-
-def locate_layers_bounderies(layer_rotatated_points, layers_name):
-    """
-
-    :param layer_rotatated_points:
-    :param layers_name:
-    :return:
-    """
-    y_origin = layer_rotatated_points['Layer 1'][:, 1].min()
-
-    final_result = {}
-    y_lines = []
-    for layer_label in layers_name:
-        XY = layer_rotatated_points[layer_label]
-        y_coors = XY[:, 1]
-        layer_ymax = y_coors[y_coors.argsort()[-10:-1]].mean()
-        y_lines.append(layer_ymax)
-        final_result[layer_label] = layer_ymax - y_origin
-    return final_result, y_lines, y_origin

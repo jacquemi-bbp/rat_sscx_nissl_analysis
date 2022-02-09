@@ -3,12 +3,12 @@ import click
 import pandas as pd
 import ast
 
-import matplotlib.pyplot as plt
 from qupath_processing.boundary import (
     get_main_cluster,
     get_cell_coordinate_by_layers,
     compute_dbscan_eps,
-    rotated_cells_from_top_line
+    rotated_cells_from_top_line,
+    locate_layers_bounderies
 )
 from qupath_processing.io import (
     get_top_line_coordinates,
@@ -17,7 +17,6 @@ from qupath_processing.io import (
 from qupath_processing.visualisation import (
     plot_layers_cells,
     plot_layers_bounderies,
-    locate_layers_bounderies
 )
 
 
@@ -61,9 +60,7 @@ def cmd(config_file_path, visualisation_flag):
                           layer_clustered_points, rotated_top_line,
                           layer_rotatated_points)
 
-
-
-    # Locate the layers boundarie
+    # Locate the layers boundaries
     final_result, y_lines, y_origin = locate_layers_bounderies(layer_rotatated_points, layers_name)
 
     # Write result to pandas and excel file
@@ -78,10 +75,5 @@ def cmd(config_file_path, visualisation_flag):
         #  Layer boundaries
         plot_layers_bounderies(layer_rotatated_points, final_result, y_lines,
                                rotated_top_line, y_origin, layers_name)
-
-
-
-
-
 
 
