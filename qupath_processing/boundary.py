@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import DBSCAN
 
 from qupath_processing.io import to_dataframe
+from qupath_processing.utilities import get_angle
 
 
 
@@ -41,6 +42,49 @@ def rotate_points_list(points, theta):
         rotated_point = np.dot(rotated_point, R.T)
         return rotated_point
     return np.zeros(((0, 0)), dtype=float)
+
+
+def rotated_cells_from_top_line(top_left, top_right, layer_clustered_points):
+    theta = - get_angle(top_left, top_right)
+    layer_rotatated_points = {}
+    for layer_label, XY in layer_clustered_points.items():
+        layer_rotatated_points[layer_label] = rotate_points_list(XY, theta)
+
+    top_points = np.array([top_left, top_right]).reshape(-1, 2)
+    return layer_rotatated_points, rotate_points_list(top_points, theta)
+
+
+
+
+def compute_dbscan_eps(cell_position_file_path, layers_name, factor=4):
+    """
+    Compute DBSCAN eps value per layer in function of delaunay mean value  of
+    each cell from of a layer
+    :param cell_position_file_path:
+    :param layers_name:
+    :param factor: (float): factor to multiply the Delaunay mean value
+    :return:
+    """
+    layer_dbscan_eps = []
+    df = to_dataframe(cell_position_file_path)
+    for layer_name in layers_name:
+        cells_mean_delaunay = df[df['Class'] == layer_name][
+                                  'Delaunay: Mean distance'].to_numpy(
+            dtype=float).mean() * factor
+        layer_dbscan_eps.append(cells_mean_delaunay)
+    return layer_dbscan_eps
+
+def get_main_cluster(layers_name, layer_dbscan_eps, layer_points):
+    layer_clustered_points = {}
+    for layer_name, eps_value in zip(layers_name, layer_dbscan_eps):
+        layer_clustered_points[layer_name] = clustering(layer_name,
+                                                        layer_points[layer_name],
+                                                        eps_value, log=False,
+                                                        figure=True)
+        if len(layer_clustered_points[layer_name]) == 0:
+            print(f'Clustering for layer {layer_name} returns zeros cells. Please change layer_dbscan_eps.')
+            return None
+    return layer_clustered_points
 
 
 def clustering(layer_name, X, _eps=100, log=False, figure=False):

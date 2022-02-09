@@ -94,7 +94,6 @@ def read_qupath_annotations(file_path):
 
 
 
-
 def write_dataframe_to_file(dataframe, image_name, output_path):
     """
     export and save result to xlsx file

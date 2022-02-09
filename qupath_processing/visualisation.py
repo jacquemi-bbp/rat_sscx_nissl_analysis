@@ -51,3 +51,102 @@ def plot_split_polygons_and_cell_depth(split_polygons, s1_coordinates,
             line = np.array(line)
             plt.axline((line[0][0], line[0][1]), (line[1][0], line[1][1]), color='red')
     plt.show()
+
+
+def plot_layers_cells(top_left, top_right, layer_points, layer_clustered_points,
+                      rotated_top_line, layer_rotatated_points):
+    """
+
+    :param top_left:
+    :param top_right:
+    :param layer_points:
+    :param layer_clustered_points:
+    :param rotated_top_line:
+    :param layer_rotatated_points:
+    :return:
+    """
+    x_values = [top_left[0], top_right[0]]
+    y_values = [top_left[1], top_right[1]]
+
+    # ORIGINAL CELLS
+    fig, axs = plt.subplots(1, 3, figsize=(12, 4))
+    axs[0].invert_yaxis()
+    axs[0].plot(x_values, y_values, c='black')
+    for XY in layer_points.values():
+        axs[0].scatter(XY[:, 0], XY[:, 1], s=6, alpha=1.)
+    axs[0].set_title('Origin points per layer')
+
+    # CELLS from the main cluster (after DBSCAN)
+    axs[1].invert_yaxis()
+    for XY in layer_clustered_points.values():
+        axs[1].scatter(XY[:, 0], XY[:, 1], s=6, alpha=1.)
+        axs[1].set_title('After removing points outside the clusters')
+        axs[1].plot(x_values, y_values, c='black')
+
+    # ROTATED CELLS fron the main cluster
+    axs[2].invert_yaxis()
+    x_values = [rotated_top_line[0][0], rotated_top_line[1][0]]
+    y_values = [rotated_top_line[0][1], rotated_top_line[1][1]]
+    axs[2].plot(x_values, y_values, c='black')
+    for XY in layer_rotatated_points.values():
+        axs[2].scatter(XY[:, 0], XY[:, 1], s=6, alpha=1.)
+    axs[2].set_title('After clustering and rotation')
+    plt.show()
+
+
+def plot_layers_bounderies(layer_rotatated_points, final_result, y_lines,
+                           rotated_top_line, y_origin, layers_name):
+    """
+
+    :param layer_rotatated_points:
+    :param final_result:
+    :param y_lines:
+    :param rotated_top_line:
+    :param y_origin:
+    :param layers_name:
+    :return:
+    """
+    plt.figure(figsize=(8, 8))
+    plt.gca().invert_yaxis()
+    for layer_label, XY in layer_rotatated_points.items():
+        plt.scatter(XY[:, 0], XY[:, 1] - y_origin, s=10, alpha=.5)
+        y = final_result[layer_label]
+        plt.hlines(y, XY[:, 0].min(), XY[:, 0].max(),
+                   color='red')
+    y_lines.append(layer_rotatated_points['Layer 6b'][:, 1].max())
+    half_letter_size = 10
+
+    x_values = [rotated_top_line[0][0], rotated_top_line[1][0]]
+    y_values = [rotated_top_line[0][1], rotated_top_line[1][1]] - y_origin
+    plt.plot(x_values, y_values, c='black')
+    y_0 = y_origin
+
+    for y_1, layer_name in zip(y_lines, layers_name):
+        x_coors = XY[:, 0]
+        xmean = x_coors.mean()
+        y = (y_0 + y_1) / 2
+        plt.text(xmean, y - y_origin + half_letter_size, layer_name,
+                 size='xx-large')
+        y_0 = y_1
+
+    plt.show()
+
+
+def locate_layers_bounderies(layer_rotatated_points, layers_name):
+    """
+
+    :param layer_rotatated_points:
+    :param layers_name:
+    :return:
+    """
+    y_origin = layer_rotatated_points['Layer 1'][:, 1].min()
+
+    final_result = {}
+    y_lines = []
+    for layer_label in layers_name:
+        XY = layer_rotatated_points[layer_label]
+        y_coors = XY[:, 1]
+        layer_ymax = y_coors[y_coors.argsort()[-10:-1]].mean()
+        y_lines.append(layer_ymax)
+        final_result[layer_label] = layer_ymax - y_origin
+    return final_result, y_lines, y_origin

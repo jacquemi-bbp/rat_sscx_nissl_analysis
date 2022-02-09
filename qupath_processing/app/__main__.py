@@ -6,7 +6,7 @@ import click
 
 from qupath_processing.app.density.single import density
 from qupath_processing.app.density.batch import batch_density
-from qupath_processing.app.boundary.boundary_cmd import cmd
+from qupath_processing.app.boundary.single import cmd
 
 from qupath_processing.version import VERSION
 
