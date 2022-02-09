@@ -50,6 +50,9 @@ def plot_split_polygons_and_cell_depth(split_polygons, s1_coordinates,
         for line in vertical_lines:
             line = np.array(line)
             plt.axline((line[0][0], line[0][1]), (line[1][0], line[1][1]), color='red')
+    plt.title('Somatosensory cortex. Each layer represents a percentage of depth following the top of the SSX')
+    plt.xlabel("X coordinates (um)")
+    plt.ylabel("Y coordinates (um)")
     plt.show()
 
 

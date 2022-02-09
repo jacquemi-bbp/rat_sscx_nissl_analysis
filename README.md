@@ -2,13 +2,14 @@
 
 ## General idea
 EPFL LNMC laboratory provides some rat somatosensory cortex Nissl microscopy images.
-From these images and some QuPath annotations, this pipeline can generate: 
+From these images and some QuPath annotations, this package can generate: 
   - cells densities as a function of the percentage of depth inside the somatosensory cortex.
   - Layers bottom boundaries (um) . The bottom of each layer since it's assumed that Layers 1 starts at 0.
 
 
-![cells_density_view_10x10_grid](Doc/cells_density_view_10x10_grid.png) { width=5% }
-![layer boundaries](Doc/layer_boundaries.png) { width=5% }
+<img src="Doc/layer_boundaries.png" alt="Doc/layer_boundaries.png" width="400"/>
+<img src="Doc/percentage_grid.png" alt="Doc/percentage_grid.png" width="400"/>
+<img src="Doc/percentage_of_depth.png" alt="Doc/percentage_of_depth.png" width="400"/>
 
 # The pipeline consists of two main steps:
 1. (groovy + QuPath) Cells detection, export annotations, and cells coordinates
@@ -60,4 +61,3 @@ see requirements.txt
 ```shell
 $ pyqupath_processing batch_density --config-file-path ./Config/batch_config.ini 
 ```
-

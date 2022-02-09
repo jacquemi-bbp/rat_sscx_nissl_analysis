@@ -13488,7 +13488,7 @@
     "properties": {
       "object_type": "annotation",
       "classification": {
-        "name": "S1",
+        "name": "S1HL",
         "colorRGB": -16744448
       },
       "isLocked": true
