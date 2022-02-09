@@ -19,7 +19,7 @@ def concat_dataframe(dest, source=None):
     """
     if source is None:
         return dest
-    return  pd.concat([dest, source])
+    return pd.concat([dest, source])
 
 
 def get_angle(p1, p2) -> float:

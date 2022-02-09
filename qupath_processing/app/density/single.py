@@ -1,9 +1,9 @@
 import configparser
 import click
-from qupath_processing.rat_sscx_nissl_processing import (
+from qupath_processing.density import (
     single_image_process)
 from qupath_processing.io import (
-    write_densities_file,
+    write_dataframe_to_file,
 )
 from qupath_processing.utilities import (
         concat_dataframe, NotValidImage
@@ -46,5 +46,5 @@ def density(config_file_path, cell_position_file_path, annotations_geojson_path,
                          nb_row, nb_col, image_name,  visualisation_flag=visualisation_flag)
     print('INFO: ', densities_dataframe)
     print('INFO: Write results')
-    write_densities_file(densities_dataframe, image_name, output_path)
+    write_dataframe_to_file(densities_dataframe, image_name, output_path)
 

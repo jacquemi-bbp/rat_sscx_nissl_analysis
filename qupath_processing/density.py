@@ -33,9 +33,9 @@ def single_image_process(cell_position_file_path, annotations_geojson_path, pixe
 
     print(f'INFO: Read input files {cell_position_file_path} and {annotations_geojson_path}')
     #try:
-    datgaframe = to_dataframe(cell_position_file_path)
+    dataframe = to_dataframe(cell_position_file_path)
     cells_centroid_x, cells_centroid_y = \
-        read_cells_coordinate(datgaframe)
+        read_cells_coordinate(dataframe)
     s1_pixel_coordinates, quadrilateral_pixel_coordinates =\
         read_qupath_annotations(annotations_geojson_path)
     print('INFO: Convert coodonates from pixel to mm')

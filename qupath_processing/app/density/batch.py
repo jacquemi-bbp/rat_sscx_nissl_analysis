@@ -1,9 +1,9 @@
 import configparser
 import click
-from qupath_processing.rat_sscx_nissl_processing import (
+from qupath_processing.density import (
     single_image_process)
 from qupath_processing.io import (
-    write_densities_file, list_images
+    write_dataframe_to_file, list_images
 )
 from qupath_processing.utilities import (
         concat_dataframe, NotValidImage
@@ -46,4 +46,4 @@ def batch_density(config_file_path):
         except NotValidImage:
             print('WARNING. No cells position data for {}'.format(image_prefix))
 
-    write_densities_file(final_dataframe, output_file_prefix,  output_directory)
+    write_dataframe_to_file(final_dataframe, output_file_prefix,  output_directory)

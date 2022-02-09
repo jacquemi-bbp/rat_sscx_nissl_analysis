@@ -4,7 +4,7 @@ build integration tests
 from pathlib import Path
 import pandas as pd
 from pandas.testing import assert_frame_equal
-import qupath_processing.rat_sscx_nissl_processing as tested
+import qupath_processing.density as tested
 
 
 DATA_DIR = Path(__file__).resolve().parent / 'data'

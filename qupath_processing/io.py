@@ -95,7 +95,7 @@ def read_qupath_annotations(file_path):
 
 
 
-def write_densities_file(dataframe, image_name, output_path):
+def write_dataframe_to_file(dataframe, image_name, output_path):
     """
     export and save result to xlsx file
     :param dataframe (pandas Dataframe):
@@ -153,3 +153,18 @@ def get_top_line_coordinates(annotation_position_file_path):
     top_left = position['TOP_LEFT']
     top_right = position['TOP_RIGHT']
     return np.array(top_left), np.array(top_right)
+
+
+# Importing library
+
+
+# data to be written row-wise in csv fil
+data = [['Geeks'], [4], ['geeks !']]
+
+# opening the csv file in 'w+' mode
+file = open('g4g.csv', 'w+', newline='')
+
+# writing the data into the file
+with file:
+    write = csv.writer(file)
+    write.writerows(data)
