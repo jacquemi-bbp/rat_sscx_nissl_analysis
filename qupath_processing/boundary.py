@@ -34,11 +34,13 @@ def get_cell_coordinate_by_layers(cell_position_file_path):
 
 
 def rotate_points_list(points, theta):
-    rotated_point=points.copy()
-    c, s = np.cos(theta), np.sin(theta)
-    R = np.array(((c, -s), (s, c)))
-    rotated_point = np.dot(rotated_point, R.T)
-    return rotated_point
+    if len(points) > 0:
+        rotated_point = points.copy()
+        c, s = np.cos(theta), np.sin(theta)
+        R = np.array(((c, -s), (s, c)))
+        rotated_point = np.dot(rotated_point, R.T)
+        return rotated_point
+    return np.zeros(((0, 0)), dtype=float)
 
 
 def clustering(layer_name, X, _eps=100, log=False, figure=False):
