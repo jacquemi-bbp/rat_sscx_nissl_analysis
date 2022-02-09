@@ -129,5 +129,8 @@ def plot_layers_bounderies(layer_rotatated_points, final_result, y_lines,
         plt.text(xmean, y - y_origin + half_letter_size, layer_name,
                  size='xx-large')
         y_0 = y_1
+    plt.title('Layers bottom boundaries (um) . The bottom of each layer since it\'s assumed that Layers 1 starts at 0.')
+    plt.xlabel("X cells' coordinates (um)")
+    plt.ylabel("Cells distance from Layer1 top coordinate (um)")
     plt.show()
 
