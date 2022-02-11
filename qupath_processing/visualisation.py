@@ -117,7 +117,7 @@ def plot_layers_bounderies(layer_rotatated_points, final_result, y_lines,
         y = final_result[layer_label]
         plt.hlines(y, XY[:, 0].min(), XY[:, 0].max(),
                    color='red')
-    y_lines.append(layer_rotatated_points['Layer 6b'][:, 1].max())
+    y_lines.append(layer_rotatated_points['Layer 6 b'][:, 1].max())
     half_letter_size = 10
 
     x_values = [rotated_top_line[0][0], rotated_top_line[1][0]]

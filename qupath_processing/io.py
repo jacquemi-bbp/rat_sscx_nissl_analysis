@@ -87,7 +87,8 @@ def read_qupath_annotations(file_path):
     # These 4 points can not be find via an algo, so we need QuPath annotation
     quadrilateral_pixel_coordinates = np.array([annotations['top_left'], annotations['top_right'],
                                                 annotations['bottom_right'],
-                              annotations['bottom_left'], annotations['top_left']])
+                                                annotations['bottom_left']])
+ #                             annotations['bottom_left'], annotations['top_left']])
 
     return s1_pixel_coordinates, quadrilateral_pixel_coordinates
 

@@ -11,6 +11,7 @@ from qupath_processing.boundary import (
     locate_layers_bounderies
 )
 from qupath_processing.io import (
+    read_qupath_annotations,
     get_top_line_coordinates,
     write_dataframe_to_file)
 
@@ -43,14 +44,20 @@ def cmd(config_file_path, visualisation_flag):
                                               layers_name,)
 
     # Get data and metadata from input files
-    layer_points = get_cell_coordinate_by_layers(cell_position_file_path)
-    top_left, top_right = get_top_line_coordinates(annotations_path)
+    layer_points = get_cell_coordinate_by_layers(cell_position_file_path, layers_name)
+    #top_left, top_right = get_top_line_coordinates(annotations_path)
+    s1_pixel_coordinates, quadrilateral_pixel_coordinates = read_qupath_annotations(annotations_path)
+    pixel_size = 0.3460130331522824
+    top_left = quadrilateral_pixel_coordinates[0] * pixel_size
+    top_right = quadrilateral_pixel_coordinates[1] * pixel_size
 
     # Apply cluster DBSCAN layer by layer
     layer_clustered_points = get_main_cluster(layers_name, layer_dbscan_eps,
                                               layer_points)
-    if len(layer_clustered_points) == 0:
+
+    if not layer_clustered_points:
         return
+
 
     # Rotate the image as function of to top line to ease the length computation
     layer_rotatated_points, rotated_top_line = rotated_cells_from_top_line(top_left, top_right, layer_clustered_points)

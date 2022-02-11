@@ -11,21 +11,16 @@ from qupath_processing.io import to_dataframe
 from qupath_processing.utilities import get_angle
 
 
-def get_cell_coordinate_by_layers(cell_position_file_path):
+def get_cell_coordinate_by_layers(cell_position_file_path, layers_name):
     """
     Read cells' coordinates from input file to fill a dictionary
     :param cell_position_file_path: (str)
+    :parma layers_name (str)
     :return: dict: key -> Layer name, values np.array of shape (N, 2)
     """
     df = to_dataframe(cell_position_file_path)
     layer_points = {}
-    for layer_name in ['Layer 1',
-                       'Layer 2',
-                       'Layer 3',
-                       'Layer 4',
-                       'Layer 5',
-                       'Layer 6 a',
-                       'Layer 6b']:
+    for layer_name in layers_name:
         layer = df[df["Class"] == layer_name]
         Xs = layer['Centroid X µm'].to_numpy(dtype=float)
         Ys = layer['Centroid Y µm'].to_numpy(dtype=float)

@@ -59,7 +59,7 @@ println "Execute cellpose on $pathObjects"
 println "imageData $imageData"
 cellpose.detectObjects(imageData, pathObjects)
 
-println 'Done!'
+println 'Cellpose algorithm for cellular segmentation Done!'
 
 // Add features for classifer and run it
 detectionToAnnotationDistances(true)
@@ -67,6 +67,8 @@ selectAnnotations()
 runPlugin('qupath.lib.plugins.objects.SmoothFeaturesPlugin', '{"fwhmMicrons": 50.0,  "smoothWithinClasses": false}')
 runPlugin('qupath.opencv.features.DelaunayClusteringPlugin', '{"distanceThresholdMicrons": 0.0,  "limitByClass": false,  "addClusterMeasurements": true}')
 runObjectClassifier("Layer Classiffier")
+
+println 'Add features for classifer and run it Done!'
 
     
 getDetectionObjects().each{ it.setPathClass( getPathClass("CellPose") ) }
@@ -94,7 +96,7 @@ annotations.each {
     }
 }
 
-println('Done')
+println('Export and save Detection Measurements and annotations Done')
 
 // Imports
 import org.locationtech.jts.io.WKTWriter
