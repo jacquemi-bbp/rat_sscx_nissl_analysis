@@ -1,7 +1,6 @@
 import qupath.ext.biop.cellpose.Cellpose2D
 
-//def saveFolderPath =  this.args[0]
-def saveFolderPath =  '/tmp'
+def saveFolderPath =  this.args[0]
 logger.info("Save folder: {}", saveFolderPath)
 
 def saveFolder = new File(saveFolderPath)
@@ -31,6 +30,42 @@ removeObject(s1hl, true)
 // Cleanup and show
 resetSelection()
 fireHierarchyUpdate()
+
+
+// Create needed annotation for the Object Classifier
+def layers = [ "Layer 1",
+               "Layer 2",
+               "Layer 3",
+               "Layer 4",
+               "Layer 5",
+               "Layer 6 a",
+               "Layer 6 b",
+               "Outside Pia",
+               "S1HL",
+               "SliceContour"
+              ]
+
+def colors = rainbowPower( layers.size() )
+
+
+
+def available = getQuPath().getAvailablePathClasses()
+
+def pathClasses = [layers, colors].transpose().collect{ name, color ->
+    def newClass = PathClassFactory.getPathClass(name)
+    newClass.setColor(color)
+    return newClass
+}
+Platform.runLater{
+    getQuPath().resetAvailablePathClasses()
+    available.addAll( pathClasses )
+}
+
+
+def rainbowPower(int n) {
+    return (1..n).collect{ i -> Color.HSBtoRGB( (1.0/n)*i, 1.0f, 1.0f) }
+}
+println 'Add annotations Done !'
 
 
 
@@ -71,7 +106,7 @@ runObjectClassifier("Layer Classiffier")
 println 'Add features for classifer and run it Done!'
 
     
-getDetectionObjects().each{ it.setPathClass( getPathClass("CellPose") ) }
+//getDetectionObjects().each{ it.setPathClass( getPathClass("CellPose") ) }
 
 // 1. Save Detection Measurements, keeping useful lines from `save_detection_measurement.groovy`
 setImageType('BRIGHTFIELD_OTHER');

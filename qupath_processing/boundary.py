@@ -99,13 +99,14 @@ def get_main_cluster(layers_name, layer_dbscan_eps, layer_points):
 
     layer_clustered_points = {}
     for layer_name, eps_value in zip(layers_name, layer_dbscan_eps):
-        layer_clustered_points[layer_name] = clustering(layer_name,
-                                                        layer_points[layer_name],
-                                                        eps_value, visualisation=False)
+        layers_points = layer_points[layer_name]
+        if layers_points.shape[0] > 0:
+            layer_clustered_points[layer_name] =\
+                clustering(layer_name, layers_points,
+                           eps_value, visualisation=False)
+        else:
+            layer_clustered_points[layer_name] = layers_points
 
-        if len(layer_clustered_points[layer_name]) == 0:
-            print(f'Clustering for layer {layer_name} returns zeros cells. Please change layer_dbscan_eps.')
-            return None
     return layer_clustered_points
 
 
@@ -187,9 +188,10 @@ def locate_layers_bounderies(layer_rotatated_points, layers_name):
     y_lines = []
     for layer_label in layers_name:
         XY = layer_rotatated_points[layer_label]
-        y_coors = XY[:, 1]
-        layer_ymax = y_coors[y_coors.argsort()[-10:-1]].mean()
-        y_lines.append(layer_ymax)
-        final_result[layer_label] = layer_ymax - y_origin
+        if XY.shape[0] > 0:
+            y_coors = XY[:, 1]
+            layer_ymax = y_coors[y_coors.argsort()[-10:-1]].mean()
+            y_lines.append(layer_ymax)
+            final_result[layer_label] = layer_ymax - y_origin
     return final_result, y_lines, y_origin
 

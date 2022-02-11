@@ -61,8 +61,8 @@ def read_qupath_annotations(file_path):
         tuple:
             - s1_coordinates: np.array(float) of shape (nb_vertices, 2) containing S1HL polygon
             coordinates
-            - quadrilateral: np.array(float) o shape (5, 2): ClockWise coordinates defined by
-            TOP_LEFT, TOP_RIGHT, BOTTOM_RIGHT, BOTTOM_LEFT and TOP_LEFT coordinates
+            - quadrilateral: np.array(float) o shape (4, 2): ClockWise coordinates defined by
+            top_left, top_right, bottom_right, bottom_left coordinates
     Notes: The returned coordinates unit is pixel. One needs to multiply coordinate values by the
      pixel size to obtain um as unit
     """
@@ -74,7 +74,7 @@ def read_qupath_annotations(file_path):
             if "name" in entry["properties"].keys():
                 annotations[entry["properties"]["name"]] = \
                     np.array(entry["geometry"]["coordinates"])
-            ## S1HL annotation has a classification key b4 name
+            # S1HL annotation has a classification key b4 name
             if "classification" in entry["properties"].keys():
                 if "name" in entry["properties"]["classification"].keys():
                     if entry["properties"]["classification"]["name"] != "SliceContour" and\

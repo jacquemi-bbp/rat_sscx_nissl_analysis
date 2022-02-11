@@ -56,10 +56,31 @@ def plot_split_polygons_and_cell_depth(split_polygons, s1_coordinates,
     plt.show()
 
 
-def plot_layers_cells(top_left, top_right, layer_points, layer_clustered_points,
-                      rotated_top_line, layer_rotatated_points):
+def plot_raw_data(top_left, top_right, layer_points, image_name=''):
     """
-    Display 3 plots:
+    Display raw data cells and top line:
+        - The original cells coordinates with top_line
+        - The main cluster per layers cells with top_line
+        - The rotated main cluster per layers cells with rotated top_line
+    :param top_left:
+    :param top_right:
+    :param layer_points:
+    """
+    x_values = [top_left[0], top_right[0]]
+    y_values = [top_left[1], top_right[1]]
+
+    plt.figure(figsize=(8, 6))
+    plt.gca().invert_yaxis()
+    plt.plot(x_values, y_values, c='black')
+    for XY in layer_points.values():
+        plt.scatter(XY[:, 0], XY[:, 1], s=6, alpha=1.)
+    plt.title(image_name + ' Raw data cells (one color per layer)')
+    plt.show()
+
+
+def plot_cluster_cells(top_left, top_right, layer_clustered_points, image_name=''):
+    """
+    Display cells from the main cluster for ech layer:
         - The original cells coordinates with top_line
         - The main cluster per layers cells with top_line
         - The rotated main cluster per layers cells with rotated top_line
@@ -73,34 +94,42 @@ def plot_layers_cells(top_left, top_right, layer_points, layer_clustered_points,
     x_values = [top_left[0], top_right[0]]
     y_values = [top_left[1], top_right[1]]
 
-    # ORIGINAL CELLS
-    fig, axs = plt.subplots(1, 3, figsize=(12, 4))
-    axs[0].invert_yaxis()
-    axs[0].plot(x_values, y_values, c='black')
-    for XY in layer_points.values():
-        axs[0].scatter(XY[:, 0], XY[:, 1], s=6, alpha=1.)
-    axs[0].set_title('Origin points per layer')
+    plt.figure(figsize=(8, 6))
 
     # CELLS from the main cluster (after DBSCAN)
-    axs[1].invert_yaxis()
+    plt.gca().invert_yaxis()
     for XY in layer_clustered_points.values():
-        axs[1].scatter(XY[:, 0], XY[:, 1], s=6, alpha=1.)
-        axs[1].set_title('After removing points outside the clusters')
-        axs[1].plot(x_values, y_values, c='black')
+        plt.scatter(XY[:, 0], XY[:, 1], s=6, alpha=1.)
+        plt.title(image_name + ' After removing points outside the clusters')
+        plt.plot(x_values, y_values, c='black')
+    plt.show()
 
+
+def plot_rotated_cells(rotated_top_line, layer_rotatated_points, image_name=''):
+    """
+    Display rotatated cell and top line:
+        - The original cells coordinates with top_line
+        - The main cluster per layers cells with top_line
+        - The rotated main cluster per layers cells with rotated top_line
+    :param rotated_top_line:
+    :param layer_rotatated_points:
+    """
+
+    plt.figure(figsize=(8, 6))
     # ROTATED CELLS fron the main cluster
-    axs[2].invert_yaxis()
+    plt.gca().invert_yaxis()
     x_values = [rotated_top_line[0][0], rotated_top_line[1][0]]
     y_values = [rotated_top_line[0][1], rotated_top_line[1][1]]
-    axs[2].plot(x_values, y_values, c='black')
+    plt.plot(x_values, y_values, c='black')
     for XY in layer_rotatated_points.values():
-        axs[2].scatter(XY[:, 0], XY[:, 1], s=6, alpha=1.)
-    axs[2].set_title('After clustering and rotation')
+        if XY.shape[0] > 0:
+            plt.scatter(XY[:, 0], XY[:, 1], s=6, alpha=1.)
+    plt.title(image_name + ' After clustering and rotation')
     plt.show()
 
 
 def plot_layers_bounderies(layer_rotatated_points, final_result, y_lines,
-                           rotated_top_line, y_origin, layers_name):
+                           rotated_top_line, y_origin, layers_name, image_name=''):
     """
     Display layers boundaries
     :param layer_rotatated_points:
@@ -112,12 +141,16 @@ def plot_layers_bounderies(layer_rotatated_points, final_result, y_lines,
     """
     plt.figure(figsize=(8, 8))
     plt.gca().invert_yaxis()
+    x_means = []
     for layer_label, XY in layer_rotatated_points.items():
-        plt.scatter(XY[:, 0], XY[:, 1] - y_origin, s=10, alpha=.5)
-        y = final_result[layer_label]
-        plt.hlines(y, XY[:, 0].min(), XY[:, 0].max(),
-                   color='red')
-    y_lines.append(layer_rotatated_points['Layer 6 b'][:, 1].max())
+        if XY.size > 0:
+            plt.scatter(XY[:, 0], XY[:, 1] - y_origin, s=10, alpha=.5)
+            y = final_result[layer_label]
+            plt.hlines(y, XY[:, 0].min(), XY[:, 0].max(),
+                       color='red')
+            x_means.append( XY[:, 0].mean())
+    if 'Layer 6 b' in layer_rotatated_points:
+        y_lines.append(layer_rotatated_points['Layer 6 b'][:, 1].max())
     half_letter_size = 10
 
     x_values = [rotated_top_line[0][0], rotated_top_line[1][0]]
@@ -125,14 +158,12 @@ def plot_layers_bounderies(layer_rotatated_points, final_result, y_lines,
     plt.plot(x_values, y_values, c='black')
     y_0 = y_origin
 
-    for y_1, layer_name in zip(y_lines, layers_name):
-        x_coors = XY[:, 0]
-        xmean = x_coors.mean()
+    for y_1, layer_name, xmean in zip(y_lines, layers_name, x_means):
         y = (y_0 + y_1) / 2
         plt.text(xmean, y - y_origin + half_letter_size, layer_name,
                  size='xx-large')
         y_0 = y_1
-    plt.title('Layers bottom boundaries (um) . The bottom of each layer since it\'s assumed that Layers 1 starts at 0.')
+    plt.title(image_name + ' Layers bottom boundaries (um) . The bottom of each layer since it\'s assumed that Layers 1 starts at 0.')
     plt.xlabel("X cells' coordinates (um)")
     plt.ylabel("Cells distance from Layer1 top coordinate (um)")
     plt.show()
