@@ -25,9 +25,8 @@ from qupath_processing.visualisation import (
 
 @click.command()
 @click.option('--config-file-path', required=True, help='Configuration file path')
-@click.option('--image_name', required=False, help='iamge name that will be add to plots title')
 @click.option('--visualisation-flag', is_flag=True)
-def cmd(config_file_path, image_name, visualisation_flag):
+def cmd(config_file_path, visualisation_flag):
 
     # READ configuration
     config = configparser.ConfigParser()
@@ -56,14 +55,14 @@ def cmd(config_file_path, image_name, visualisation_flag):
     top_right = quadrilateral_pixel_coordinates[1] * pixel_size
 
     if visualisation_flag:
-        plot_raw_data(top_left, top_right, layer_points)
+        plot_raw_data(top_left, top_right, layer_points, file_prefix)
 
 
     # Apply cluster DBSCAN layer by layer
     layer_clustered_points = get_main_cluster(layers_name, layer_dbscan_eps,
                                               layer_points)
 
-    plot_cluster_cells(top_left, top_right, layer_clustered_points)
+    plot_cluster_cells(top_left, top_right, layer_clustered_points, file_prefix)
 
 
 
@@ -71,7 +70,7 @@ def cmd(config_file_path, image_name, visualisation_flag):
     layer_rotatated_points, rotated_top_line = rotated_cells_from_top_line(top_left, top_right, layer_clustered_points)
 
     if visualisation_flag:
-        plot_rotated_cells(rotated_top_line, layer_rotatated_points)
+        plot_rotated_cells(rotated_top_line, layer_rotatated_points, file_prefix)
 
     # Locate the layers boundaries
     final_result, y_lines, y_origin = locate_layers_bounderies(layer_rotatated_points, layers_name)
@@ -87,6 +86,6 @@ def cmd(config_file_path, image_name, visualisation_flag):
     if visualisation_flag:
         #  Layer boundaries
         plot_layers_bounderies(layer_rotatated_points, final_result, y_lines,
-                               rotated_top_line, y_origin, layers_name)
+                               rotated_top_line, y_origin, layers_name, file_prefix)
 
 
