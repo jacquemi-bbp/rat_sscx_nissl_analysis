@@ -49,7 +49,7 @@ def cmd(config_file_path, visualisation_flag):
     layer_points = get_cell_coordinate_by_layers(cell_position_file_path, layers_name)
 
     #top_left, top_right = get_top_line_coordinates(annotations_path)
-    s1_pixel_coordinates, quadrilateral_pixel_coordinates = read_qupath_annotations(annotations_path)
+    s1_pixel_coordinates, quadrilateral_pixel_coordinates, out_of_pia = read_qupath_annotations(annotations_path)
     pixel_size = 0.3460130331522824
     top_left = quadrilateral_pixel_coordinates[0] * pixel_size
     top_right = quadrilateral_pixel_coordinates[1] * pixel_size

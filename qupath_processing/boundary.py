@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import DBSCAN
 
-from qupath_processing.io import to_dataframe
+from qupath_processing.io import qupath_cells_detection_to_dataframe
 from qupath_processing.utilities import get_angle
 
 
@@ -18,7 +18,7 @@ def get_cell_coordinate_by_layers(cell_position_file_path, layers_name):
     :parma layers_name (str)
     :return: dict: key -> Layer name, values np.array of shape (N, 2)
     """
-    df = to_dataframe(cell_position_file_path)
+    df = qupath_cells_detection_to_dataframe(cell_position_file_path)
     layer_points = {}
     for layer_name in layers_name:
         layer = df[df["Class"] == layer_name]
@@ -77,7 +77,7 @@ def compute_dbscan_eps(cell_position_file_path, layers_name, factor=4):
     (https://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html)
     """
     layer_dbscan_eps = []
-    df = to_dataframe(cell_position_file_path)
+    df = qupath_cells_detection_to_dataframe(cell_position_file_path)
     for layer_name in layers_name:
         cells_mean_delaunay = df[df['Class'] == layer_name][
                                   'Delaunay: Mean distance'].to_numpy(

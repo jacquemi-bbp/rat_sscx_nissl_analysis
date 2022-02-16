@@ -1,2 +1,3 @@
 #/bin/bash
-QuPath script ./Groovy_scprits/StarDist_Export_Detections_Annotations.groovy -a ../Results -p /home/jacquemi/working_dir/QuPath/Rat-sscx_nissl/ProjectQuPath_1443459_RH_Nissl_4_v0.3.0/ProjectQuPath_1443459_RH_Nissl_4.qpproj
+QuPath script -s -p ../Analysis/Test/ProjectQuPath_test.qpproj Groovy_scprits/prepare_for_layer_boundary_ml.groovy -a /tmp
+

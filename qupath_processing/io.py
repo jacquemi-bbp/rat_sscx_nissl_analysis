@@ -12,10 +12,10 @@ import openpyxl
 from qupath_processing.utilities import NotValidImage
 
 
-def to_dataframe(file_path):
+def qupath_cells_detection_to_dataframe(file_path):
     """
-    Ream input file and return and panf=das data frame
-    :param file_path: (str). Path to the fiule that containns cell cordinates
+    Ream input file that contains QuPah cells detection and return and pandas data frame
+    :param file_path: (str). Path to the file that contains cells coordinates
     :return: Pandas ddataframe containing data from input file_path
     """
     workbook = openpyxl.Workbook()
@@ -32,7 +32,6 @@ def to_dataframe(file_path):
     data = (islice(r, 1, None) for r in data)
     dataframe = pd.DataFrame(data, index=idx, columns=cols)
     return dataframe
-
 
 
 def read_cells_coordinate(dataframe):
@@ -84,13 +83,17 @@ def read_qupath_annotations(file_path):
             pass
 
     s1_pixel_coordinates = annotations['S1HL'][0]
+    out_of_pia = annotations['Outside Pia'][0]
     # These 4 points can not be find via an algo, so we need QuPath annotation
+    try:
+        bottom_right = annotations['bottom_right']
+    except KeyError:
+        bottom_right = np.full((2,), -1, dtype=np.float64)
     quadrilateral_pixel_coordinates = np.array([annotations['top_left'], annotations['top_right'],
-                                                annotations['bottom_right'],
+                                                bottom_right,  # For some image bottom_right annotation does not exit
                                                 annotations['bottom_left']])
- #                             annotations['bottom_left'], annotations['top_left']])
 
-    return s1_pixel_coordinates, quadrilateral_pixel_coordinates
+    return s1_pixel_coordinates, quadrilateral_pixel_coordinates, out_of_pia
 
 
 def write_dataframe_to_file(dataframe, image_name, output_path):
@@ -140,7 +143,7 @@ def get_top_line_coordinates(annotation_position_file_path):
     :param annotation_position_file_path: (str)
     :return: np.array of shape (2,2) containing top left and right points
     """
-    df_annotation = to_dataframe(annotation_position_file_path)
+    df_annotation = qupath_cells_detection_to_dataframe(annotation_position_file_path)
     position={}
     for point_str in ['TOP_LEFT', 'TOP_RIGHT', 'BOTTOM_RIGHT', 'BOTTOM_FEFT']:
         annotation = df_annotation[df_annotation["Name"] == point_str]
