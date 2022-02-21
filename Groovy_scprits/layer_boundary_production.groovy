@@ -109,7 +109,8 @@ def imageName = getCurrentServer().getMetadata().getName()
 
 def file = new File(saveFolder,imageName + '_annotations.json' )
 annotations.each {
-    println writer.write( it.getROI().getGeometry() )
+    //println writer.write( it.getROI().getGeometry() )
+    writer.write( it.getROI().getGeometry() )
     file.withWriter('UTF-8') {
         gson.toJson( annotations,it )
     }
