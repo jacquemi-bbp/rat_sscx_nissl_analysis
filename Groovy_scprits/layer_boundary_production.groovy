@@ -2,7 +2,7 @@
 // Sript steps:
 //   - Create the OutOfPia annotation
 //   - Detect cells with cellpose
-//   - Add festures (distance, Delaunay and smooth)
+//   - Add features (distance, Delaunay and smooth)
 //   - Export cells measurements (including cell feature) and QuPath annotations 
 
 
