@@ -5,6 +5,7 @@ Processing for rat somatosensory cortex QuPath Nissl data
 import click
 
 from qupath_processing.app.convert.single import cmd as convert_cmd
+from qupath_processing.app.convert.batch import cmd as batch_convert
 from qupath_processing.app.density.single import density
 from qupath_processing.app.density.batch import batch_density
 from qupath_processing.app.boundary.single import cmd
@@ -20,6 +21,7 @@ def app(verbose=0):
 
 
 app.add_command(name='convert', cmd=convert_cmd)
+app.add_command(name='batch_convert', cmd=batch_convert)
 app.add_command(name='density', cmd=density)
 app.add_command(name='batch_density', cmd=batch_density)
 app.add_command(name='boundary', cmd=cmd)
