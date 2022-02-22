@@ -12,11 +12,12 @@ import openpyxl
 from qupath_processing.utilities import NotValidImage
 
 
-def qupath_cells_detection_to_dataframe(file_path):
+def qupath_cells_detection_to_dataframe(file_path, lateral):
     """
     Ream input file that contains QuPah cells detection and return and pandas data frame
     :param file_path: (str). Path to the file that contains cells coordinates
-    :return: Pandas ddataframe containing data from input file_path
+    :param lateral: (float) lateral position
+    :return: Pandas dataframe containing data from input file_path
     """
     workbook = openpyxl.Workbook()
     worksheets = workbook.worksheets[0]
@@ -31,6 +32,8 @@ def qupath_cells_detection_to_dataframe(file_path):
     idx = [r[0] for r in data]
     data = (islice(r, 1, None) for r in data)
     dataframe = pd.DataFrame(data, index=idx, columns=cols)
+
+    dataframe['lateral'] = np.full(dataframe.shape[0], lateral)
     return dataframe
 
 
@@ -99,7 +102,7 @@ def read_qupath_annotations(file_path):
 def get_qpproject_images_metadata(file_path):
     """
     Read file that contains quPath annotations
-        :param file_path: PAth to QuPath project qpproj file
+        :param file_path: Path to QuPath project qpproj file
         :return: dictionnary. Keys -> images name. Valuesdict of image Metadata
     """
     with open(file_path, 'rb') as annotation_file:
@@ -142,6 +145,8 @@ def list_images(input_directory, cell_position_suffix,
                 image_dictionary[image_name]['ANNOTATIONS_PATH'] = \
                     input_directory + '/' + image_name +\
                     annotations_geojson_suffix
+                image_dictionary[image_name]['IMAGE_NAME'] = image_name
+
             else:
                 print(f"ERROR: {image_name + annotations_geojson_suffix} "
                       f"does not exist for image {image_name}")

@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import configparser
 import click
 
@@ -7,6 +8,12 @@ from qupath_processing.io import (
             list_images,
             get_qpproject_images_metadata
             )
+
+from qupath_processing.convert import (
+    convert,
+    get_images_lateral
+)
+
 @click.command()
 @click.option('--config-file-path', required=False, help='Configuration file path')
 def cmd(config_file_path):
@@ -19,28 +26,33 @@ def cmd(config_file_path):
     annotations_geojson_suffix = config['BATCH']['annotations_geojson_suffix'].replace("\"","")
     qpproj_path = config['BATCH']['qpproj_path']
     output_directory = config['BATCH']['output_directory']
-    output_file_prefix = config['BATCH']['output_file_prefix']
 
-    image_dictionary = list_images(input_directory, cell_position_suffix, annotations_geojson_suffix)
     images_metadata = get_qpproject_images_metadata(qpproj_path)
-    print(images_metadata)
+    images_lateral = get_images_lateral(images_metadata)
 
-    images_lateral= {}
-    for image in images_metadata:
-        if 'Exclude' in image['metadata']:
-            images_lateral[image['imageName']] = image['metadata']['Exclude']
-        else:
-            images_lateral[image['imageName']] = np.nan
+    images_dictionary = list_images(input_directory, cell_position_suffix, annotations_geojson_suffix)
+    print(f'INFO: input files: {list(images_dictionary.keys())}')
+    if len(images_dictionary) == 0:
+        print('WARNING: No input files to proccess.')
+        return
 
-    print(images_lateral)
-
-
-
-    for image_name in image_dictionary.keys():
-        print(f'image {image_name}')
+    for image_prefix, values in images_dictionary.items():
+        print('INFO: Process single image {}'.format(image_prefix))
+        cells_detection_path = values['CELL_POSITIONS_PATH']
+        annotation_path =  values['ANNOTATIONS_PATH']
+        image_name = values['IMAGE_NAME']
         try:
-            lateral = images_lateral[image_name] 
-            print(f'image {image_name}  lateral: {lateral}')
+            lateral = images_lateral[image_name]
         except KeyError:
-            print(f'No {image_name} medatada in QuPath project')
+            print(f'INFO: There is no lateral metadata for image {image_name}')
+            lateral = np.nan
+        points_annotation_dataframe, s1hl_annotation_dataframe, out_of_pia_annotation_dataframe, \
+        cells_features_dataframe = convert(cells_detection_path, annotation_path, lateral)
 
+        # Write dataframe
+        points_annotation_dataframe.to_pickle(output_directory + '/' + image_name + '_points_annotations' + '.pkl')
+        s1hl_annotation_dataframe.to_pickle(output_directory + '/' + image_name + '_S1HL_annotations' + '.pkl')
+        cells_features_dataframe.to_pickle(output_directory + '/' + image_name + '_cells_features' + '.pkl')
+        out_of_pia_annotation_dataframe.to_pickle(output_directory + '/' + image_name + '_out_of_pia' + '.pkl')
+        print(f'Done for {image_name}')
+    print('Done !')
