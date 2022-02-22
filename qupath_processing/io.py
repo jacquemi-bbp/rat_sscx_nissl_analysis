@@ -96,6 +96,18 @@ def read_qupath_annotations(file_path):
     return s1_pixel_coordinates, quadrilateral_pixel_coordinates, out_of_pia
 
 
+def get_qpproject_images_metadata(file_path):
+    """
+    Read file that contains quPath annotations
+        :param file_path: PAth to QuPath project qpproj file
+        :return: dictionnary. Keys -> images name. Valuesdict of image Metadata
+    """
+    with open(file_path, 'rb') as annotation_file:
+        annotations_geo = geojson.load(annotation_file)
+    return  annotations_geo['images']
+
+
+
 def write_dataframe_to_file(dataframe, image_name, output_path):
     """
     export and save result to xlsx file
