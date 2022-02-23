@@ -68,7 +68,7 @@ def single_image_process(cell_position_file_path, annotations_geojson_path, pixe
         plot_split_polygons_and_cell_depth(split_polygons, s1_coordinates,
                                            cells_centroid_x,
                                            cells_centroid_y)
-        plot_densities(depth_percentage, densities, boundaries_percentage = boundaries_percentage)
+        plot_densities(depth_percentage, densities, boundaries_percentage = boundaries_percentage, image_name=image_prefix)
     return densities_dataframe
     """
     except NotValidImage as e:
