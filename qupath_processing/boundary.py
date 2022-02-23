@@ -179,12 +179,24 @@ def locate_layers_bounderies(layer_rotatated_points, layers_name):
     """
     Compute layers boundaries. The bottom of each layer is used
     :param layer_rotatated_points:
-    :param layers_name:
+    :paramn S1HL_length:
     :return:
     """
+
+    # Find S1 ylength
+    min_y = 9999999
+    max_y = 0
+    for XY in layer_rotatated_points.values():
+        if XY[:,1].min() < min_y:
+            min_y = XY[:,1].min()
+        if XY[:, 1].max() > max_y:
+            max_y = XY[:, 1].max()
+    S1HL_y_length = max_y - min_y
+
+    print(f'INFO: S1HL y length = {S1HL_y_length}')
     y_origin = layer_rotatated_points['Layer 1'][:, 1].min()
 
-    final_result = {}
+    boundaries_bottom = {}
     y_lines = []
     for layer_label in layers_name:
         XY = layer_rotatated_points[layer_label]
@@ -192,6 +204,8 @@ def locate_layers_bounderies(layer_rotatated_points, layers_name):
             y_coors = XY[:, 1]
             layer_ymax = y_coors[y_coors.argsort()[-10:-1]].mean()
             y_lines.append(layer_ymax)
-            final_result[layer_label] = layer_ymax - y_origin
-    return final_result, y_lines, y_origin
+
+            percentage =  (layer_ymax - y_origin) / S1HL_y_length
+            boundaries_bottom[layer_label] = [layer_ymax - y_origin, percentage]
+    return boundaries_bottom, y_lines, y_origin
 

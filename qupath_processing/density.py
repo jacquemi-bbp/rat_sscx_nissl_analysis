@@ -18,7 +18,8 @@ from qupath_processing.utilities import NotValidImage
 #pylint: disable=too-many-arguments
 #pylint: disable=too-many-locals
 def single_image_process(cell_position_file_path, annotations_geojson_path, pixel_size,
-                         thickness_cut, nb_row, nb_col, image_prefix, visualisation_flag = False):
+                         thickness_cut, nb_row, nb_col, image_prefix, layer_boundary_path = None,
+                         visualisation_flag = False):
     """
     :param cell_position_file_path:(dtr)
     :param annotations_geojson_path:(str)
@@ -27,6 +28,7 @@ def single_image_process(cell_position_file_path, annotations_geojson_path, pixe
     :param nb_row:(int)
     :param nb_col:(int)
     :param image_prefix(str)
+    :paran layer_boundary_path:(str)
     :param visualisation_flag:(bool)
     :return: densities_dataframe(pandas dataframe)
     """
@@ -57,10 +59,16 @@ def single_image_process(cell_position_file_path, annotations_geojson_path, pixe
                                         'densities': densities})
 
     if visualisation_flag:
+        if layer_boundary_path:
+            boundary_df = pd.read_pickle(layer_boundary_path)
+            boundaries_percentage = list(boundary_df['Layer bottom (percentage). Origin is top of layer 1'])
+        else:
+            boundaries_percentage = None
+
         plot_split_polygons_and_cell_depth(split_polygons, s1_coordinates,
                                            cells_centroid_x,
                                            cells_centroid_y)
-        plot_densities(depth_percentage, densities)
+        plot_densities(depth_percentage, densities, boundaries_percentage = boundaries_percentage)
     return densities_dataframe
     """
     except NotValidImage as e:

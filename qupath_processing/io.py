@@ -12,7 +12,7 @@ import openpyxl
 from qupath_processing.utilities import NotValidImage
 
 
-def qupath_cells_detection_to_dataframe(file_path, lateral):
+def qupath_cells_detection_to_dataframe(file_path, lateral=None):
     """
     Ream input file that contains QuPah cells detection and return and pandas data frame
     :param file_path: (str). Path to the file that contains cells coordinates
@@ -32,15 +32,15 @@ def qupath_cells_detection_to_dataframe(file_path, lateral):
     idx = [r[0] for r in data]
     data = (islice(r, 1, None) for r in data)
     dataframe = pd.DataFrame(data, index=idx, columns=cols)
-
-    dataframe['lateral'] = np.full(dataframe.shape[0], lateral)
+    if lateral:
+        dataframe['lateral'] = np.full(dataframe.shape[0], lateral)
     return dataframe
 
 
 def read_cells_coordinate(dataframe):
     """
     Read file that contains cell positions and create cells centroids x,y position
-    :param file_path:(str) Pandas ddataframe containing cells coordinate and metadata (layer, ...)
+    :param dataframe:(Pandas dataframe) containing cells coordinate and metadata (layer, ...)
     :return:
         tuple:
             - cells_centroid_x np.array of shape (number of cells, ) of type float

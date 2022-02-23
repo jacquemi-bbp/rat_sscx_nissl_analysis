@@ -73,19 +73,28 @@ def cmd(config_file_path, visualisation_flag):
         plot_rotated_cells(rotated_top_line, layer_rotatated_points, file_prefix)
 
     # Locate the layers boundaries
-    final_result, y_lines, y_origin = locate_layers_bounderies(layer_rotatated_points, layers_name)
+    boundaries_bottom, y_lines, y_origin = locate_layers_bounderies(layer_rotatated_points, layers_name)
 
     # Write result to pandas and excel file
+    layers = []
+    absolute = []
+    percentage = []
+    for name, bottom in boundaries_bottom.items():
+        layers.append(name)
+        absolute.append(bottom[0])
+        percentage.append(bottom[1])
     dataframe = pd.DataFrame({''
-                              'Layer': final_result.keys(),
-                              'Layer bottom (um). Origin is top of layer 1': final_result.values()})
+                              'Layer': layers,
+                              'Layer bottom (um). Origin is top of layer 1': absolute,
+                              'Layer bottom (percentage). Origin is top of layer 1':percentage})
+
     write_dataframe_to_file(dataframe, file_prefix, output_path)
 
     print(dataframe)
 
     if visualisation_flag:
         #  Layer boundaries
-        plot_layers_bounderies(layer_rotatated_points, final_result, y_lines,
+        plot_layers_bounderies(layer_rotatated_points, boundaries_bottom, y_lines,
                                rotated_top_line, y_origin, layers_name, file_prefix)
 
 

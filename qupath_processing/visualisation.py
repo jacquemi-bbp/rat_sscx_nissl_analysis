@@ -7,13 +7,21 @@ import numpy as np
 from qupath_processing.geometry import compute_cells_depth
 
 
-def plot_densities(percentages, densities):
+def plot_densities(percentages, densities, boundaries_percentage = None):
     """
     Plot the density per layers that represent the brain depth
     :param percentages: list of brain depth percentage (float)
     :param densities:  list of float (nb cells / mm3)
     """
+
+    if boundaries_percentage:
+        layers_names = ["Layer 1", "Layer 2", "Layer 3", "Layer 4", "Layer 5", "Layer 6 a", "Layer 6b"]
+        for index, boundary in enumerate(boundaries_percentage):
+            plt.axvline(boundary*100)
+            anotation = layers_names[index]
+            plt.annotate(anotation, xy=(boundary*100-6, int(np.mean(densities))))
     plt.plot(np.array(percentages) * 100, densities)
+
     plt.xlabel("percentage of depth (%)")
     plt.ylabel("Cell density (cells/mm3)")
     plt.title("Cell densities as function of pertcentage of depth")
@@ -128,12 +136,12 @@ def plot_rotated_cells(rotated_top_line, layer_rotatated_points, image_name=''):
     plt.show()
 
 
-def plot_layers_bounderies(layer_rotatated_points, final_result, y_lines,
+def plot_layers_bounderies(layer_rotatated_points, boundaries_bottom, y_lines,
                            rotated_top_line, y_origin, layers_name, image_name=''):
     """
     Display layers boundaries
     :param layer_rotatated_points:
-    :param final_result:
+    :param boundaries_bottom: list [0] -> absolute boundary [1] -> percentage boundary
     :param y_lines:
     :param rotated_top_line:
     :param y_origin:
@@ -145,7 +153,7 @@ def plot_layers_bounderies(layer_rotatated_points, final_result, y_lines,
     for layer_label, XY in layer_rotatated_points.items():
         if XY.size > 0:
             plt.scatter(XY[:, 0], XY[:, 1] - y_origin, s=10, alpha=.5)
-            y = final_result[layer_label]
+            y = boundaries_bottom[layer_label][0]
             plt.hlines(y, XY[:, 0].min(), XY[:, 0].max(),
                        color='red')
             x_means.append( XY[:, 0].mean())

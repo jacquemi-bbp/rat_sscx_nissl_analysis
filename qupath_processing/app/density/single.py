@@ -22,9 +22,11 @@ from qupath_processing.version import VERSION
 @click.option('--nb-row', default=100, help='Number of row for the grid (default 100)')
 @click.option('--nb-col', default=100, help='Number of columns for the grid (default 100)')
 @click.option('--output-path', help='Output path where result files will be save', required=False)
+@click.option('--output-path', help='Output path where result files will be save', required=False)
+@click.option('--layer-boundary-path', help='Path to a pickle file that contains the dataframe of layer boundaries', required=False)
 @click.option('--visualisation-flag', is_flag=True)
 def density(config_file_path, cell_position_file_path, annotations_geojson_path, pixel_size,
-            thickness_cut, nb_row, nb_col, output_path, visualisation_flag):
+            thickness_cut, nb_row, nb_col, output_path, layer_boundary_path,  visualisation_flag):
     if config_file_path:
         config = configparser.ConfigParser()
         config.sections()
@@ -43,7 +45,7 @@ def density(config_file_path, cell_position_file_path, annotations_geojson_path,
     image_name = cell_position_file_path[cell_position_file_path.rfind('/')+1:cell_position_file_path.rfind('.')]
     print('INFO: Process single image ', image_name)
     densities_dataframe = single_image_process(cell_position_file_path, annotations_geojson_path, pixel_size, thickness_cut,
-                         nb_row, nb_col, image_name,  visualisation_flag=visualisation_flag)
+                         nb_row, nb_col, image_name, layer_boundary_path=layer_boundary_path,  visualisation_flag=visualisation_flag)
     print('INFO: ', densities_dataframe)
     print('INFO: Write results')
     write_dataframe_to_file(densities_dataframe, image_name, output_path)
