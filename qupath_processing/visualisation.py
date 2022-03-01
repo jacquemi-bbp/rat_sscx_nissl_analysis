@@ -7,24 +7,50 @@ import numpy as np
 from qupath_processing.geometry import compute_cells_depth
 
 
-def plot_densities(percentages, densities, boundaries_percentage = None):
+def plot_densities(percentages, densities, boundaries_percentage=None, image_name=""):
     """
     Plot the density per layers that represent the brain depth
     :param percentages: list of brain depth percentage (float)
     :param densities:  list of float (nb cells / mm3)
+    :param boundaries_percentage:
+    :param image_name:
     """
 
+    fig, ax = plt.subplots()
     if boundaries_percentage:
         layers_names = ["Layer 1", "Layer 2", "Layer 3", "Layer 4", "Layer 5", "Layer 6 a", "Layer 6b"]
-        for index, boundary in enumerate(boundaries_percentage):
-            plt.axvline(boundary*100)
-            anotation = layers_names[index]
-            plt.annotate(anotation, xy=(boundary*100-6, int(np.mean(densities))))
-    plt.plot(np.array(percentages) * 100, densities)
+        boundaries_percentage.insert(0, 0)
+        for layer_name, boundary_prev, boundary_next in zip(layers_names, boundaries_percentage[0:-1],
+                                                            boundaries_percentage[1:]):
+            center = int((boundary_next + boundary_prev) * 100 / 2)
+            ax.axvline(boundary_prev*100, color='red', markersize=2)
+            ax.annotate(layer_name, xy=(center-3, int(np.max(densities))), color='red')
 
-    plt.xlabel("percentage of depth (%)")
-    plt.ylabel("Cell density (cells/mm3)")
-    plt.title("Cell densities as function of pertcentage of depth")
+    ax.plot(np.array(percentages) * 100, densities)
+    ax.set_xlabel("percentage of depth (%)")
+    ax.set_ylabel("Cell density (cells/mm3)")
+    title = "Cell densities as function of percentage of depth"
+    if image_name :
+        title = image_name + " " + title
+    ax.set_title(title)
+
+
+    #percentages = [0.0, .1, .2, .3, .4, .5, .6, .7, .8, .9]
+    #densities = [53643., 106323., 103229., 95383., 85405., 93651., 93482., 93826., 90305., 88825.]
+
+    x = np.array(percentages) * 100  # the label locations
+
+    width = 100 / len(percentages)  # the width of the bars
+
+
+    rects2 = ax.bar(x + width / 2, densities, width, label='Cells density', color='plum', edgecolor='plum')
+
+    # Add some text for labels, title and custom x-axis tick labels, etc.
+    # ax.set_ylabel('cell densities')
+    # ax.set_title('cell densities as function of brain depth')
+    ax.set_xticks(x, percentages)
+    #ax.legend()
+
     plt.show()
 
 
@@ -53,7 +79,7 @@ def plot_split_polygons_and_cell_depth(split_polygons, s1_coordinates,
         plt.plot(x_coord, y_coord)
     plt.plot(s1_coordinates[:, 0], s1_coordinates[:, 1], 'r')
     plt.scatter(cells_centroid_x, cells_centroid_y,
-               c=np.array(cells_depth) / 100, s=1)
+                c=np.array(cells_depth) / 100, s=1)
     if vertical_lines:
         for line in vertical_lines:
             line = np.array(line)

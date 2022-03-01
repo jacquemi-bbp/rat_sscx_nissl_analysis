@@ -32,7 +32,7 @@ def density(config_file_path, cell_position_file_path, annotations_geojson_path,
         config.sections()
         config.read(config_file_path)
         cell_position_file_path = config['DEFAULT']['cell_position_file_path']
-        annotations_geojson_path = config['DEFAULT']['annotations_geojson_path']
+        annotations_geojson_path = config['DEFAULT']['annotations_path']
         pixel_size = float(config['DEFAULT']['pixel_size'])
         thickness_cut = float(config['DEFAULT']['thickness_cut'])
         nb_row = int(config['DEFAULT']['grid_nb_row'])
