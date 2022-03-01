@@ -37,6 +37,7 @@ def cmd(config_file_path, visualisation_flag):
     output_path = config['DEFAULT']['output_path']
     file_prefix = config['DEFAULT']['file_prefix']
     layers_name = ast.literal_eval(config['DEFAULT']['layers_name'])
+    pixel_size = float(config['DEFAULT']['pixel_size'])
 
     try:
         layer_dbscan_eps = ast.literal_eval(config['DEFAULT']['layer_dbscan_eps'])
@@ -50,7 +51,6 @@ def cmd(config_file_path, visualisation_flag):
 
     #top_left, top_right = get_top_line_coordinates(annotations_path)
     s1_pixel_coordinates, quadrilateral_pixel_coordinates, out_of_pia = read_qupath_annotations(annotations_path)
-    pixel_size = 0.3460130331522824
     top_left = quadrilateral_pixel_coordinates[0] * pixel_size
     top_right = quadrilateral_pixel_coordinates[1] * pixel_size
 
@@ -62,7 +62,8 @@ def cmd(config_file_path, visualisation_flag):
     layer_clustered_points = get_main_cluster(layers_name, layer_dbscan_eps,
                                               layer_points)
 
-    plot_cluster_cells(top_left, top_right, layer_clustered_points, file_prefix)
+    if visualisation_flag:
+        plot_cluster_cells(top_left, top_right, layer_clustered_points, file_prefix)
 
 
 
@@ -86,15 +87,13 @@ def cmd(config_file_path, visualisation_flag):
     dataframe = pd.DataFrame({''
                               'Layer': layers,
                               'Layer bottom (um). Origin is top of layer 1': absolute,
-                              'Layer bottom (percentage). Origin is top of layer 1':percentage})
+                              'Layer bottom (percentage). Origin is top of layer 1': percentage})
 
     write_dataframe_to_file(dataframe, file_prefix, output_path)
 
     print(dataframe)
 
-    if visualisation_flag:
-        #  Layer boundaries
-        plot_layers_bounderies(layer_rotatated_points, boundaries_bottom, y_lines,
-                               rotated_top_line, y_origin, layers_name, file_prefix)
+    plot_layers_bounderies(layer_rotatated_points, boundaries_bottom, y_lines,
+                               rotated_top_line, y_origin, layers_name, file_prefix, output_path, visualisation_flag)
 
 

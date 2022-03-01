@@ -163,7 +163,7 @@ def plot_rotated_cells(rotated_top_line, layer_rotatated_points, image_name=''):
 
 
 def plot_layers_bounderies(layer_rotatated_points, boundaries_bottom, y_lines,
-                           rotated_top_line, y_origin, layers_name, image_name=''):
+                           rotated_top_line, y_origin, layers_name, image_name, output_path, visualisation_flag=False):
     """
     Display layers boundaries
     :param layer_rotatated_points:
@@ -172,6 +172,9 @@ def plot_layers_bounderies(layer_rotatated_points, boundaries_bottom, y_lines,
     :param rotated_top_line:
     :param y_origin:
     :param layers_name:
+    :param image_name:
+    :param output_path:
+    :param visualisation_flag:
     """
     plt.figure(figsize=(8, 8))
     plt.gca().invert_yaxis()
@@ -200,5 +203,9 @@ def plot_layers_bounderies(layer_rotatated_points, boundaries_bottom, y_lines,
     plt.title(image_name + ' Layers bottom boundaries (um) . The bottom of each layer since it\'s assumed that Layers 1 starts at 0.')
     plt.xlabel("X cells' coordinates (um)")
     plt.ylabel("Cells distance from Layer1 top coordinate (um)")
-    plt.show()
+    if visualisation_flag:
+        plt.show()
+    else:
+        file_path = output_path + '/' + image_name + '.svg'
+        plt.savefig(file_path, dpi=150)
 
