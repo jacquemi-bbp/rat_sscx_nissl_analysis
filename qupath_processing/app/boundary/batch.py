@@ -32,10 +32,11 @@ def batch_boundary(config_file_path):
     cell_position_suffix = config['BATCH']['cell_position_suffix'].replace("\"","")
     annotations_geojson_suffix = config['BATCH']['annotations_geojson_suffix'].replace("\"","")
     output_directory = config['BATCH']['output_directory']
-    output_file_prefix = config['BATCH']['output_file_prefix']
     pixel_size = float(config['BATCH']['pixel_size'])
     layers_name = ast.literal_eval(config['BATCH']['layers_name'])
     layer_dbscan_eps = ast.literal_eval(config['BATCH']['layer_dbscan_eps'])
+    output_file_prefix = config['BATCH']['output_file_prefix']
+    qpproj_path = config['BATCH']['qpproj_path']
 
     image_dictionary = list_images(input_directory, cell_position_suffix, annotations_geojson_suffix)
     print(f'INFO: input files: {list(image_dictionary.keys())}')
@@ -43,6 +44,15 @@ def batch_boundary(config_file_path):
         print('WARNING: No input files to proccess.')
         return
 
+    images_metadata = get_qpproject_images_metadata(qupath_project_path)
+    images_lateral = get_images_lateral(images_metadata)
+    try:
+        bregma = images_lateral[qupath_image_name]
+    except KeyError:
+        print(f'INFO: There is no lateral metadata for image {qupath_image_name}')
+        bregma = np.nan
+
+    final_dataframe = None
     for image_prefix, values in image_dictionary.items():
         print('INFO: Process single image {}'.format(image_prefix))
         print(values['CELL_POSITIONS_PATH'], values['ANNOTATIONS_PATH'])
@@ -75,14 +85,17 @@ def batch_boundary(config_file_path):
             layers.append(name)
             absolute.append(bottom[0])
             percentage.append(bottom[1])
-        dataframe = pd.DataFrame({''
+
+        dataframe = pd.DataFrame({'image': image_name,
+                                  'bregma': bregma,
                                   'Layer': layers,
                                   'Layer bottom (um). Origin is top of layer 1': absolute,
                                   'Layer bottom (percentage). Origin is top of layer 1': percentage})
-
-        write_dataframe_to_file(dataframe, image_name, output_directory)
-
-        print(dataframe)
+        #write_dataframe_to_file(dataframe, image_name, output_directory)
 
         plot_layers_bounderies(layer_rotatated_points, boundaries_bottom, y_lines,
                                rotated_top_line, y_origin, layers_name, image_name, output_directory, False)
+
+        final_dataframe = concat_dataframe(dataframe, final_dataframe)
+
+    write_dataframe_to_file(final_dataframe, output_file_prefix, output_directory)
