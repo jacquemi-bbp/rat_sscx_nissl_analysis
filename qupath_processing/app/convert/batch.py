@@ -11,8 +11,8 @@ from qupath_processing.io import (
 
 from qupath_processing.convert import (
     convert,
-    get_images_lateral
 )
+from qupath_processing.utilities import get_image_lateral
 
 @click.command()
 @click.option('--config-file-path', required=False, help='Configuration file path')
@@ -28,7 +28,7 @@ def cmd(config_file_path):
     output_directory = config['BATCH']['output_directory']
 
     images_metadata = get_qpproject_images_metadata(qpproj_path)
-    images_lateral = get_images_lateral(images_metadata)
+    images_lateral = get_image_lateral(images_metadata)
 
     images_dictionary = list_images(input_directory, cell_position_suffix, annotations_geojson_suffix)
     print(f'INFO: input files: {list(images_dictionary.keys())}')

@@ -187,10 +187,11 @@ def locate_layers_bounderies(layer_rotatated_points, layers_name):
     min_y = 9999999
     max_y = 0
     for XY in layer_rotatated_points.values():
-        if XY[:,1].min() < min_y:
-            min_y = XY[:,1].min()
-        if XY[:, 1].max() > max_y:
-            max_y = XY[:, 1].max()
+        if len(XY) > 0:
+            if XY[:,1].min() < min_y:
+                min_y = XY[:,1].min()
+            if XY[:, 1].max() > max_y:
+                max_y = XY[:, 1].max()
     S1HL_y_length = max_y - min_y
 
     print(f'INFO: S1HL y length = {S1HL_y_length}')

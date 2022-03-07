@@ -2,12 +2,18 @@ import configparser
 import click
 import ast
 import pandas as pd
+import numpy as np
 
 from qupath_processing.io import (
-    write_dataframe_to_file, list_images, read_qupath_annotations
+    write_dataframe_to_file, list_images,
+    read_qupath_annotations, get_qpproject_images_metadata,
+    create_directory_if_not_exist
 )
 from qupath_processing.utilities import (
-        concat_dataframe, NotValidImage
+        concat_dataframe, NotValidImage,
+        get_image_immunohistochemistry,
+        get_image_animal,
+        get_image_lateral
 )
 
 from qupath_processing.boundary import (
@@ -44,19 +50,22 @@ def batch_boundary(config_file_path):
         print('WARNING: No input files to proccess.')
         return
 
-    images_metadata = get_qpproject_images_metadata(qupath_project_path)
-    images_lateral = get_images_lateral(images_metadata)
-    try:
-        bregma = images_lateral[qupath_image_name]
-    except KeyError:
-        print(f'INFO: There is no lateral metadata for image {qupath_image_name}')
-        bregma = np.nan
+    image_metadata = get_qpproject_images_metadata(qpproj_path)
+    images_lateral = get_image_lateral(image_metadata)
+    images_immunohistochemistry = get_image_immunohistochemistry(image_metadata)
+    images_animal = get_image_animal(image_metadata)
 
     final_dataframe = None
     for image_prefix, values in image_dictionary.items():
         print('INFO: Process single image {}'.format(image_prefix))
         print(values['CELL_POSITIONS_PATH'], values['ANNOTATIONS_PATH'])
         image_name = values['IMAGE_NAME']
+
+
+        bregma = images_lateral[image_name]
+        animal = images_animal[image_name]
+        immunohistochemistry = images_immunohistochemistry[image_name]
+        print(f'INFO: {image_name} is {bregma}, {animal} {immunohistochemistry}')
 
         # Get data and metadata from input files
         layer_points = get_cell_coordinate_by_layers(values['CELL_POSITIONS_PATH'], layers_name)
@@ -88,10 +97,14 @@ def batch_boundary(config_file_path):
 
         dataframe = pd.DataFrame({'image': image_name,
                                   'bregma': bregma,
+                                  'animal': animal,
+                                  'immunohistochemistry ID': immunohistochemistry,
                                   'Layer': layers,
                                   'Layer bottom (um). Origin is top of layer 1': absolute,
                                   'Layer bottom (percentage). Origin is top of layer 1': percentage})
         #write_dataframe_to_file(dataframe, image_name, output_directory)
+
+        create_directory_if_not_exist(output_directory)
 
         plot_layers_bounderies(layer_rotatated_points, boundaries_bottom, y_lines,
                                rotated_top_line, y_origin, layers_name, image_name, output_directory, False)

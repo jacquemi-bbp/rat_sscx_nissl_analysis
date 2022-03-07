@@ -35,18 +35,3 @@ def convert(cells_detection_file_path, annotations_file_path, lateral):
 
 
 
-def get_images_lateral(images_metadata):
-    """
-    Get image lateral metadata value
-    :param images_metadata: (dictionary) Key -> Image name. Values -> image metadata
-    :return:
-        float: The image lateral value or np.nan if not existing
-    """
-    images_lateral = {}
-    for image in images_metadata:
-        if 'Exclude' in image['metadata']:
-            images_lateral[image['imageName']] = image['metadata']['Exclude']
-        else:
-            images_lateral[image['imageName']] = np.nan
-
-    return images_lateral

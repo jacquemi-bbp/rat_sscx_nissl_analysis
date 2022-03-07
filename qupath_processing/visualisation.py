@@ -206,6 +206,6 @@ def plot_layers_bounderies(layer_rotatated_points, boundaries_bottom, y_lines,
     if visualisation_flag:
         plt.show()
     else:
-        file_path = output_path + '/' + image_name + '.svg'
+        file_path = output_path + '/' + image_name + '.png'
         plt.savefig(file_path, dpi=150)
 

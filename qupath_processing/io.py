@@ -1,8 +1,8 @@
 """
 Read / Write files modules
 """
-from os import listdir
-from os.path import isfile, join
+from os import listdir, makedirs
+from os.path import isfile, join, isdir
 from itertools import islice
 import csv
 import numpy as np
@@ -169,3 +169,16 @@ def get_top_line_coordinates(annotation_position_file_path):
     top_left = position['TOP_LEFT']
     top_right = position['TOP_RIGHT']
     return np.array(top_left), np.array(top_right)
+
+
+def create_directory_if_not_exist(directory_path):
+    """
+    Check if directory exists, if not, create it
+    :param directory_path
+    """
+    check_folder = isdir(directory_path)
+    # If folder doesn't exist, then create it.
+    if not check_folder:
+        makedirs(directory_path)
+        print("created folder : ", directory_path)
+

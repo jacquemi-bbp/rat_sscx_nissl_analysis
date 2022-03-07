@@ -8,8 +8,8 @@ from qupath_processing.io import (
 )
 from qupath_processing.convert import (
     convert,
-    get_images_lateral
 )
+from qupath_processing.utilities import get_image_lateral
 
 
 
@@ -23,7 +23,7 @@ from qupath_processing.convert import (
 def cmd(cells_detection_file_path, annotations_file_path, output_prefix, output_path, qupath_project_path,
         qupath_image_name):
     images_metadata = get_qpproject_images_metadata(qupath_project_path)
-    images_lateral = get_images_lateral(images_metadata)
+    images_lateral = get_image_lateral(images_metadata)
     try:
         lateral = images_lateral[qupath_image_name]
     except KeyError:
