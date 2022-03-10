@@ -42,7 +42,17 @@ def batch_boundary(config_file_path):
     layers_name = ast.literal_eval(config['BATCH']['layers_name'])
     layer_dbscan_eps = ast.literal_eval(config['BATCH']['layer_dbscan_eps'])
     output_file_prefix = config['BATCH']['output_file_prefix']
-    qpproj_path = config['BATCH']['qpproj_path']
+    try:
+        qpproj_path = config['BATCH']['qpproj_path']
+        image_metadata = get_qpproject_images_metadata(qpproj_path)
+        images_lateral = get_image_lateral(image_metadata)
+        images_immunohistochemistry = get_image_immunohistochemistry(image_metadata)
+        images_animal = get_image_animal(image_metadata)
+    except KeyError:
+        qpproj_path = None
+        images_lateral = None
+        images_immunohistochemistry = None
+        images_animal = None
 
     image_dictionary = list_images(input_directory, cell_position_suffix, annotations_geojson_suffix)
     print(f'INFO: input files: {list(image_dictionary.keys())}')
@@ -50,23 +60,22 @@ def batch_boundary(config_file_path):
         print('WARNING: No input files to proccess.')
         return
 
-    image_metadata = get_qpproject_images_metadata(qpproj_path)
-    images_lateral = get_image_lateral(image_metadata)
-    images_immunohistochemistry = get_image_immunohistochemistry(image_metadata)
-    images_animal = get_image_animal(image_metadata)
-
     final_dataframe = None
     for image_prefix, values in image_dictionary.items():
         print('INFO: Process single image {}'.format(image_prefix))
         print(values['CELL_POSITIONS_PATH'], values['ANNOTATIONS_PATH'])
         image_name = values['IMAGE_NAME']
 
-
-        bregma = images_lateral[image_name]
-        animal = images_animal[image_name]
-        immunohistochemistry = images_immunohistochemistry[image_name]
-        print(f'INFO: {image_name} is {bregma}, {animal} {immunohistochemistry}')
-
+        if qpproj_path:
+            bregma = images_lateral[image_name]
+            animal = images_animal[image_name]
+            immunohistochemistry = images_immunohistochemistry[image_name]
+            print(f'INFO: {image_name} is {bregma}, {animal} {immunohistochemistry}')
+        else:
+            print(f'Warning: {image_name} has no metadata ')
+            bregma = 'N/D'
+            animal = 'N/D'
+            immunohistochemistry = 'N/D'
         # Get data and metadata from input files
         layer_points = get_cell_coordinate_by_layers(values['CELL_POSITIONS_PATH'], layers_name)
 
@@ -107,7 +116,8 @@ def batch_boundary(config_file_path):
         create_directory_if_not_exist(output_directory)
 
         plot_layers_bounderies(layer_rotatated_points, boundaries_bottom, y_lines,
-                               rotated_top_line, y_origin, layers_name, image_name, output_directory, False)
+                               rotated_top_line, y_origin, layers
+                               , image_name, output_directory, False)
 
         final_dataframe = concat_dataframe(dataframe, final_dataframe)
 

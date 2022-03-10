@@ -107,7 +107,7 @@ def get_qpproject_images_metadata(file_path):
     """
     with open(file_path, 'rb') as annotation_file:
         annotations_geo = geojson.load(annotation_file)
-    return  annotations_geo['images']
+    return annotations_geo['images']
 
 
 
