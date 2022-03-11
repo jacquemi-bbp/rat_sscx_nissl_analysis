@@ -186,7 +186,7 @@ def plot_layers_bounderies(layer_rotatated_points, boundaries_bottom, y_lines,
         plt.text(xmean, y - y_origin + half_letter_size, layer_name,
                  size='xx-large')
         y_0 = y_1
-    plt.title(image_name + ' Layers bottom boundaries (um) . The bottom of each layer since it\'s assumed that Layers 1 starts at 0.')
+    plt.title(image_name + ' Layers bottom boundaries (um)')
     plt.xlabel("X cells' coordinates (um)")
     plt.ylabel("Cells distance from Layer1 top coordinate (um)")
     if visualisation_flag:
@@ -197,23 +197,23 @@ def plot_layers_bounderies(layer_rotatated_points, boundaries_bottom, y_lines,
 
 
 def plot_layer_per_image(dataframe, layers_name):
-    plt.figure(figsize=(15, 15))
+    plt.figure(figsize=(8, 8))
     for layer_name in layers_name:
         layer_df = dataframe[dataframe['Layer'] == layer_name].groupby(['image', 'Layer'], as_index=False)[
             'Layer bottom (um). Origin is top of layer 1'].mean()
         positions = layer_df['Layer bottom (um). Origin is top of layer 1']
         layer_animal = layer_df['image']
         plt.scatter(layer_animal, positions, label=layer_name, s=100)
-        plt.xlabel('image')
-        plt.xticks(rotation=90)
-        plt.ylabel('Layer bottom. Origin is top of ' + layer_name + ' (um)')
-        plt.gca().legend()
-        plt.tilte = str(layer_name)
+    plt.xlabel('image')
+    plt.xticks(rotation=90)
+    plt.ylabel('Layer bottom. Origin is top of ' + layer_name + ' (um)')
+    plt.gca().legend()
+    plt.gca().set_title("Layer boundaries by input image")
     plt.show()
 
 
 def plot_layer_per_animal(dataframe, layers_name):
-    plt.figure(figsize=(15, 15))
+    plt.figure(figsize=(8, 8))
     for layer_name in layers_name:
         layer_df = dataframe[dataframe['Layer'] == layer_name].groupby(['animal', 'Layer'], as_index=False)[
             'Layer bottom (um). Origin is top of layer 1'].mean()
@@ -224,6 +224,6 @@ def plot_layer_per_animal(dataframe, layers_name):
         plt.xticks(rotation=90)
         plt.ylabel('Layer bottom. Origin is top of ' + layer_name + ' (um)')
         plt.gca().legend()
-        plt.tilte = str(layer_name)
+    plt.gca().set_title("Layer boundaries by input animal")
     plt.show()
     

@@ -124,10 +124,9 @@ def batch_boundary(config_file_path, visualisation_flag):
 
 
         final_dataframe = concat_dataframe(dataframe, final_dataframe)
-        if visualisation_flag:
-            plot_layers_bounderies(layer_rotatated_points, boundaries_bottom, y_lines,
-                                   rotated_top_line, y_origin, layers
-                                   , image_name, output_directory, False)
+        plot_layers_bounderies(layer_rotatated_points, boundaries_bottom, y_lines,
+                               rotated_top_line, y_origin, layers
+                               , image_name, output_directory, visualisation_flag)
 
     valid_dataframe = get_valid_image(final_dataframe, layers_name)
     write_dataframe_to_file(valid_dataframe, output_file_prefix, output_directory)
