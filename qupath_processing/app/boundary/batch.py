@@ -21,15 +21,21 @@ from qupath_processing.boundary import (
     get_cell_coordinate_by_layers,
     compute_dbscan_eps,
     rotated_cells_from_top_line,
-    locate_layers_bounderies
+    locate_layers_bounderies,
+    get_valid_image
 )
 
-from qupath_processing.visualisation import plot_layers_bounderies
+from qupath_processing.visualisation import (
+    plot_layers_bounderies,
+    plot_layer_per_animal,
+    plot_layer_per_image
+)
 
 
 @click.command()
 @click.option('--config-file-path', required=False, help='Configuration file path')
-def batch_boundary(config_file_path):
+@click.option('--visualisation-flag', is_flag=True)
+def batch_boundary(config_file_path, visualisation_flag):
     config = configparser.ConfigParser()
     config.sections()
     config.read(config_file_path)
@@ -92,6 +98,7 @@ def batch_boundary(config_file_path):
         layer_rotatated_points, rotated_top_line = rotated_cells_from_top_line(top_left, top_right,
                                                                                layer_clustered_points)
 
+        #print(f"DEBUG layer_rotatated_points.keys {layer_rotatated_points.keys()}, layer_rotatated_points.values() {layer_rotatated_points['Layer 2/3'].mean()}")
         # Locate the layers boundaries
         boundaries_bottom, y_lines, y_origin = locate_layers_bounderies(layer_rotatated_points, layers_name)
 
@@ -115,10 +122,17 @@ def batch_boundary(config_file_path):
 
         create_directory_if_not_exist(output_directory)
 
-        plot_layers_bounderies(layer_rotatated_points, boundaries_bottom, y_lines,
-                               rotated_top_line, y_origin, layers
-                               , image_name, output_directory, False)
 
         final_dataframe = concat_dataframe(dataframe, final_dataframe)
+        if visualisation_flag:
+            plot_layers_bounderies(layer_rotatated_points, boundaries_bottom, y_lines,
+                                   rotated_top_line, y_origin, layers
+                                   , image_name, output_directory, False)
 
-    write_dataframe_to_file(final_dataframe, output_file_prefix, output_directory)
+    valid_dataframe = get_valid_image(final_dataframe, layers_name)
+    write_dataframe_to_file(valid_dataframe, output_file_prefix, output_directory)
+
+    if visualisation_flag:
+        plot_layer_per_image(valid_dataframe, layers_name)
+        plot_layer_per_animal(valid_dataframe, layers_name)
+

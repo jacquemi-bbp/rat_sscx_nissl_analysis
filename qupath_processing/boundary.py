@@ -58,12 +58,10 @@ def rotated_cells_from_top_line(top_left, top_right, layer_clustered_points):
     theta = - get_angle(top_left, top_right)
     layer_rotatated_points = {}
     for layer_label, XY in layer_clustered_points.items():
-        layer_rotatated_points[layer_label] = rotate_points_list(XY, theta)
+         layer_rotatated_points[layer_label] = rotate_points_list(XY, theta)
 
     top_points = np.array([top_left, top_right]).reshape(-1, 2)
     return layer_rotatated_points, rotate_points_list(top_points, theta)
-
-
 
 
 def compute_dbscan_eps(cell_position_file_path, layers_name, factor=4):
@@ -188,13 +186,14 @@ def locate_layers_bounderies(layer_rotatated_points, layers_name):
     max_y = 0
     for XY in layer_rotatated_points.values():
         if len(XY) > 0:
-            if XY[:,1].min() < min_y:
-                min_y = XY[:,1].min()
+            if XY[:, 1].min() < min_y:
+                min_y = XY[:, 1].min()
             if XY[:, 1].max() > max_y:
                 max_y = XY[:, 1].max()
     S1HL_y_length = max_y - min_y
 
     print(f'INFO: S1HL y length = {S1HL_y_length}')
+
     y_origin = layer_rotatated_points['Layer 1'][:, 1].min()
 
     boundaries_bottom = {}
@@ -206,7 +205,25 @@ def locate_layers_bounderies(layer_rotatated_points, layers_name):
             layer_ymax = y_coors[y_coors.argsort()[-10:-1]].mean()
             y_lines.append(layer_ymax)
 
-            percentage =  (layer_ymax - y_origin) / S1HL_y_length
+            percentage = (layer_ymax - y_origin) / S1HL_y_length
             boundaries_bottom[layer_label] = [layer_ymax - y_origin, percentage]
     return boundaries_bottom, y_lines, y_origin
 
+
+def get_valid_image(dataframe, layers_name):
+    """
+    filter input dataframe by keeping only image where layer boundaries are correctly ordered
+    :param dataframe: pandas dataframe
+    :param layers_name: list of string
+    :return: pandas dataframe: The filtered dataframe
+    """
+    return_df = dataframe.copy()
+    for image_name in set(dataframe['image']):
+        image_df = dataframe[dataframe['image'] == image_name]
+        last_pos = 0
+        for layer_name in layers_name:
+            pos = image_df[image_df['Layer'] == layer_name]['Layer bottom (um). Origin is top of layer 1'].to_numpy()
+            if last_pos > pos:
+                return_df = return_df[return_df.image != image_name]
+            last_pos = pos
+    return return_df
