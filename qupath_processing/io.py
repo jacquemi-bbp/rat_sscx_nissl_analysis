@@ -12,29 +12,14 @@ import openpyxl
 from qupath_processing.utilities import NotValidImage
 
 
-def qupath_cells_detection_to_dataframe(file_path, lateral=None):
+def qupath_cells_detection_to_dataframe(file_path):
     """
     Ream input file that contains QuPah cells detection and return and pandas data frame
     :param file_path: (str). Path to the file that contains cells coordinates
     :param lateral: (float) lateral position
     :return: Pandas dataframe containing data from input file_path
     """
-    workbook = openpyxl.Workbook()
-    worksheets = workbook.worksheets[0]
-
-    with open(file_path, 'r', encoding="utf-8") as data:
-        reader = csv.reader(data, delimiter='\t')
-        for row in reader:
-            worksheets.append(row)
-    data = worksheets.values
-    cols = next(data)[1:]
-    data = list(data)
-    idx = [r[0] for r in data]
-    data = (islice(r, 1, None) for r in data)
-    dataframe = pd.DataFrame(data, index=idx, columns=cols)
-    if lateral:
-        dataframe['lateral'] = np.full(dataframe.shape[0], lateral)
-    return dataframe
+    return pd.read_csv(file_path, sep='	|\t', engine='python')
 
 
 def read_cells_coordinate(dataframe):
