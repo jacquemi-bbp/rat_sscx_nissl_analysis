@@ -7,10 +7,11 @@ import numpy as np
 from qupath_processing.geometry import compute_cells_depth
 
 
-def plot_densities(percentages, densities, boundaries_percentage=None, image_name=""):
+def plot_densities(percentages, densities, layers_names, boundaries_percentage=None, image_name=""):
     """
     Plot the density per layers that represent the brain depth
     :param percentages: list of brain depth percentage (float)
+    :param layers_names: list of str
     :param densities:  list of float (nb cells / mm3)
     :param boundaries_percentage:
     :param image_name:
@@ -18,7 +19,6 @@ def plot_densities(percentages, densities, boundaries_percentage=None, image_nam
 
     fig, ax = plt.subplots()
     if boundaries_percentage:
-        layers_names = ["Layer 1", "Layer 2", "Layer 3", "Layer 4", "Layer 5", "Layer 6 a", "Layer 6b"]
         boundaries_percentage.insert(0, 0)
         for layer_name, boundary_prev, boundary_next in zip(layers_names, boundaries_percentage[0:-1],
                                                             boundaries_percentage[1:]):
@@ -33,24 +33,10 @@ def plot_densities(percentages, densities, boundaries_percentage=None, image_nam
     if image_name :
         title = image_name + " " + title
     ax.set_title(title)
-
-
-    #percentages = [0.0, .1, .2, .3, .4, .5, .6, .7, .8, .9]
-    #densities = [53643., 106323., 103229., 95383., 85405., 93651., 93482., 93826., 90305., 88825.]
-
     x = np.array(percentages) * 100  # the label locations
-
     width = 100 / len(percentages)  # the width of the bars
 
-
-    rects2 = ax.bar(x + width / 2, densities, width, label='Cells density', color='plum', edgecolor='plum')
-
-    # Add some text for labels, title and custom x-axis tick labels, etc.
-    # ax.set_ylabel('cell densities')
-    # ax.set_title('cell densities as function of brain depth')
     ax.set_xticks(x, percentages)
-    #ax.legend()
-
     plt.show()
 
 
@@ -209,3 +195,35 @@ def plot_layers_bounderies(layer_rotatated_points, boundaries_bottom, y_lines,
         file_path = output_path + '/' + image_name + '.png'
         plt.savefig(file_path, dpi=150)
 
+
+def plot_layer_per_image(dataframe, layers_name):
+    plt.figure(figsize=(8, 8))
+    for layer_name in layers_name:
+        layer_df = dataframe[dataframe['Layer'] == layer_name].groupby(['image', 'Layer'], as_index=False)[
+            'Layer bottom (um). Origin is top of layer 1'].mean()
+        positions = layer_df['Layer bottom (um). Origin is top of layer 1']
+        layer_animal = layer_df['image']
+        plt.scatter(layer_animal, positions, label=layer_name, s=100)
+    plt.xlabel('image')
+    plt.xticks(rotation=90)
+    plt.ylabel('Layer bottom. Origin is top of ' + layer_name + ' (um)')
+    plt.gca().legend()
+    plt.gca().set_title("Layer boundaries by input image")
+    plt.show()
+
+
+def plot_layer_per_animal(dataframe, layers_name):
+    plt.figure(figsize=(8, 8))
+    for layer_name in layers_name:
+        layer_df = dataframe[dataframe['Layer'] == layer_name].groupby(['animal', 'Layer'], as_index=False)[
+            'Layer bottom (um). Origin is top of layer 1'].mean()
+        positions = layer_df['Layer bottom (um). Origin is top of layer 1']
+        layer_animal = layer_df['animal']
+        plt.scatter(layer_animal, positions, label=layer_name, s=100)
+        plt.xlabel('Animal id')
+        plt.xticks(rotation=90)
+        plt.ylabel('Layer bottom. Origin is top of ' + layer_name + ' (um)')
+        plt.gca().legend()
+    plt.gca().set_title("Layer boundaries by input animal")
+    plt.show()
+    

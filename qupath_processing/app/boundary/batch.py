@@ -21,15 +21,21 @@ from qupath_processing.boundary import (
     get_cell_coordinate_by_layers,
     compute_dbscan_eps,
     rotated_cells_from_top_line,
-    locate_layers_bounderies
+    locate_layers_bounderies,
+    get_valid_image
 )
 
-from qupath_processing.visualisation import plot_layers_bounderies
+from qupath_processing.visualisation import (
+    plot_layers_bounderies,
+    plot_layer_per_animal,
+    plot_layer_per_image
+)
 
 
 @click.command()
 @click.option('--config-file-path', required=False, help='Configuration file path')
-def batch_boundary(config_file_path):
+@click.option('--visualisation-flag', is_flag=True)
+def batch_boundary(config_file_path, visualisation_flag):
     config = configparser.ConfigParser()
     config.sections()
     config.read(config_file_path)
@@ -42,7 +48,17 @@ def batch_boundary(config_file_path):
     layers_name = ast.literal_eval(config['BATCH']['layers_name'])
     layer_dbscan_eps = ast.literal_eval(config['BATCH']['layer_dbscan_eps'])
     output_file_prefix = config['BATCH']['output_file_prefix']
-    qpproj_path = config['BATCH']['qpproj_path']
+    try:
+        qpproj_path = config['BATCH']['qpproj_path']
+        image_metadata = get_qpproject_images_metadata(qpproj_path)
+        images_lateral = get_image_lateral(image_metadata)
+        images_immunohistochemistry = get_image_immunohistochemistry(image_metadata)
+        images_animal = get_image_animal(image_metadata)
+    except KeyError:
+        qpproj_path = None
+        images_lateral = None
+        images_immunohistochemistry = None
+        images_animal = None
 
     image_dictionary = list_images(input_directory, cell_position_suffix, annotations_geojson_suffix)
     print(f'INFO: input files: {list(image_dictionary.keys())}')
@@ -50,23 +66,22 @@ def batch_boundary(config_file_path):
         print('WARNING: No input files to proccess.')
         return
 
-    image_metadata = get_qpproject_images_metadata(qpproj_path)
-    images_lateral = get_image_lateral(image_metadata)
-    images_immunohistochemistry = get_image_immunohistochemistry(image_metadata)
-    images_animal = get_image_animal(image_metadata)
-
     final_dataframe = None
     for image_prefix, values in image_dictionary.items():
         print('INFO: Process single image {}'.format(image_prefix))
         print(values['CELL_POSITIONS_PATH'], values['ANNOTATIONS_PATH'])
         image_name = values['IMAGE_NAME']
 
-
-        bregma = images_lateral[image_name]
-        animal = images_animal[image_name]
-        immunohistochemistry = images_immunohistochemistry[image_name]
-        print(f'INFO: {image_name} is {bregma}, {animal} {immunohistochemistry}')
-
+        if qpproj_path:
+            bregma = images_lateral[image_name]
+            animal = images_animal[image_name]
+            immunohistochemistry = images_immunohistochemistry[image_name]
+            print(f'INFO: {image_name} is {bregma}, {animal} {immunohistochemistry}')
+        else:
+            print(f'Warning: {image_name} has no metadata ')
+            bregma = 'N/D'
+            animal = 'N/D'
+            immunohistochemistry = 'N/D'
         # Get data and metadata from input files
         layer_points = get_cell_coordinate_by_layers(values['CELL_POSITIONS_PATH'], layers_name)
 
@@ -83,6 +98,7 @@ def batch_boundary(config_file_path):
         layer_rotatated_points, rotated_top_line = rotated_cells_from_top_line(top_left, top_right,
                                                                                layer_clustered_points)
 
+        #print(f"DEBUG layer_rotatated_points.keys {layer_rotatated_points.keys()}, layer_rotatated_points.values() {layer_rotatated_points['Layer 2/3'].mean()}")
         # Locate the layers boundaries
         boundaries_bottom, y_lines, y_origin = locate_layers_bounderies(layer_rotatated_points, layers_name)
 
@@ -106,9 +122,16 @@ def batch_boundary(config_file_path):
 
         create_directory_if_not_exist(output_directory)
 
-        plot_layers_bounderies(layer_rotatated_points, boundaries_bottom, y_lines,
-                               rotated_top_line, y_origin, layers_name, image_name, output_directory, False)
 
         final_dataframe = concat_dataframe(dataframe, final_dataframe)
+        plot_layers_bounderies(layer_rotatated_points, boundaries_bottom, y_lines,
+                               rotated_top_line, y_origin, layers
+                               , image_name, output_directory, visualisation_flag)
 
-    write_dataframe_to_file(final_dataframe, output_file_prefix, output_directory)
+    valid_dataframe = get_valid_image(final_dataframe, layers_name)
+    write_dataframe_to_file(valid_dataframe, output_file_prefix, output_directory)
+
+    if visualisation_flag:
+        plot_layer_per_image(valid_dataframe, layers_name)
+        plot_layer_per_animal(valid_dataframe, layers_name)
+
