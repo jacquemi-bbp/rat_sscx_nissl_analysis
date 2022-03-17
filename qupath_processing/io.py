@@ -86,6 +86,7 @@ def read_qupath_annotations(file_path):
             pass
 
     s1_pixel_coordinates = annotations['S1HL'][0]
+    
     out_of_pia = annotations['Outside Pia'][0]
     # These 4 points can not be find via an algo, so we need QuPath annotation
     try:
