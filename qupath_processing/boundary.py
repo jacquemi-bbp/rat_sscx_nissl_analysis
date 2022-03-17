@@ -215,15 +215,32 @@ def get_valid_image(dataframe, layers_name):
     filter input dataframe by keeping only image where layer boundaries are correctly ordered
     :param dataframe: pandas dataframe
     :param layers_name: list of string
-    :return: pandas dataframe: The filtered dataframe
+    :return: tuple
+        - pandas dataframe: The filtered dataframe
+        - list of valid images
+        - list of INvalid images
     """
     return_df = dataframe.copy()
+    valid_image = set()
+    invalid_image = set()
     for image_name in set(dataframe['image']):
         image_df = dataframe[dataframe['image'] == image_name]
         last_pos = 0
         for layer_name in layers_name:
             pos = image_df[image_df['Layer'] == layer_name]['Layer bottom (um). Origin is top of layer 1'].to_numpy()
-            if last_pos > pos:
+            #print(f'DEBUG {image_name} {layer_name} pos={pos} last_pos={last_pos}')
+            if len(pos) == 0:
+                # This layer does not exist
+                # Remove these image layer boundaries from the final, valid dataframe
                 return_df = return_df[return_df.image != image_name]
-            last_pos = pos
-    return return_df
+                invalid_image.add(image_name)
+            else:
+                if last_pos > pos:
+                    # The prev layer boundary is upper the current one
+                    # Remove these image layer boundaries from the final, valid dataframe
+                    return_df = return_df[return_df.image != image_name]
+                    invalid_image.add(image_name)
+                else:
+                    valid_image.add(image_name)
+                last_pos = pos
+    return return_df, valid_image, invalid_image

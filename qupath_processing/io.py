@@ -71,15 +71,14 @@ def read_qupath_annotations(file_path):
             pass
 
     s1_pixel_coordinates = annotations['S1HL'][0]
-    out_of_pia = annotations['Outside Pia'][0]
-    # These 4 points can not be find via an algo, so we need QuPath annotation
     try:
-        bottom_right = annotations['bottom_right']
+        out_of_pia = annotations['Outside Pia'][0]
     except KeyError:
-        bottom_right = np.full((2,), -1, dtype=np.float64)
+        print('No Outside Pia annotation')
+        out_of_pia = None
+    # These 4 points can not be find via an algo, so we need QuPath annotation
     quadrilateral_pixel_coordinates = np.array([annotations['top_left'], annotations['top_right'],
-                                                bottom_right,  # For some image bottom_right annotation does not exit
-                                                annotations['bottom_left']])
+                                                annotations['bottom_right'], annotations['bottom_left']])
 
     return s1_pixel_coordinates, quadrilateral_pixel_coordinates, out_of_pia
 
