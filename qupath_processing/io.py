@@ -12,29 +12,14 @@ import openpyxl
 from qupath_processing.utilities import NotValidImage
 
 
-def qupath_cells_detection_to_dataframe(file_path, lateral=None):
+def qupath_cells_detection_to_dataframe(file_path):
     """
     Ream input file that contains QuPah cells detection and return and pandas data frame
     :param file_path: (str). Path to the file that contains cells coordinates
     :param lateral: (float) lateral position
     :return: Pandas dataframe containing data from input file_path
     """
-    workbook = openpyxl.Workbook()
-    worksheets = workbook.worksheets[0]
-
-    with open(file_path, 'r', encoding="utf-8") as data:
-        reader = csv.reader(data, delimiter='\t')
-        for row in reader:
-            worksheets.append(row)
-    data = worksheets.values
-    cols = next(data)[1:]
-    data = list(data)
-    idx = [r[0] for r in data]
-    data = (islice(r, 1, None) for r in data)
-    dataframe = pd.DataFrame(data, index=idx, columns=cols)
-    if lateral:
-        dataframe['lateral'] = np.full(dataframe.shape[0], lateral)
-    return dataframe
+    return pd.read_csv(file_path, sep='	|\t', engine='python')
 
 
 def read_cells_coordinate(dataframe):
@@ -86,16 +71,20 @@ def read_qupath_annotations(file_path):
             pass
 
     s1_pixel_coordinates = annotations['S1HL'][0]
+<<<<<<< HEAD
     
     out_of_pia = annotations['Outside Pia'][0]
     # These 4 points can not be find via an algo, so we need QuPath annotation
+=======
+>>>>>>> 333e15e1b466b175081888098e872cdecf30e3aa
     try:
-        bottom_right = annotations['bottom_right']
+        out_of_pia = annotations['Outside Pia'][0]
     except KeyError:
-        bottom_right = np.full((2,), -1, dtype=np.float64)
+        print('No Outside Pia annotation')
+        out_of_pia = None
+    # These 4 points can not be find via an algo, so we need QuPath annotation
     quadrilateral_pixel_coordinates = np.array([annotations['top_left'], annotations['top_right'],
-                                                bottom_right,  # For some image bottom_right annotation does not exit
-                                                annotations['bottom_left']])
+                                                annotations['bottom_right'], annotations['bottom_left']])
 
     return s1_pixel_coordinates, quadrilateral_pixel_coordinates, out_of_pia
 

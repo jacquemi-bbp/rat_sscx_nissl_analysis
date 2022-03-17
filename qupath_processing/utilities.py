@@ -3,6 +3,7 @@ Utilities module
 """
 
 import pandas as pd
+import numpy as np
 import math
 
 class NotValidImage(Exception):
@@ -74,8 +75,8 @@ def get_image_lateral(images_metadata):
     """
     images_lateral = {}
     for image in images_metadata:
-        if 'Bregma' in image['metadata']:
-            images_lateral[image['imageName']] = image['metadata']['Bregma']
+        if 'Distance to midline' in image['metadata']:
+            images_lateral[image['imageName']] = image['metadata']['Distance to midline']
         else:
             images_lateral[image['imageName']] = np.nan
     return images_lateral
