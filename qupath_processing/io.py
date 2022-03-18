@@ -16,7 +16,6 @@ def qupath_cells_detection_to_dataframe(file_path):
     """
     Ream input file that contains QuPah cells detection and return and pandas data frame
     :param file_path: (str). Path to the file that contains cells coordinates
-    :param lateral: (float) lateral position
     :return: Pandas dataframe containing data from input file_path
     """
     return pd.read_csv(file_path, sep='	|\t', engine='python')
@@ -71,17 +70,8 @@ def read_qupath_annotations(file_path):
             pass
 
     s1_pixel_coordinates = annotations['S1HL'][0]
-<<<<<<< HEAD
-    
     out_of_pia = annotations['Outside Pia'][0]
     # These 4 points can not be find via an algo, so we need QuPath annotation
-=======
->>>>>>> 333e15e1b466b175081888098e872cdecf30e3aa
-    try:
-        out_of_pia = annotations['Outside Pia'][0]
-    except KeyError:
-        print('No Outside Pia annotation')
-        out_of_pia = None
     # These 4 points can not be find via an algo, so we need QuPath annotation
     quadrilateral_pixel_coordinates = np.array([annotations['top_left'], annotations['top_right'],
                                                 annotations['bottom_right'], annotations['bottom_left']])

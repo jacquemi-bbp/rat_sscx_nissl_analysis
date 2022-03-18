@@ -12,7 +12,10 @@ from qupath_processing.io import (
 from qupath_processing.convert import (
     convert,
 )
-from qupath_processing.utilities import get_image_lateral
+from qupath_processing.utilities import (
+        get_image_lateral,
+        get_image_animal,
+        get_image_immunohistochemistry)
 
 @click.command()
 @click.option('--config-file-path', required=False, help='Configuration file path')
@@ -29,6 +32,8 @@ def cmd(config_file_path):
 
     images_metadata = get_qpproject_images_metadata(qpproj_path)
     images_lateral = get_image_lateral(images_metadata)
+    images_immunohistochemistry = get_image_immunohistochemistry(images_metadata)
+    images_animal = get_image_animal(images_metadata)
 
     images_dictionary = list_images(input_directory, cell_position_suffix, annotations_geojson_suffix)
     print(f'INFO: input files: {list(images_dictionary.keys())}')
@@ -36,18 +41,24 @@ def cmd(config_file_path):
         print('WARNING: No input files to proccess.')
         return
 
+    image_name_list = []
+    image_lateral_list = []
+    image_animal_list = []
+    image_immunohistochemistry_list = []
+
     for image_prefix, values in images_dictionary.items():
         print('INFO: Process single image {}'.format(image_prefix))
         cells_detection_path = values['CELL_POSITIONS_PATH']
-        annotation_path =  values['ANNOTATIONS_PATH']
+        annotation_path = values['ANNOTATIONS_PATH']
         image_name = values['IMAGE_NAME']
-        try:
-            lateral = images_lateral[image_name]
-        except KeyError:
-            print(f'INFO: There is no lateral metadata for image {image_name}')
-            lateral = np.nan
+        image_name_list.append(image_name)
+        image_lateral_list.append(images_lateral[image_name])
+        image_animal_list.append(images_animal[image_name])
+        image_immunohistochemistry_list.append(images_immunohistochemistry[image_name])
+
+
         points_annotation_dataframe, s1hl_annotation_dataframe, out_of_pia_annotation_dataframe, \
-        cells_features_dataframe = convert(cells_detection_path, annotation_path, lateral)
+        cells_features_dataframe = convert(cells_detection_path, annotation_path)
 
         # Write dataframe
         points_annotation_dataframe.to_pickle(output_directory + '/' + image_name + '_points_annotations' + '.pkl')
@@ -55,4 +66,10 @@ def cmd(config_file_path):
         cells_features_dataframe.to_pickle(output_directory + '/' + image_name + '_cells_features' + '.pkl')
         out_of_pia_annotation_dataframe.to_pickle(output_directory + '/' + image_name + '_out_of_pia' + '.pkl')
         print(f'Done for {image_name}')
+
+    metadata_df = pd.DataFrame({'image': image_name_list, 
+        'lateral': image_lateral_list,
+        'animal': image_animal_list,
+        'immunohistochemistry ID': image_immunohistochemistry_list})
+    metadata_df.to_pickle(output_directory + '/' 'metadata.pkl')
     print('Done !')
