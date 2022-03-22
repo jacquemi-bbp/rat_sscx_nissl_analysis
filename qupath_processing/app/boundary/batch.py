@@ -130,12 +130,11 @@ def batch_boundary(config_file_path, visualisation_flag):
                                , image_name, output_directory, visualisation_flag)
         '''
 
-    valid_dataframe, valid_images, invalid_images = get_valid_image(final_dataframe, layers_name)
+    valid_dataframe, invalid_images = get_valid_image(final_dataframe, layers_name)
     write_dataframe_to_file(valid_dataframe, output_file_prefix, output_directory)
 
     if visualisation_flag:
         plot_layer_per_image(valid_dataframe, layers_name)
         plot_layer_per_animal(valid_dataframe, layers_name)
 
-    print(f'INFO: Valid images: {valid_images}')
     print(f'INFO: Invalid images: {invalid_images}')

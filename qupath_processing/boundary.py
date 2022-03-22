@@ -221,7 +221,6 @@ def get_valid_image(dataframe, layers_name):
         - list of INvalid images
     """
     return_df = dataframe.copy()
-    valid_image = set()
     invalid_image = set()
     for image_name in set(dataframe['image']):
         image_df = dataframe[dataframe['image'] == image_name]
@@ -240,7 +239,5 @@ def get_valid_image(dataframe, layers_name):
                     # Remove these image layer boundaries from the final, valid dataframe
                     return_df = return_df[return_df.image != image_name]
                     invalid_image.add(image_name)
-                else:
-                    valid_image.add(image_name)
                 last_pos = pos
-    return return_df, valid_image, invalid_image
+    return return_df,  invalid_image
