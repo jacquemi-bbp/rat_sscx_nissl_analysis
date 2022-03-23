@@ -6,7 +6,7 @@ def saveFolder = new File(saveFolderPath)
 // Add features for classifer and run it
 detectionToAnnotationDistances(true)
 //runObjectClassifier("/home/jacquemi/working_dir/Rat_sscx_nissl/Cellpose_Classifier_Training_20220225/classifiers/object_classifiers/classify_by_layer_only.json")
-runObjectClassifier("./Classifyers/classify_by_layer_only.json")
+runObjectClassifier("./Classifyers/classify_by_layer_only_with_L23.json")
 println 'Add features for classifer and run it Done!'
 
     

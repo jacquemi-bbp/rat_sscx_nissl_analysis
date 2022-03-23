@@ -2,7 +2,6 @@ import configparser
 import click
 import ast
 import pandas as pd
-import numpy as np
 
 from qupath_processing.io import (
     write_dataframe_to_file, list_images,
@@ -17,11 +16,10 @@ from qupath_processing.utilities import (
 )
 
 from qupath_processing.boundary import (
-    get_main_cluster,
-    get_cell_coordinate_by_layers,
-    compute_dbscan_eps,
     rotated_cells_from_top_line,
     locate_layers_bounderies,
+    get_cell_coordinate_dataframe,
+    add_border_flag,
     get_valid_image
 )
 
@@ -30,6 +28,8 @@ from qupath_processing.visualisation import (
     plot_layer_per_animal,
     plot_layer_per_image
 )
+
+pd.options.mode.chained_assignment = None
 
 
 @click.command()
@@ -83,24 +83,25 @@ def batch_boundary(config_file_path, visualisation_flag):
             animal = 'N/D'
             immunohistochemistry = 'N/D'
         # Get data and metadata from input files
-        layer_points = get_cell_coordinate_by_layers(values['CELL_POSITIONS_PATH'], layers_name)
+        cells_df = get_cell_coordinate_dataframe(values['CELL_POSITIONS_PATH'], layers_name)
+        cells_df = add_border_flag(cells_df, layers_name, distance=20)
 
         # top_left, top_right = get_top_line_coordinates(annotations_path)
-        s1_pixel_coordinates, quadrilateral_pixel_coordinates, out_of_pia = read_qupath_annotations( values['ANNOTATIONS_PATH'])
+        s1_pixel_coordinates, quadrilateral_pixel_coordinates, out_of_pia = read_qupath_annotations(values['ANNOTATIONS_PATH'])
         top_left = quadrilateral_pixel_coordinates[0] * pixel_size
         top_right = quadrilateral_pixel_coordinates[1] * pixel_size
 
         # Apply cluster DBSCAN layer by layer
+        '''
         layer_clustered_points = get_main_cluster(layers_name, layer_dbscan_eps,
-                                                  layer_points)
+                                                  cells_df)
+        '''
 
         # Rotate the image as function of to top line to ease the length computation
-        layer_rotatated_points, rotated_top_line = rotated_cells_from_top_line(top_left, top_right,
-                                                                               layer_clustered_points)
+        cells_rotated_df, rotated_top_line = rotated_cells_from_top_line(top_left, top_right, cells_df)
 
-        #print(f"DEBUG layer_rotatated_points.keys {layer_rotatated_points.keys()}, layer_rotatated_points.values() {layer_rotatated_points['Layer 2/3'].mean()}")
         # Locate the layers boundaries
-        boundaries_bottom, y_lines, y_origin = locate_layers_bounderies(layer_rotatated_points, layers_name)
+        boundaries_bottom, y_lines, y_origin = locate_layers_bounderies(cells_rotated_df, layers_name)
 
         # Write result to pandas and excel file
         layers = []
@@ -124,17 +125,17 @@ def batch_boundary(config_file_path, visualisation_flag):
 
 
         final_dataframe = concat_dataframe(dataframe, final_dataframe)
-        '''
-        plot_layers_bounderies(layer_rotatated_points, boundaries_bottom, y_lines,
+
+        plot_layers_bounderies(cells_rotated_df, boundaries_bottom, y_lines,
                                rotated_top_line, y_origin, layers
                                , image_name, output_directory, visualisation_flag)
-        '''
 
-    valid_dataframe, invalid_images = get_valid_image(final_dataframe, layers_name)
-    write_dataframe_to_file(valid_dataframe, output_file_prefix, output_directory)
+
+    #valid_dataframe, invalid_images = get_valid_image(final_dataframe, layers_name)
+    write_dataframe_to_file(final_dataframe, output_file_prefix, output_directory)
 
     if visualisation_flag:
-        plot_layer_per_image(valid_dataframe, layers_name)
-        plot_layer_per_animal(valid_dataframe, layers_name)
+        plot_layer_per_image(final_dataframe, layers_name)
+        plot_layer_per_animal(final_dataframe, layers_name)
 
-    print(f'INFO: Invalid images: {invalid_images}')
+    #print(f'INFO: Invalid images: {invalid_images}')

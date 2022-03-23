@@ -160,7 +160,6 @@ def create_depth_polygons(s1_coordinates, horizontal_lines):
             polygon_to_split = split_result[1]
             split_polygons.append(split_result[0])
         except IndexError:
-            print('------ ======= DEBUG IndexError ------ =======')
             pass
 
     split_polygons.append(polygon_to_split)

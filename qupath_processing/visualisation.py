@@ -148,11 +148,11 @@ def plot_rotated_cells(rotated_top_line, layer_rotatated_points, image_name=''):
     plt.show()
 
 
-def plot_layers_bounderies(layer_rotatated_points, boundaries_bottom, y_lines,
+def plot_layers_bounderies(cells_rotated_df, boundaries_bottom, y_lines,
                            rotated_top_line, y_origin, layers_name, image_name, output_path, visualisation_flag=False):
     """
     Display layers boundaries
-    :param layer_rotatated_points:
+    :param cells_rotated_df:
     :param boundaries_bottom: list [0] -> absolute boundary [1] -> percentage boundary
     :param y_lines:
     :param rotated_top_line:
@@ -162,30 +162,23 @@ def plot_layers_bounderies(layer_rotatated_points, boundaries_bottom, y_lines,
     :param output_path:
     :param visualisation_flag:
     """
-    plt.figure(figsize=(8, 8))
+    layers_name = set(cells_rotated_df.Class)
+    plt.figure(figsize=[8, 8])
     plt.gca().invert_yaxis()
-    x_means = []
-    for layer_label, XY in layer_rotatated_points.items():
-        if XY.size > 0:
-            plt.scatter(XY[:, 0], XY[:, 1] - y_origin, s=10, alpha=.5)
-            y = boundaries_bottom[layer_label][0]
-            plt.hlines(y, XY[:, 0].min(), XY[:, 0].max(),
-                       color='red')
-            x_means.append( XY[:, 0].mean())
-    if 'Layer 6 b' in layer_rotatated_points:
-        y_lines.append(layer_rotatated_points['Layer 6 b'][:, 1].max())
+    xmin = cells_rotated_df['Centroid X µm'].to_numpy(dtype=float).min()
+    xmax = cells_rotated_df['Centroid X µm'].to_numpy(dtype=float).max()
     half_letter_size = 10
-
-    x_values = [rotated_top_line[0][0], rotated_top_line[1][0]]
-    y_values = [rotated_top_line[0][1], rotated_top_line[1][1]] - y_origin
-    plt.plot(x_values, y_values, c='black')
-    y_0 = y_origin
-
-    for y_1, layer_name, xmean in zip(y_lines, layers_name, x_means):
-        y = (y_0 + y_1) / 2
-        plt.text(xmean, y - y_origin + half_letter_size, layer_name,
-                 size='xx-large')
-        y_0 = y_1
+    xmean = (xmax + xmin)/2
+    for index, layer in enumerate(layers_name):
+        df_layer = cells_rotated_df[cells_rotated_df.Class == layer]
+        plt.scatter(df_layer['Centroid X µm'].to_numpy(dtype=float),
+                    df_layer['Centroid Y µm'].to_numpy(dtype=float) - y_origin, s=2)
+        border_cells = df_layer[df_layer['border'] == True]
+        plt.scatter(border_cells['Centroid X µm'].to_numpy(dtype=float),
+                    border_cells['Centroid Y µm'].to_numpy(dtype=float) - y_origin, s=10)
+        y = boundaries_bottom[layer][0] + half_letter_size
+        plt.hlines(y, xmin, xmax, color='red')
+        plt.text(xmean, y - 4 *  half_letter_size, layer, size='xx-large')
     plt.title(image_name + ' Layers bottom boundaries (um)')
     plt.xlabel("X cells' coordinates (um)")
     plt.ylabel("Cells distance from Layer1 top coordinate (um)")

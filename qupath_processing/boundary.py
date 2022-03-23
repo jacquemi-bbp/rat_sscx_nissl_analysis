@@ -11,7 +11,7 @@ from qupath_processing.io import qupath_cells_detection_to_dataframe
 from qupath_processing.utilities import get_angle
 
 
-def get_cell_coordinate_by_layers(cell_position_file_path, layers_name):
+def get_cell_coordinate_dataframe(cell_position_file_path, layers_name):
     """
     Read cells' coordinates from input file to fill a dictionary
     :param cell_position_file_path: (str)
@@ -19,49 +19,46 @@ def get_cell_coordinate_by_layers(cell_position_file_path, layers_name):
     :return: dict: key -> Layer name, values np.array of shape (N, 2)
     """
     df = qupath_cells_detection_to_dataframe(cell_position_file_path)
-    layer_points = {}
-    for layer_name in layers_name:
-        layer = df[df["Class"] == layer_name]
-        Xs = layer['Centroid X µm'].to_numpy(dtype=float)
-        Ys = layer['Centroid Y µm'].to_numpy(dtype=float)
-        layer_points[layer_name] = np.column_stack((Xs, Ys))
-    return layer_points
+    return df
 
 
-def rotate_points_list(points, theta):
+def rotate_points_list(x_coors, y_coors, theta):
     """
     Rotate points to thetha radian angle
-    :param points: (numpt.array) of shape (N, 2)
+    :param x_coors: (numpt.array) of shape (N, )
     :param theta: (float) angle to rotate
     :return: numpy.ndarray of shape (N, 2) The inputs point rotated
     """
+    assert len(x_coors) > 0
+    points = np.vstack((x_coors, y_coors)).T
+    rotated_point = points.copy()
+    c, s = np.cos(theta), np.sin(theta)
+    R = np.array(((c, -s), (s, c)))
+    rotated_point = np.dot(rotated_point, R.T)
+    return rotated_point[:, 0],  rotated_point[:, 1]
 
-    if len(points) > 0:
-        rotated_point = points.copy()
-        c, s = np.cos(theta), np.sin(theta)
-        R = np.array(((c, -s), (s, c)))
-        rotated_point = np.dot(rotated_point, R.T)
-        return rotated_point
-    return np.zeros((0, 0), dtype=float)
 
 
-def rotated_cells_from_top_line(top_left, top_right, layer_clustered_points):
+def rotated_cells_from_top_line(top_left, top_right, cells_dataframe):
     """
     Compute angle theta between the line defined by top_left and to right.
     The rotate points to the theta angle
     :param top_left: (numpy.array) of shape (2, 2) cartesian coordinates
     :param top_right: (numpy.array) of shape (2, 2) cartesian coordinates
-    :param layer_clustered_points: dict key
+    :param cells_dataframe: Datafame containing the cells features
      -> layer name values -> numpy.ndarray od shape (N, 2)
-    :return:
+    :return: cells_dataframe with rotated points
     """
     theta = - get_angle(top_left, top_right)
+    '''
     layer_rotatated_points = {}
     for layer_label, XY in layer_clustered_points.items():
          layer_rotatated_points[layer_label] = rotate_points_list(XY, theta)
+    '''
 
-    top_points = np.array([top_left, top_right]).reshape(-1, 2)
-    return layer_rotatated_points, rotate_points_list(top_points, theta)
+    cells_dataframe['Centroid X µm'], cells_dataframe['Centroid Y µm'] = \
+        rotate_points_list(cells_dataframe['Centroid X µm'], cells_dataframe['Centroid Y µm'], theta)
+    return cells_dataframe, rotate_points_list(top_left, top_right, theta)
 
 
 def compute_dbscan_eps(cell_position_file_path, layers_name, factor=4):
@@ -173,40 +170,50 @@ def clustering(layer_name, coordinates, _eps=100, visualisation=False):
     return return_coordinates
 
 
-def locate_layers_bounderies(layer_rotatated_points, layers_name):
+def add_border_flag(cells_dataframe, layers_name, distance=20):
+    """
+    Add a flag to each cell in dataframe that represents the border feature
+    """
+    next_layers = dict()
+    for current, next in zip(layers_name[:-1], layers_name[1:]):
+        next_layers[current] = next
+
+    borders_cells = np.zeros(len(cells_dataframe.index), dtype=bool)
+    for index, row in cells_dataframe.iterrows():
+        if row.Class != 'Layer 6 b':
+            next_layer = next_layers[row['Class']]
+            next_layer_df = cells_dataframe[cells_dataframe.Class == next_layer]
+            dfy = next_layer_df[abs(next_layer_df['Centroid Y µm']-row['Centroid Y µm']) < distance]
+            df = dfy[abs(dfy['Centroid X µm']-row['Centroid X µm']) < distance]
+            if df.size > 0:
+                borders_cells[index] = True
+    cells_dataframe['border'] = borders_cells
+    return cells_dataframe
+
+
+def locate_layers_bounderies(cells_dataframe, layers_name):
     """
     Compute layers boundaries. The bottom of each layer is used
-    :param layer_rotatated_points:
-    :paramn S1HL_length:
+    :param cells_dataframe
     :return:
     """
-
     # Find S1 ylength
-    min_y = 9999999
-    max_y = 0
-    for XY in layer_rotatated_points.values():
-        if len(XY) > 0:
-            if XY[:, 1].min() < min_y:
-                min_y = XY[:, 1].min()
-            if XY[:, 1].max() > max_y:
-                max_y = XY[:, 1].max()
-    S1HL_y_length = max_y - min_y
-
-    print(f'INFO: S1HL y length = {S1HL_y_length}')
-
-    y_origin = layer_rotatated_points['Layer 1'][:, 1].min()
-
+    y_origin = cells_dataframe['Centroid Y µm'].min()
+    S1HL_y_length = cells_dataframe['Centroid Y µm'].max() - y_origin
     boundaries_bottom = {}
     y_lines = []
-    for layer_label in layers_name:
-        XY = layer_rotatated_points[layer_label]
-        if XY.shape[0] > 0:
-            y_coors = XY[:, 1]
-            layer_ymax = y_coors[y_coors.argsort()[-10:-1]].mean()
-            y_lines.append(layer_ymax)
-
-            percentage = (layer_ymax - y_origin) / S1HL_y_length
-            boundaries_bottom[layer_label] = [layer_ymax - y_origin, percentage]
+    for layer in layers_name:
+        if layer != 'Layer 6 b':
+            layer_cells = cells_dataframe[cells_dataframe.Class == layer]
+            border_cells = layer_cells[layer_cells.border == True]
+            boundary = border_cells['Centroid Y µm'].mean() - y_origin
+        else:
+            layer_cells = cells_dataframe[cells_dataframe.Class == layer]
+            boundary = layer_cells['Centroid Y µm'].max() - y_origin
+        y_lines.append(boundary)
+        percentage = (boundary) / S1HL_y_length
+        boundaries_bottom[layer] = [boundary, percentage]
+        print(f'INFO: {layer} layer_ymax = {boundary }')
     return boundaries_bottom, y_lines, y_origin
 
 
