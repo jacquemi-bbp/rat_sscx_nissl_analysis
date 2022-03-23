@@ -119,10 +119,8 @@ def batch_boundary(config_file_path, visualisation_flag):
                                   'Layer': layers,
                                   'Layer bottom (um). Origin is top of layer 1': absolute,
                                   'Layer bottom (percentage). Origin is top of layer 1': percentage})
-        #write_dataframe_to_file(dataframe, image_name, output_directory)
 
         create_directory_if_not_exist(output_directory)
-
 
         final_dataframe = concat_dataframe(dataframe, final_dataframe)
 
@@ -130,12 +128,11 @@ def batch_boundary(config_file_path, visualisation_flag):
                                rotated_top_line, y_origin, layers
                                , image_name, output_directory, visualisation_flag)
 
+    valid_dataframe, invalid_images = get_valid_image(final_dataframe, layers_name)
+    write_dataframe_to_file(valid_dataframe, output_file_prefix, output_directory)
 
-    #valid_dataframe, invalid_images = get_valid_image(final_dataframe, layers_name)
-    write_dataframe_to_file(final_dataframe, output_file_prefix, output_directory)
+    plot_layer_per_image(valid_dataframe, layers_name, image_name, output_directory, visualisation_flag)
+    plot_layer_per_animal(valid_dataframe, layers_name, image_name, output_directory, visualisation_flag)
 
-    if visualisation_flag:
-        plot_layer_per_image(final_dataframe, layers_name)
-        plot_layer_per_animal(final_dataframe, layers_name)
 
     #print(f'INFO: Invalid images: {invalid_images}')

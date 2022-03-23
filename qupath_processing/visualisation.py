@@ -171,11 +171,12 @@ def plot_layers_bounderies(cells_rotated_df, boundaries_bottom, y_lines,
     xmean = (xmax + xmin)/2
     for index, layer in enumerate(layers_name):
         df_layer = cells_rotated_df[cells_rotated_df.Class == layer]
-        plt.scatter(df_layer['Centroid X µm'].to_numpy(dtype=float),
+        sc = plt.scatter(df_layer['Centroid X µm'].to_numpy(dtype=float),
                     df_layer['Centroid Y µm'].to_numpy(dtype=float) - y_origin, s=2)
         border_cells = df_layer[df_layer['border'] == True]
+        col = sc.get_facecolors()[0].tolist()
         plt.scatter(border_cells['Centroid X µm'].to_numpy(dtype=float),
-                    border_cells['Centroid Y µm'].to_numpy(dtype=float) - y_origin, s=10)
+                    border_cells['Centroid Y µm'].to_numpy(dtype=float) - y_origin, s=10, color=col)
         y = boundaries_bottom[layer][0] + half_letter_size
         plt.hlines(y, xmin, xmax, color='red')
         plt.text(xmean, y - 4 *  half_letter_size, layer, size='xx-large')
@@ -189,7 +190,7 @@ def plot_layers_bounderies(cells_rotated_df, boundaries_bottom, y_lines,
         plt.savefig(file_path, dpi=150)
 
 
-def plot_layer_per_image(dataframe, layers_name):
+def plot_layer_per_image(dataframe, layers_name,  image_name, output_path, visualisation_flag):
     plt.figure(figsize=(8, 8))
     for layer_name in layers_name:
         layer_df = dataframe[dataframe['Layer'] == layer_name].groupby(['image', 'Layer'], as_index=False)[
@@ -202,10 +203,14 @@ def plot_layer_per_image(dataframe, layers_name):
     plt.ylabel('Layer bottom. Origin is top of ' + layer_name + ' (um)')
     plt.gca().legend()
     plt.gca().set_title("Layer boundaries by input image")
-    plt.show()
+    if visualisation_flag:
+        plt.show()
+    else:
+        file_path = output_path + '/' + image_name + 'layer_per_image_.png'
+        plt.savefig(file_path, dpi=150)
 
 
-def plot_layer_per_animal(dataframe, layers_name):
+def plot_layer_per_animal(dataframe, layers_name,  image_name, output_path, visualisation_flag):
     plt.figure(figsize=(8, 8))
     for layer_name in layers_name:
         layer_df = dataframe[dataframe['Layer'] == layer_name].groupby(['animal', 'Layer'], as_index=False)[
@@ -218,5 +223,8 @@ def plot_layer_per_animal(dataframe, layers_name):
         plt.ylabel('Layer bottom. Origin is top of ' + layer_name + ' (um)')
         plt.gca().legend()
     plt.gca().set_title("Layer boundaries by input animal")
-    plt.show()
-    
+    if visualisation_flag:
+        plt.show()
+    else:
+        file_path = output_path + '/' + image_name + 'layer_per_animal_.png'
+        plt.savefig(file_path, dpi=150)

@@ -50,12 +50,6 @@ def rotated_cells_from_top_line(top_left, top_right, cells_dataframe):
     :return: cells_dataframe with rotated points
     """
     theta = - get_angle(top_left, top_right)
-    '''
-    layer_rotatated_points = {}
-    for layer_label, XY in layer_clustered_points.items():
-         layer_rotatated_points[layer_label] = rotate_points_list(XY, theta)
-    '''
-
     cells_dataframe['Centroid X µm'], cells_dataframe['Centroid Y µm'] = \
         rotate_points_list(cells_dataframe['Centroid X µm'], cells_dataframe['Centroid Y µm'], theta)
     return cells_dataframe, rotate_points_list(top_left, top_right, theta)
@@ -170,7 +164,7 @@ def clustering(layer_name, coordinates, _eps=100, visualisation=False):
     return return_coordinates
 
 
-def add_border_flag(cells_dataframe, layers_name, distance=20):
+def add_border_flag_ori(cells_dataframe, layers_name, distance=20):
     """
     Add a flag to each cell in dataframe that represents the border feature
     """
@@ -184,6 +178,27 @@ def add_border_flag(cells_dataframe, layers_name, distance=20):
             next_layer = next_layers[row['Class']]
             next_layer_df = cells_dataframe[cells_dataframe.Class == next_layer]
             dfy = next_layer_df[abs(next_layer_df['Centroid Y µm']-row['Centroid Y µm']) < distance]
+            df = dfy[abs(dfy['Centroid X µm']-row['Centroid X µm']) < distance]
+            if df.size > 0:
+                borders_cells[index] = True
+    cells_dataframe['border'] = borders_cells
+    return cells_dataframe
+
+
+def add_border_flag(cells_dataframe, layers_name, distance=20):
+    """
+    Add a flag to each cell in dataframe that represents the border feature
+    """
+    next_layers_dict = {}
+    for index, layer in enumerate(layers_name):
+        next_layers = layers_name[index + 1:]
+        next_layers_dict[layer] = next_layers
+
+    borders_cells = np.zeros(len(cells_dataframe.index), dtype=bool)
+    for index, row in cells_dataframe.iterrows():
+        if row.Class != 'Layer 6 b':
+            next_layer_dfs = cells_dataframe[cells_dataframe.Class.isin(next_layers_dict[row.Class])]
+            dfy = next_layer_dfs[abs(next_layer_dfs['Centroid Y µm']-row['Centroid Y µm']) < distance]
             df = dfy[abs(dfy['Centroid X µm']-row['Centroid X µm']) < distance]
             if df.size > 0:
                 borders_cells[index] = True
