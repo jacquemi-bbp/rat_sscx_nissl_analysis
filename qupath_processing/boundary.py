@@ -11,6 +11,24 @@ from qupath_processing.io import qupath_cells_detection_to_dataframe
 from qupath_processing.utilities import get_angle
 
 
+def get_layers_extremity(layer_dataframe, fnc, step=20):
+    points = []
+    x_min = int(layer_dataframe['Centroid X µm'].min())
+    x_max = int(layer_dataframe['Centroid X µm'].max())
+    for x_max in range(x_min+step, x_max, step):
+        filter_df = layer_dataframe[layer_dataframe['Centroid X µm'] >= x_min]
+        filter_df = filter_df[filter_df['Centroid X µm'] < x_max]
+        if filter_df.size > 0:
+            index = fnc(filter_df['Centroid Y µm'])
+            x = filter_df.iloc[index]['Centroid X µm']
+            y = filter_df.iloc[index]['Centroid Y µm']
+            print(f'DEBUG y => {y}')
+            points.append([x, y])
+        x_min = x_max
+    points = np.array(points)
+    return points
+
+
 def get_cell_coordinate_dataframe(cell_position_file_path, layers_name):
     """
     Read cells' coordinates from input file to fill a dictionary
@@ -75,7 +93,7 @@ def compute_dbscan_eps(cell_position_file_path, layers_name, factor=4):
     return layer_dbscan_eps
 
 
-def get_main_cluster(layers_name, layer_dbscan_eps, layer_points):
+def get_main_cluster_ori(layers_name, layer_dbscan_eps, layer_points):
     """
     Apply DBSCAN algorithm on cells for a specific layer and return
     the main cluster. Used to remove cells that are far away from other cells
@@ -97,6 +115,32 @@ def get_main_cluster(layers_name, layer_dbscan_eps, layer_points):
             layer_clustered_points[layer_name] = layers_points
 
     return layer_clustered_points
+
+
+def get_main_cluster(layers_name, layer_dbscan_eps, dataframe):
+    """
+    Apply DBSCAN algorithm on cells for a specific layer and return
+    the main cluster. Used to remove cells that are far away from other cells
+    of the same layer
+    :param layers_name: (list of str) The layer names
+    :param layer_dbscan_eps: list of float value representing DBSCAN eps values
+    :param dataframe:
+    :return: points from main cluster dict: key -> (str) layer name values -> numpy.ndarray of shape (N, 2)
+    """
+
+    layer_clustered_points = {}
+    for layer_name, eps_value in zip(layers_name, layer_dbscan_eps):
+        xs = dataframe[dataframe.Class == layer_name]['Centroid X µm']
+        ys = dataframe[dataframe.Class == layer_name]['Centroid Y µm']
+        layers_points = layer_points[layer_name]
+        if layers_points.shape[0] > 0:
+            layer_clustered_points[layer_name] =\
+                clustering(layer_name, layers_points,
+                           eps_value, visualisation=False)
+        else:
+            layer_clustered_points[layer_name] = layers_points
+
+    return result
 
 
 def clustering(layer_name, coordinates, _eps=100, visualisation=False):
@@ -164,27 +208,6 @@ def clustering(layer_name, coordinates, _eps=100, visualisation=False):
     return return_coordinates
 
 
-def add_border_flag_ori(cells_dataframe, layers_name, distance=20):
-    """
-    Add a flag to each cell in dataframe that represents the border feature
-    """
-    next_layers = dict()
-    for current, next in zip(layers_name[:-1], layers_name[1:]):
-        next_layers[current] = next
-
-    borders_cells = np.zeros(len(cells_dataframe.index), dtype=bool)
-    for index, row in cells_dataframe.iterrows():
-        if row.Class != 'Layer 6 b':
-            next_layer = next_layers[row['Class']]
-            next_layer_df = cells_dataframe[cells_dataframe.Class == next_layer]
-            dfy = next_layer_df[abs(next_layer_df['Centroid Y µm']-row['Centroid Y µm']) < distance]
-            df = dfy[abs(dfy['Centroid X µm']-row['Centroid X µm']) < distance]
-            if df.size > 0:
-                borders_cells[index] = True
-    cells_dataframe['border'] = borders_cells
-    return cells_dataframe
-
-
 def add_border_flag(cells_dataframe, layers_name, distance=20):
     """
     Add a flag to each cell in dataframe that represents the border feature
@@ -213,7 +236,9 @@ def locate_layers_bounderies(cells_dataframe, layers_name):
     :return:
     """
     # Find S1 ylength
-    y_origin = cells_dataframe['Centroid Y µm'].min()
+    #y_origin = cells_dataframe['Centroid Y µm'].min()
+    layer1_df = cells_dataframe[cells_dataframe.Class == 'Layer 1']
+    y_origin = get_layers_extremity(layer1_df, np.argmin, 50)[:, 1].mean()
     S1HL_y_length = cells_dataframe['Centroid Y µm'].max() - y_origin
     boundaries_bottom = {}
     y_lines = []
@@ -222,10 +247,15 @@ def locate_layers_bounderies(cells_dataframe, layers_name):
             layer_cells = cells_dataframe[cells_dataframe.Class == layer]
             border_cells = layer_cells[layer_cells.border == True]
             boundary = border_cells['Centroid Y µm'].mean() - y_origin
+            y_lines.append(boundary)
         else:
-            layer_cells = cells_dataframe[cells_dataframe.Class == layer]
-            boundary = layer_cells['Centroid Y µm'].max() - y_origin
-        y_lines.append(boundary)
+            layer6b_df = cells_dataframe[cells_dataframe.Class == 'Layer 6 b']
+            points = get_layers_extremity(layer6b_df, np.argmax, 40)
+            boundary = points[:, 1].mean() - y_origin
+            y_lines.append(boundary)
+
+
+
         percentage = (boundary) / S1HL_y_length
         boundaries_bottom[layer] = [boundary, percentage]
         print(f'INFO: {layer} layer_ymax = {boundary }')

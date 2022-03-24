@@ -20,7 +20,8 @@ from qupath_processing.boundary import (
     locate_layers_bounderies,
     get_cell_coordinate_dataframe,
     add_border_flag,
-    get_valid_image
+    get_valid_image,
+    get_main_cluster
 )
 
 from qupath_processing.visualisation import (
@@ -92,10 +93,10 @@ def batch_boundary(config_file_path, visualisation_flag):
         top_right = quadrilateral_pixel_coordinates[1] * pixel_size
 
         # Apply cluster DBSCAN layer by layer
-        '''
-        layer_clustered_points = get_main_cluster(layers_name, layer_dbscan_eps,
-                                                  cells_df)
-        '''
+
+        #cells_df = get_main_cluster(layers_name, layer_dbscan_eps,
+        #                                          cells_df)
+
 
         # Rotate the image as function of to top line to ease the length computation
         cells_rotated_df, rotated_top_line = rotated_cells_from_top_line(top_left, top_right, cells_df)

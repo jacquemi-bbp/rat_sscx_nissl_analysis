@@ -180,6 +180,7 @@ def plot_layers_bounderies(cells_rotated_df, boundaries_bottom, y_lines,
         y = boundaries_bottom[layer][0] + half_letter_size
         plt.hlines(y, xmin, xmax, color='red')
         plt.text(xmean, y - 4 *  half_letter_size, layer, size='xx-large')
+    plt.hlines(0, xmin, xmax, color='black')
     plt.title(image_name + ' Layers bottom boundaries (um)')
     plt.xlabel("X cells' coordinates (um)")
     plt.ylabel("Cells distance from Layer1 top coordinate (um)")
