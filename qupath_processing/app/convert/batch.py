@@ -59,6 +59,9 @@ def cmd(config_file_path):
 
         points_annotation_dataframe, s1hl_annotation_dataframe, out_of_pia_annotation_dataframe, \
         cells_features_dataframe = convert(cells_detection_path, annotation_path)
+        # remove Cluster features if exist
+        cols = [c for c in cells_features_dataframe.columns if c.lower().find('cluster') == -1]
+        cells_features_dataframe=cells_features_dataframe[cols]
 
         # Write dataframe
         points_annotation_dataframe.to_pickle(output_directory + '/' + image_name + '_points_annotations' + '.pkl')

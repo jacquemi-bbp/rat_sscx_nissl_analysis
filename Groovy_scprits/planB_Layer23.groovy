@@ -8,6 +8,10 @@ detectionToAnnotationDistances(true)
 //runObjectClassifier("/home/jacquemi/working_dir/Rat_sscx_nissl/Cellpose_Classifier_Training_20220225/classifiers/object_classifiers/classify_by_layer_only.json")
 runObjectClassifier("./Classifyers/classify_by_layer_only_with_L23.json")
 println 'Add features for classifer and run it Done!'
+selectAnnotations();
+runPlugin('qupath.opencv.features.DelaunayClusteringPlugin', '{"distanceThresholdMicrons": 0.0,  "limitByClass": false,  "addClusterMeasurements": false}');
+runPlugin('qupath.lib.plugins.objects.SmoothFeaturesPlugin', '{"fwhmMicrons": 25.0,  "smoothWithinClasses": false}');
+runPlugin('qupath.lib.plugins.objects.SmoothFeaturesPlugin', '{"fwhmMicrons": 50.0,  "smoothWithinClasses": false}');
 
     
 // 1. Save Detection Measurements, keeping useful lines from `save_detection_measurement.groovy`
@@ -27,7 +31,7 @@ def imageName = getCurrentServer().getMetadata().getName()
  
 def file = new File(saveFolder,imageName + '_annotations.json' )
 annotations.each {
-    println writer.write( it.getROI().getGeometry() )
+    writer.write( it.getROI().getGeometry() )
     file.withWriter('UTF-8') {
         gson.toJson( annotations,it )
     }
