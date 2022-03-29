@@ -26,7 +26,7 @@ def batch_density(config_file_path):
     thickness_cut = float(config['BATCH']['thickness_cut'])
     grid_nb_row = int(config['BATCH']['grid_nb_row'])
     grid_nb_col = int(config['BATCH']['grid_nb_col'])
-
+    layer_names = config['BATCH']['layer_names']
 
     image_dictionary = list_images(input_directory, cell_position_suffix, annotations_geojson_suffix)
     print(f'INFO: input files: {list(image_dictionary.keys())}')
@@ -38,8 +38,12 @@ def batch_density(config_file_path):
         print('INFO: Process single image {}'.format(image_prefix))
         try:
             densities_dataframe = single_image_process(values['CELL_POSITIONS_PATH'], values['ANNOTATIONS_PATH'],
-                                                    pixel_size, thickness_cut,
-                                                    grid_nb_row, grid_nb_col, image_prefix)
+                                                        pixel_size, thickness_cut, grid_nb_row, grid_nb_col,
+                                                       image_prefix, layer_names, visualisation_flag=False,
+                                                       output_path=output_directory)
+
+
+
             print('INFO: ', densities_dataframe)
             print('INFO: Concatenate results for image {}'.format(image_prefix))
             final_dataframe = concat_dataframe(densities_dataframe, final_dataframe)

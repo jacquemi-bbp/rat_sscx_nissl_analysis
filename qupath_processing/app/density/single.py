@@ -29,7 +29,6 @@ def density(config_file_path, cell_position_file_path, annotations_geojson_path,
             thickness_cut, nb_row, nb_col, output_path, layer_boundary_path,  visualisation_flag):
     if config_file_path:
         config = configparser.ConfigParser()
-        config.sections()
         config.read(config_file_path)
         cell_position_file_path = config['DEFAULT']['cell_position_file_path']
         annotations_geojson_path = config['DEFAULT']['annotations_path']
@@ -38,6 +37,7 @@ def density(config_file_path, cell_position_file_path, annotations_geojson_path,
         nb_row = int(config['DEFAULT']['grid_nb_row'])
         nb_col = int(config['DEFAULT']['grid_nb_col'])
         output_path = config['DEFAULT']['output_path']
+        layer_names = config['DEFAULT']['layer_names']
     else:
         if output_path == None:
             print('ERROR --output-path is required')
@@ -45,7 +45,8 @@ def density(config_file_path, cell_position_file_path, annotations_geojson_path,
     image_name = cell_position_file_path[cell_position_file_path.rfind('/')+1:cell_position_file_path.rfind('.')]
     print('INFO: Process single image ', image_name)
     densities_dataframe = single_image_process(cell_position_file_path, annotations_geojson_path, pixel_size, thickness_cut,
-                         nb_row, nb_col, image_name, layer_boundary_path=layer_boundary_path,  visualisation_flag=visualisation_flag)
+                         nb_row, nb_col, image_name, layer_names, layer_boundary_path=layer_boundary_path,
+                                               visualisation_flag=visualisation_flag, output_path=output_path)
     print('INFO: ', densities_dataframe)
     print('INFO: Write results')
     write_dataframe_to_file(densities_dataframe, image_name, output_path)

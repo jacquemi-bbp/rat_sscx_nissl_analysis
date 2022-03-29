@@ -19,8 +19,8 @@ from qupath_processing.utilities import NotValidImage
 #pylint: disable=too-many-locals
 def single_image_process(cell_position_file_path, annotations_geojson_path, pixel_size,
                          thickness_cut, nb_row, nb_col, image_prefix, layers_name,
-                         layer_boundary_path = None,
-                         visualisation_flag = False):
+                         layer_boundary_path=None,
+                         visualisation_flag=False, output_path=None):
     """
     :param cell_position_file_path:(dtr)
     :param annotations_geojson_path:(str)
@@ -46,6 +46,7 @@ def single_image_process(cell_position_file_path, annotations_geojson_path, pixe
     s1_coordinates = s1_pixel_coordinates * pixel_size
     quadrilateral_coordinates = quadrilateral_pixel_coordinates * pixel_size
     print('INFO: Create S1 grid as function of brain depth')
+
     horizontal_lines, vertical_lines = create_grid(quadrilateral_coordinates,
                                     s1_coordinates, nb_row, nb_col)
     split_polygons = create_depth_polygons(s1_coordinates, horizontal_lines)
@@ -60,27 +61,19 @@ def single_image_process(cell_position_file_path, annotations_geojson_path, pixe
                                         'depth_percentage': depth_percentage,
                                         'densities': densities})
 
-    if visualisation_flag:
-        if layer_boundary_path:
-            boundary_df = pd.read_pickle(layer_boundary_path)
-            boundaries_percentage = list(boundary_df['Layer bottom (percentage). Origin is top of layer 1'])
-        else:
-            boundaries_percentage = None
+    if layer_boundary_path:
+        boundary_df = pd.read_pickle(layer_boundary_path)
+        boundaries_percentage = list(boundary_df['Layer bottom (percentage). Origin is top of layer 1'])
+    else:
+        boundaries_percentage = None
 
-        plot_split_polygons_and_cell_depth(split_polygons, s1_coordinates,
-                                           cells_centroid_x,
-                                           cells_centroid_y)
-        plot_densities(depth_percentage, densities, layers_name, boundaries_percentage = boundaries_percentage, image_name=image_prefix)
+    plot_split_polygons_and_cell_depth(split_polygons, s1_coordinates, cells_centroid_x, cells_centroid_y,
+                                           visualisation_flag=visualisation_flag, output_path=output_path, image_name=image_prefix)
+
+    plot_densities(depth_percentage, densities, layers_name, boundaries_percentage=boundaries_percentage,
+                   visualisation_flag=visualisation_flag, output_path=output_path, image_name=image_prefix)
     return densities_dataframe
-    """
-    except NotValidImage as e:
-        print(e)
-        raise NotValidImage
-    except KeyError:
-        raise NotValidImage
-    except IndexError:
-        raise NotValidImage
-    """
+
 
 def compute_cell_density(nb_cell_per_slide, split_polygons, z_length):
     """

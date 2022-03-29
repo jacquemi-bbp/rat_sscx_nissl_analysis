@@ -7,7 +7,8 @@ import numpy as np
 from qupath_processing.geometry import compute_cells_depth
 
 
-def plot_densities(percentages, densities, layers_names, boundaries_percentage=None, image_name=""):
+def plot_densities(percentages, densities, layers_names, boundaries_percentage=None,
+                   visualisation_flag=None, output_path=None, image_name=""):
     """
     Plot the density per layers that represent the brain depth
     :param percentages: list of brain depth percentage (float)
@@ -37,12 +38,17 @@ def plot_densities(percentages, densities, layers_names, boundaries_percentage=N
     width = 100 / len(percentages)  # the width of the bars
 
     ax.set_xticks(x, percentages)
-    plt.show()
+    if visualisation_flag:
+        plt.show()
+    else:
+        file_path = output_path + '/' + image_name + 'layer_per_animal_.png'
+        plt.savefig(file_path, dpi=150)
 
 
 def plot_split_polygons_and_cell_depth(split_polygons, s1_coordinates,
                                        cells_centroid_x, cells_centroid_y,
-                                       vertical_lines=None):
+                                       vertical_lines=None,
+                                       visualisation_flag=False, output_path=None, image_name=None):
     """
     Plot splitted S1 polgygons and cell coordiantes and depth
     :param split_polygons: list of shapely polygons representing S1 layers as
@@ -73,7 +79,11 @@ def plot_split_polygons_and_cell_depth(split_polygons, s1_coordinates,
     plt.title('Somatosensory cortex. Each layer represents a percentage of depth following the top of the SSX')
     plt.xlabel("X coordinates (um)")
     plt.ylabel("Y coordinates (um)")
-    plt.show()
+    if visualisation_flag:
+        plt.show()
+    else:
+        file_path = output_path + '/' + image_name + 'layer_per_animal_.png'
+        plt.savefig(file_path, dpi=150)
 
 
 def plot_raw_data(top_left, top_right, layer_points, image_name=''):
