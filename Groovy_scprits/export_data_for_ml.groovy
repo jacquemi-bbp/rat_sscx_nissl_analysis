@@ -85,6 +85,35 @@ if (entryMetadata['Analyze'] == 'True') {
 	    cellpose.detectObjects(imageData, pathObjects)
 
 	    println 'Cellpose algorithm for cellular segmentation Done!'
+	    // CIRCULARY CORRECTION START
+	    import org.locationtech.jts.geom.util.GeometryFixer
+    
+	    // Run this code after cellpose
+    
+	    def cells = getDetectionObjects()
+    
+	    def multis = cells.findAll{ it.getROI().getGeometry() instanceof org.locationtech.jts.geom.MultiPolygon }
+    
+	    // fix
+	    def fixedMultis = multis.collect{ cell ->
+	        def geom = cell.getROI().getGeometry()
+	        // Get the largest geometry and assume that it is the cell
+	        def idx = (0..< geom.getNumGeometries()).max{ geom.getGeometryN( it ).getArea() }
+    
+	        def newROI = GeometryTools.geometryToROI( geom.getGeometryN( idx ), null )
+	        def newcell = PathObjects.createDetectionObject( newROI, cell.getPathClass(), cell.getMeasurementList() )
+	    }
+        
+	    // Add what is needed and remove the old ones
+	    removeObjects( multis, false )
+	    addObjects( fixedMultis )
+	    fireHierarchyUpdate()
+    
+	    // Re-compute measurements
+	    selectDetections()
+	    addShapeMeasurements("AREA", "LENGTH", "CIRCULARITY", "SOLIDITY", "MAX_DIAMETER", "MIN_DIAMETER", "NUCLEUS_CELL_RATIO")
+	    // CIRCULARY CORRECTION END
+
 
 	    // Add features for classifer and run it
 	    detectionToAnnotationDistances(true)
@@ -115,7 +144,7 @@ if (entryMetadata['Analyze'] == 'True') {
 	     
 	    def file = new File(saveFolder,imageName + '_annotations.json' )
 	    annotations.each {
-		println writer.write( it.getROI().getGeometry() )
+		writer.write( it.getROI().getGeometry() )
 		file.withWriter('UTF-8') {
 		gson.toJson( annotations,it )
 		}

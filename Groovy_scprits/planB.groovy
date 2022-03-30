@@ -3,7 +3,6 @@ logger.info("Save folder: {}", saveFolderPath)
 def saveFolder = new File(saveFolderPath)
 
 // CIRCULARY CORRECTION START
-
 import org.locationtech.jts.geom.util.GeometryFixer
  
 // Run this code after cellpose
