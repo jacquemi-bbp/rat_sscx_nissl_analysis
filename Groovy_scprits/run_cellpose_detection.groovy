@@ -36,7 +36,7 @@ def cellpose = Cellpose2D.builder(pathModel)
 // Run detection for the selected objects
 def imageData = getCurrentImageData()
 
-//def pathObjects = getObjects{ it.getPathClass().equals( getPathClass( "S1HL" ) ) }
+def pathObjects = getObjects{ it.getPathClass().equals( getPathClass( "S1HL" ) ) }
 
 println "Execute cellpose on $pathObjects"
 println "imageData $imageData"

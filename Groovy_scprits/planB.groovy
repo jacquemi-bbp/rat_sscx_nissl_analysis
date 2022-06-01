@@ -38,9 +38,7 @@ runObjectClassifier("./Classifyers/classify_by_layer_only.json")
 println 'Add features for classifer and run it Done!'
 selectAnnotations();
 runPlugin('qupath.opencv.features.DelaunayClusteringPlugin', '{"distanceThresholdMicrons": 0.0,  "limitByClass": false,  "addClusterMeasurements": false}');
-selectAnnotations();
 runPlugin('qupath.lib.plugins.objects.SmoothFeaturesPlugin', '{"fwhmMicrons": 25.0,  "smoothWithinClasses": false}');
-selectAnnotations();
 runPlugin('qupath.lib.plugins.objects.SmoothFeaturesPlugin', '{"fwhmMicrons": 50.0,  "smoothWithinClasses": false}');
 
     

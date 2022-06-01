@@ -70,12 +70,32 @@ def read_qupath_annotations(file_path):
             pass
 
     s1_pixel_coordinates = annotations['S1HL'][0]
-    out_of_pia = annotations['Outside Pia'][0]
-    # These 4 points can not be find via an algo, so we need QuPath annotation
-    # These 4 points can not be find via an algo, so we need QuPath annotation
-    quadrilateral_pixel_coordinates = np.array([annotations['top_left'], annotations['top_right'],
-                                                annotations['bottom_right'], annotations['bottom_left']])
+    if isinstance(s1_pixel_coordinates, np.ndarray) and s1_pixel_coordinates.shape[0] == 1:
+        s1_pixel_coordinates = np.array(s1_pixel_coordinates[0])
 
+    out_of_pia = annotations['Outside Pia'][0]
+    if isinstance(out_of_pia, np.ndarray) and out_of_pia.shape[0] == 1:
+        out_of_pia = np.array(out_of_pia[0])
+
+    # These 4 points can not be find via an algo, so we need QuPath annotation
+    # These 4 points can not be find via an algo, so we need QuPath annotation
+    try:
+        quadrilateral_pixel_coordinates = np.array([annotations['top_left'], annotations['top_right'],
+                                                    annotations['bottom_right'], annotations['bottom_left']])
+    except KeyError as e:
+        print(f'! ERROR: {e}')
+        value = input("Could we consider that bottom_left and bottom_right are superposed ? Y/n:\n").lower()
+        while value != 'y' and value != 'n' and len(value) > 0:
+            value = input("Could we consider that bottom_left and bottom_right are superposed ? Y/n:\n")
+        if value == 'y' or  len(value) == 0:
+            try:
+                quadrilateral_pixel_coordinates = np.array([annotations['top_left'], annotations['top_right'],
+                                                            annotations['bottom_right'], annotations['bottom_right']])
+            except KeyError:
+                quadrilateral_pixel_coordinates = np.array([annotations['top_left'], annotations['top_right'],
+                                                            annotations['bottom_left'], annotations['bottom_left']])
+        else:
+            raise e
     return s1_pixel_coordinates, quadrilateral_pixel_coordinates, out_of_pia
 
 

@@ -25,7 +25,10 @@ def convert(cells_detection_file_path, annotations_file_path):
     points_annotation_dataframe = pd.DataFrame(quadrilateral_pixel_coordinates,
                                                index=['top_left', 'top_right', 'bottom_right', 'bottom_left'],
                                                columns=['Centroid X µm', 'Centroid Y µm'], )
+
     s1hl_annotation_dataframe = pd.DataFrame(s1_pixel_coordinates, columns=['Centroid X µm', 'Centroid Y µm'], )
+
+
     out_of_pia_annotation_dataframe = pd.DataFrame(out_of_pia, columns=['Centroid X µm', 'Centroid Y µm'], )
     cells_features_dataframe = qupath_cells_detection_to_dataframe(cells_detection_file_path)
 

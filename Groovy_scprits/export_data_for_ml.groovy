@@ -1,3 +1,14 @@
+// Imports
+import org.locationtech.jts.geom.util.GeometryFixer
+import org.locationtech.jts.io.WKTWriter
+import org.slf4j.LoggerFactory;
+
+import qupath.ext.biop.cmd.VirtualEnvironmentRunner.EnvType;
+import qupath.ext.biop.cellpose.CellposeSetup
+import qupath.ext.biop.cellpose.CellposeSetup.CellposeVersion;
+import qupath.ext.biop.cellpose.Cellpose2D
+
+
 def saveFolderPath =  this.args[0]
 logger.info("Save folder: {}", saveFolderPath)
 
@@ -21,7 +32,6 @@ options.setEnvironmentNameOrPath(defaultEnvPath)
 
 
 
-if (entryMetadata['Analyze'] == 'True') {
     // Expand S1HL Annotation
     selectObjectsByPathClass( getPathClass( "S1HL" ) )
     runPlugin('qupath.lib.plugins.objects.DilateAnnotationPlugin', '{"radiusMicrons": 200.0,  "lineCap": "Round",  "removeInterior": false,  "constrainToParent": false}');
@@ -75,6 +85,8 @@ if (entryMetadata['Analyze'] == 'True') {
     // Run detection for the selected objects
     def imageData = getCurrentImageData()
 
+//if (entryMetadata['Analyze'] == 'True - no Layer 1') {
+if (entryMetadata['Analyze'] == 'True') {
     def pathObjects = getObjects{ it.getPathClass().equals( getPathClass( "S1HL" ) ) }
     if (pathObjects.isEmpty()) {
         Dialogs.showErrorMessage("Cellpose", "Please select a parent object!")
@@ -86,14 +98,10 @@ if (entryMetadata['Analyze'] == 'True') {
 
 	    println 'Cellpose algorithm for cellular segmentation Done!'
 	    // CIRCULARY CORRECTION START
-	    import org.locationtech.jts.geom.util.GeometryFixer
     
 	    // Run this code after cellpose
-    
 	    def cells = getDetectionObjects()
-    
 	    def multis = cells.findAll{ it.getROI().getGeometry() instanceof org.locationtech.jts.geom.MultiPolygon }
-    
 	    // fix
 	    def fixedMultis = multis.collect{ cell ->
 	        def geom = cell.getROI().getGeometry()
@@ -118,9 +126,9 @@ if (entryMetadata['Analyze'] == 'True') {
 	    // Add features for classifer and run it
 	    detectionToAnnotationDistances(true)
 	    selectAnnotations()
+	    runPlugin('qupath.opencv.features.DelaunayClusteringPlugin', '{"distanceThresholdMicrons": 0.0,  "limitByClass": false,  "addClusterMeasurements": true}')
 	    runPlugin('qupath.lib.plugins.objects.SmoothFeaturesPlugin', '{"fwhmMicrons": 25.0,  "smoothWithinClasses": false}')
 	    runPlugin('qupath.lib.plugins.objects.SmoothFeaturesPlugin', '{"fwhmMicrons": 50.0,  "smoothWithinClasses": false}')
-	    runPlugin('qupath.opencv.features.DelaunayClusteringPlugin', '{"distanceThresholdMicrons": 0.0,  "limitByClass": false,  "addClusterMeasurements": true}')
 
 	    println 'Add features for classifer Done!'
 
@@ -154,11 +162,3 @@ if (entryMetadata['Analyze'] == 'True') {
 	}
 }
 
-// Imports
-import org.locationtech.jts.io.WKTWriter
-import org.slf4j.LoggerFactory;
-
-import qupath.ext.biop.cellpose.Cellpose2D
-import qupath.ext.biop.cmd.VirtualEnvironmentRunner.EnvType;
-import qupath.ext.biop.cellpose.CellposeSetup.CellposeVersion;
-import qupath.ext.biop.cellpose.CellposeSetup
