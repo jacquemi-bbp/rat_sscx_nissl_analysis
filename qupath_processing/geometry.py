@@ -87,7 +87,7 @@ def vertical_line_splitter(quadrilateral, s1_coordinates, nb_col):
                                                     (bottom_point[0], bottom_point[1])], 1.3)
         intersection_line = LineString(line_coordinates).intersection(Polygon(s1_coordinates))
         if isinstance(intersection_line, MultiLineString):
-            for line in intersection_line:
+            for line in intersection_line.geoms:
                 vertical_lines.append(line)
                 break
         else:
