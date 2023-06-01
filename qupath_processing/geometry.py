@@ -131,9 +131,8 @@ def horizontal_line_splitter(vertical_lines, nb_row):
     for i in range(nb_row - 1):
         horizontal_points = []
         for line in vertical_lines:
-            line_coord = np.array(line)
-
-            point = line_coord[0] + (line_coord[1] - line_coord[0]) / nb_row * (i + 1)
+            line_coords = np.array(line.coords)
+            point = line_coords[0] + (line_coords[1] - line_coords[0]) / nb_row * (i + 1)
             horizontal_points.append(point)
 
         horizontal_line = LineString(horizontal_points)
@@ -155,7 +154,7 @@ def create_depth_polygons(s1_coordinates, horizontal_lines):
     split_polygons = []
     polygon_to_split = Polygon(s1_coordinates)
     for line in horizontal_lines:
-        split_result = split(polygon_to_split, line)
+        split_result = split(polygon_to_split, line).geoms
         try:
             polygon_to_split = split_result[1]
             split_polygons.append(split_result[0])
