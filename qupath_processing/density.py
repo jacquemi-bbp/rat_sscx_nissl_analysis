@@ -3,7 +3,7 @@ QuPath porcessing for rat somatosensory cortex Nissl data module
 """
 
 import pandas as pd
-import numpy as np
+import numpy.testing as npt
 from qupath_processing.io import (
     read_qupath_annotations, read_cells_coordinate, qupath_cells_detection_to_dataframe
     )
@@ -58,7 +58,9 @@ def single_image_process(cell_position_file_path, annotations_geojson_path, pixe
     depth_percentage, densities, nb_cells = compute_cell_density(nb_cell_per_slide,
                                                        split_polygons,
                                                        thickness_cut / 1e3)
-    for depth, nb in zip(depth_percentage, nb_cells):
+
+    total_used_cells = sum(nb_cells)
+    npt.assert_equal(total_used_cells, len(cells_centroid_x))
     densities_dataframe = pd.DataFrame({'image': [image_prefix] * len(depth_percentage),
                                         'depth_percentage': depth_percentage,
                                         'densities': densities})
@@ -95,6 +97,8 @@ def compute_cell_density(nb_cell_per_slide, split_polygons, z_length):
         areas.append(polygon.area)
         nb_cells.append(nb_cell)
         densities.append(nb_cell/ ((polygon.area / 1e6) * z_length))
+
+
 
     depth_percentage = [i/len(split_polygons) for i in
                         range(len(split_polygons))]
