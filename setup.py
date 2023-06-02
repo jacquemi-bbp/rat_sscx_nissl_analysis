@@ -14,7 +14,7 @@ with open('requirements.txt') as f:
 
 setup(
     classifiers=[
-        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
     ],
     description='qupath_processing=Process files export from QuPath to create rat sscx nissl cells densities',
     author='Jean Jacquemier',

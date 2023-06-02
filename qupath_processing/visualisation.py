@@ -62,6 +62,15 @@ def plot_split_polygons_and_cell_depth(split_polygons, s1_coordinates,
 
     cells_depth = compute_cells_depth(split_polygons, cells_centroid_x,
                                       cells_centroid_y)
+    colors_depth = {}
+    for depth in np.unique(cells_depth):
+        colors_depth[depth] = np.random.rand(1, 3)
+
+    colors = []
+    for depth in cells_depth:
+        colors.append(colors_depth[depth])
+
+
     fig = plt.figure()
     fig.set_size_inches(18.5, 10.5)
     plt.axis('equal')
@@ -71,10 +80,10 @@ def plot_split_polygons_and_cell_depth(split_polygons, s1_coordinates,
         plt.plot(x_coord, y_coord)
     plt.plot(s1_coordinates[:, 0], s1_coordinates[:, 1], 'r')
     plt.scatter(cells_centroid_x, cells_centroid_y,
-                c=np.array(cells_depth) / 100, s=1)
+                c=colors, s=1)
     if vertical_lines:
         for line in vertical_lines:
-            line = np.array(line)
+            line = line.coords
             plt.axline((line[0][0], line[0][1]), (line[1][0], line[1][1]), color='red')
     plt.title('Somatosensory cortex. Each layer represents a percentage of depth following the top of the SSX')
     plt.xlabel("X coordinates (um)")

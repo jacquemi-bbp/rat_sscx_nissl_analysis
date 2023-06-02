@@ -3,6 +3,7 @@ QuPath porcessing for rat somatosensory cortex Nissl data module
 """
 
 import pandas as pd
+import numpy as np
 from qupath_processing.io import (
     read_qupath_annotations, read_cells_coordinate, qupath_cells_detection_to_dataframe
     )
@@ -54,9 +55,10 @@ def single_image_process(cell_position_file_path, annotations_geojson_path, pixe
     nb_cell_per_slide = count_nb_cell_per_polygon(cells_centroid_x,
                                                   cells_centroid_y,
                                                   split_polygons)
-    depth_percentage, densities = compute_cell_density(nb_cell_per_slide,
+    depth_percentage, densities, nb_cells = compute_cell_density(nb_cell_per_slide,
                                                        split_polygons,
                                                        thickness_cut / 1e3)
+    for depth, nb in zip(depth_percentage, nb_cells):
     densities_dataframe = pd.DataFrame({'image': [image_prefix] * len(depth_percentage),
                                         'depth_percentage': depth_percentage,
                                         'densities': densities})
@@ -68,7 +70,8 @@ def single_image_process(cell_position_file_path, annotations_geojson_path, pixe
         boundaries_percentage = None
 
     plot_split_polygons_and_cell_depth(split_polygons, s1_coordinates, cells_centroid_x, cells_centroid_y,
-                                           visualisation_flag=visualisation_flag, output_path=output_path, image_name=image_prefix)
+                                       vertical_lines=None, visualisation_flag=visualisation_flag,
+                                       output_path=output_path, image_name=image_prefix)
 
     plot_densities(depth_percentage, densities, layers_name, boundaries_percentage=boundaries_percentage,
                    visualisation_flag=visualisation_flag, output_path=output_path, image_name=image_prefix)
@@ -85,14 +88,18 @@ def compute_cell_density(nb_cell_per_slide, split_polygons, z_length):
         -  depth_percentage: list of float representing the percentage of brain depth
         -  densities: list of float representing the number of cell by mm3
     """
+    nb_cells = []
     densities = []
     areas = []
     for nb_cell, polygon in zip(nb_cell_per_slide, split_polygons):
         areas.append(polygon.area)
+        nb_cells.append(nb_cell)
         densities.append(nb_cell/ ((polygon.area / 1e6) * z_length))
 
     depth_percentage = [i/len(split_polygons) for i in
                         range(len(split_polygons))]
-    return depth_percentage, densities
+    total_number_of_cells = sum([cells for cells in nb_cell_per_slide])
+
+    return depth_percentage, densities, nb_cells
 
 
