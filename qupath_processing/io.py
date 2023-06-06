@@ -64,7 +64,9 @@ def read_qupath_annotations(file_path):
             if "classification" in entry["properties"].keys():
                 if "name" in entry["properties"]["classification"].keys():
                     if entry["properties"]["classification"]["name"] != "SliceContour" and\
-                            entry["properties"]["classification"]["name"] != 'Other':
+                            entry["properties"]["classification"]["name"] != 'Other' and \
+                            entry["properties"]["classification"]["name"].find('Layer') == -1:
+                        print(f'DEBUG entry["geometry"]["coordinates"] {entry["geometry"]["coordinates"]}')
                         annotations[entry["properties"]["classification"]["name"]] = np.array(entry["geometry"]["coordinates"])
         except KeyError:  # annotation without name
             pass
