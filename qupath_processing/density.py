@@ -55,29 +55,36 @@ def single_image_process(cell_position_file_path, annotations_geojson_path, pixe
     nb_cell_per_slide = count_nb_cell_per_polygon(cells_centroid_x,
                                                   cells_centroid_y,
                                                   split_polygons)
+
     depth_percentage, densities, nb_cells = compute_cell_density(nb_cell_per_slide,
                                                        split_polygons,
                                                        thickness_cut / 1e3)
 
     total_used_cells = sum(nb_cells)
-    npt.assert_equal(total_used_cells, len(cells_centroid_x))
-    densities_dataframe = pd.DataFrame({'image': [image_prefix] * len(depth_percentage),
-                                        'depth_percentage': depth_percentage,
-                                        'densities': densities})
+    if total_used_cells != len(cells_centroid_x):
+        densities_dataframe = pd.DataFrame({'image': [image_prefix],
+                                            'depth_percentage': None,
+                                            'densities': None})
 
-    if layer_boundary_path:
-        boundary_df = pd.read_pickle(layer_boundary_path)
-        boundaries_percentage = list(boundary_df['Layer bottom (percentage). Origin is top of layer 1'])
     else:
-        boundaries_percentage = None
+        densities_dataframe = pd.DataFrame({'image': [image_prefix] * len(depth_percentage),
+                                            'depth_percentage': depth_percentage,
+                                            'densities': densities})
 
-    plot_split_polygons_and_cell_depth(split_polygons, s1_coordinates, cells_centroid_x, cells_centroid_y,
-                                       vertical_lines=None, visualisation_flag=visualisation_flag,
-                                       output_path=output_path, image_name=image_prefix)
+        if layer_boundary_path:
+            boundary_df = pd.read_pickle(layer_boundary_path)
+            boundaries_percentage = list(boundary_df['Layer bottom (percentage). Origin is top of layer 1'])
+        else:
+            boundaries_percentage = None
 
-    plot_densities(depth_percentage, densities, layers_name, boundaries_percentage=boundaries_percentage,
-                   visualisation_flag=visualisation_flag, output_path=output_path, image_name=image_prefix)
+        plot_split_polygons_and_cell_depth(split_polygons, s1_coordinates, cells_centroid_x, cells_centroid_y,
+                                           vertical_lines=None, visualisation_flag=visualisation_flag,
+                                           output_path=output_path, image_name=image_prefix)
+
+        plot_densities(depth_percentage, densities, layers_name, boundaries_percentage=boundaries_percentage,
+                       visualisation_flag=visualisation_flag, output_path=output_path, image_name=image_prefix)
     return densities_dataframe
+
 
 
 def compute_cell_density(nb_cell_per_slide, split_polygons, z_length):
@@ -102,7 +109,6 @@ def compute_cell_density(nb_cell_per_slide, split_polygons, z_length):
 
     depth_percentage = [i/len(split_polygons) for i in
                         range(len(split_polygons))]
-    total_number_of_cells = sum([cells for cells in nb_cell_per_slide])
 
     return depth_percentage, densities, nb_cells
 

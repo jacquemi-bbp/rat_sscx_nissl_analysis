@@ -66,12 +66,15 @@ def read_qupath_annotations(file_path):
                     if entry["properties"]["classification"]["name"] != "SliceContour" and\
                             entry["properties"]["classification"]["name"] != 'Other' and \
                             entry["properties"]["classification"]["name"].find('Layer') == -1:
-                        print(f'DEBUG entry["geometry"]["coordinates"] {entry["geometry"]["coordinates"]}')
+                        #print(f'DEBUG entry["geometry"]["coordinates"] {entry["geometry"]["coordinates"]}')
                         annotations[entry["properties"]["classification"]["name"]] = np.array(entry["geometry"]["coordinates"])
         except KeyError:  # annotation without name
             pass
 
-    s1_pixel_coordinates = annotations['S1HL'][0]
+    try:
+        s1_pixel_coordinates = annotations['S1HL'][0]
+    except KeyError:
+        s1_pixel_coordinates = annotations['S1'][0]
     if isinstance(s1_pixel_coordinates, np.ndarray) and s1_pixel_coordinates.shape[0] == 1:
         s1_pixel_coordinates = np.array(s1_pixel_coordinates[0])
 
@@ -85,10 +88,14 @@ def read_qupath_annotations(file_path):
         quadrilateral_pixel_coordinates = np.array([annotations['top_left'], annotations['top_right'],
                                                     annotations['bottom_right'], annotations['bottom_left']])
     except KeyError as e:
+        '''
         print(f'! ERROR: {e}')
         value = input("Could we consider that bottom_left and bottom_right are superposed ? Y/n:\n").lower()
         while value != 'y' and value != 'n' and len(value) > 0:
             value = input("Could we consider that bottom_left and bottom_right are superposed ? Y/n:\n")
+        '''
+        value = 'y'
+
         if value == 'y' or  len(value) == 0:
             try:
                 quadrilateral_pixel_coordinates = np.array([annotations['top_left'], annotations['top_right'],

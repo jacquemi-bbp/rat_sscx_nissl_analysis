@@ -41,13 +41,11 @@ def batch_density(config_file_path):
                                                         pixel_size, thickness_cut, grid_nb_row, grid_nb_col,
                                                        image_prefix, layer_names, visualisation_flag=False,
                                                        output_path=output_directory)
-
-
-
             print('INFO: ', densities_dataframe)
             print('INFO: Concatenate results for image {}'.format(image_prefix))
             final_dataframe = concat_dataframe(densities_dataframe, final_dataframe)
         except NotValidImage:
             print('WARNING. No cells position data for {}'.format(image_prefix))
 
-    write_dataframe_to_file(final_dataframe, output_file_prefix,  output_directory)
+    if final_dataframe is not None:
+        write_dataframe_to_file(final_dataframe, output_file_prefix,  output_directory)
