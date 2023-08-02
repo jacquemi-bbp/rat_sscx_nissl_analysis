@@ -66,8 +66,7 @@ def read_qupath_annotations(file_path):
                     if entry["properties"]["classification"]["name"] != "SliceContour" and\
                             entry["properties"]["classification"]["name"] != 'Other' and \
                             entry["properties"]["classification"]["name"].find('Layer') == -1:
-                        #print(f'DEBUG entry["geometry"]["coordinates"] {entry["geometry"]["coordinates"]}')
-                        annotations[entry["properties"]["classification"]["name"]] = np.array(entry["geometry"]["coordinates"])
+                         annotations[entry["properties"]["classification"]["name"]] = np.array(entry["geometry"]["coordinates"])
         except KeyError:  # annotation without name
             pass
 
@@ -144,16 +143,13 @@ def list_images(input_directory, cell_position_suffix,
                  isfile(join(input_directory, file_name))]
     image_dictionary = {}
     for filename in onlyfiles:
-        prefix_pos = filename.find(cell_position_suffix)  # SLD_0000521.vsi - 20x_01 Detections.txt
+        prefix_pos = filename.find(cell_position_suffix) - 1 # SLD_0000521.vsi - 20x_01 Detections.txt
         if prefix_pos != -1:
             image_name = filename[:prefix_pos]
             if image_name + annotations_geojson_suffix in onlyfiles:
                 image_dictionary[image_name] = {}
                 image_dictionary[image_name]['CELL_POSITIONS_PATH'] =\
-                    input_directory + '/' + image_name + cell_position_suffix
-                image_dictionary[image_name]['ANNOTATIONS_PATH'] = \
-                    input_directory + '/' + image_name +\
-                    annotations_geojson_suffix
+                    input_directory + '/' + image_name + " " + cell_position_suffix
                 image_dictionary[image_name]['IMAGE_NAME'] = image_name
 
             else:
