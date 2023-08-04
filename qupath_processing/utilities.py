@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import math
 
+
 class NotValidImage(Exception):
     pass
 
@@ -42,12 +43,13 @@ def get_image_animal(images_metadata):
     """
     results = {}
     for image in images_metadata:
-        if 'Animal' in image['metadata']:
-            results[image['imageName']] = image['metadata']['Animal']
+        if "Animal" in image["metadata"]:
+            results[image["imageName"]] = image["metadata"]["Animal"]
         else:
-            results[image['imageName']] = 'ND'
+            results[image["imageName"]] = "ND"
 
     return results
+
 
 def get_image_immunohistochemistry(images_metadata):
     """
@@ -58,10 +60,10 @@ def get_image_immunohistochemistry(images_metadata):
     """
     results = {}
     for image in images_metadata:
-        if 'Immunohistochemistry ID' in image['metadata']:
-            results[image['imageName']] = image['metadata']['Immunohistochemistry ID']
+        if "Immunohistochemistry ID" in image["metadata"]:
+            results[image["imageName"]] = image["metadata"]["Immunohistochemistry ID"]
         else:
-            results[image['imageName']] = 'ND'
+            results[image["imageName"]] = "ND"
 
     return results
 
@@ -75,8 +77,10 @@ def get_image_lateral(images_metadata):
     """
     images_lateral = {}
     for image in images_metadata:
-        if 'Distance to midline' in image['metadata']:
-            images_lateral[image['imageName']] = image['metadata']['Distance to midline']
+        if "Distance to midline" in image["metadata"]:
+            images_lateral[image["imageName"]] = image["metadata"][
+                "Distance to midline"
+            ]
         else:
-            images_lateral[image['imageName']] = np.nan
+            images_lateral[image["imageName"]] = np.nan
     return images_lateral

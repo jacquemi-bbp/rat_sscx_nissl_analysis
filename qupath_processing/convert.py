@@ -6,8 +6,9 @@ import pandas as pd
 
 from qupath_processing.io import (
     qupath_cells_detection_to_dataframe,
-    read_qupath_annotations
+    read_qupath_annotations,
 )
+
 
 def convert(cells_detection_file_path, annotations_file_path):
     """
@@ -20,20 +21,34 @@ def convert(cells_detection_file_path, annotations_file_path):
                     - cells_features_dataframe
 
     """
-    s1_pixel_coordinates, quadrilateral_pixel_coordinates, out_of_pia = read_qupath_annotations(annotations_file_path)
+    (
+        s1_pixel_coordinates,
+        quadrilateral_pixel_coordinates,
+        out_of_pia,
+    ) = read_qupath_annotations(annotations_file_path)
 
-    points_annotation_dataframe = pd.DataFrame(quadrilateral_pixel_coordinates,
-                                               index=['top_left', 'top_right', 'bottom_right', 'bottom_left'],
-                                               columns=['Centroid X µm', 'Centroid Y µm'], )
+    points_annotation_dataframe = pd.DataFrame(
+        quadrilateral_pixel_coordinates,
+        index=["top_left", "top_right", "bottom_right", "bottom_left"],
+        columns=["Centroid X µm", "Centroid Y µm"],
+    )
 
-    s1hl_annotation_dataframe = pd.DataFrame(s1_pixel_coordinates, columns=['Centroid X µm', 'Centroid Y µm'], )
+    s1hl_annotation_dataframe = pd.DataFrame(
+        s1_pixel_coordinates,
+        columns=["Centroid X µm", "Centroid Y µm"],
+    )
 
+    out_of_pia_annotation_dataframe = pd.DataFrame(
+        out_of_pia,
+        columns=["Centroid X µm", "Centroid Y µm"],
+    )
+    cells_features_dataframe = qupath_cells_detection_to_dataframe(
+        cells_detection_file_path
+    )
 
-    out_of_pia_annotation_dataframe = pd.DataFrame(out_of_pia, columns=['Centroid X µm', 'Centroid Y µm'], )
-    cells_features_dataframe = qupath_cells_detection_to_dataframe(cells_detection_file_path)
-
-    return points_annotation_dataframe, s1hl_annotation_dataframe, out_of_pia_annotation_dataframe,\
-           cells_features_dataframe
-
-
-
+    return (
+        points_annotation_dataframe,
+        s1hl_annotation_dataframe,
+        out_of_pia_annotation_dataframe,
+        cells_features_dataframe,
+    )

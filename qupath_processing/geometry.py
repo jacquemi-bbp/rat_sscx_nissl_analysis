@@ -8,6 +8,7 @@ from shapely.geometry import Point, LineString, Polygon, MultiLineString, shape
 from shapely.ops import split
 from qupath_processing.utilities import NotValidImage
 
+
 def distance(pt1, pt2):
     """
     Return the euclidian distance from two 2D points
@@ -16,7 +17,7 @@ def distance(pt1, pt2):
     :return:  float : The euclidian distance  form p1 to p2
 
     """
-    return sqrt((pt1[0]-pt2[0])**2 + (pt1[1]-pt2[1])**2)
+    return sqrt((pt1[0] - pt2[0]) ** 2 + (pt1[1] - pt2[1]) ** 2)
 
 
 def get_extrapoled_segement(segment_endpoints_coordinates, extrapol_ratio=1.5):
@@ -27,10 +28,16 @@ def get_extrapoled_segement(segment_endpoints_coordinates, extrapol_ratio=1.5):
     :param extrapol_ratio: Ratio used to extrapolate the segment endpoints coordianates
     :return: (np.array) of shape(2, 2) the extrapolated segment's endpoints
     """
-    pt1=segment_endpoints_coordinates[0]
-    pt2=segment_endpoints_coordinates[1]
-    new_pt1 = (pt2[0]+extrapol_ratio*(pt1[0]-pt2[0]), pt2[1]+extrapol_ratio*(pt1[1]-pt2[1]))
-    new_pt2 = (pt1[0]+extrapol_ratio*(pt2[0]-pt1[0]), pt1[1]+extrapol_ratio*(pt2[1]-pt1[1]))
+    pt1 = segment_endpoints_coordinates[0]
+    pt2 = segment_endpoints_coordinates[1]
+    new_pt1 = (
+        pt2[0] + extrapol_ratio * (pt1[0] - pt2[0]),
+        pt2[1] + extrapol_ratio * (pt1[1] - pt2[1]),
+    )
+    new_pt2 = (
+        pt1[0] + extrapol_ratio * (pt2[0] - pt1[0]),
+        pt1[1] + extrapol_ratio * (pt2[1] - pt1[1]),
+    )
     return np.array([new_pt1, new_pt2])
 
 
@@ -59,33 +66,39 @@ def create_grid(quadrilateral, s1_coordinates, nb_row, nb_col):
 
 def vertical_line_splitter(quadrilateral, s1_coordinates, nb_col):
     """
-       Create some vertical lined on a polygon defined by s1_coordinates.
-       - The vertical lines are straight. There endpoints coordinates are computed from the
-        quadrilateral top and bottom
-        lines in order to split them in a regular way.
+    Create some vertical lined on a polygon defined by s1_coordinates.
+    - The vertical lines are straight. There endpoints coordinates are computed from the
+     quadrilateral top and bottom
+     lines in order to split them in a regular way.
 
-       :param quadrilateral:(np.array) shape(5, 2) containing the following points coordinates(mm)
-                           in clockwise direction: top_left, top_right, bottom_right, bottom_left,
-                           top_left
-       :param s1_coordinates:(np.array) of shape (nb_vertices, 2) containing S1 polygon coordinates
-                             (mm)
-       :param nb_col:(int) number of columns
+    :param quadrilateral:(np.array) shape(5, 2) containing the following points coordinates(mm)
+                        in clockwise direction: top_left, top_right, bottom_right, bottom_left,
+                        top_left
+    :param s1_coordinates:(np.array) of shape (nb_vertices, 2) containing S1 polygon coordinates
+                          (mm)
+    :param nb_col:(int) number of columns
 
-       :return  list of vertical LineString
+    :return  list of vertical LineString
     """
     top_left = quadrilateral[0]
     top_right = quadrilateral[1]
     bottom_right = quadrilateral[2]
     bottom_left = quadrilateral[3]
     # Vertical lines
-    vertical_lines = [LineString([[top_left[0] - 2000, top_left[1]],
-                                  [bottom_left[0] - 2000, bottom_left[1]]])]
+    vertical_lines = [
+        LineString(
+            [[top_left[0] - 2000, top_left[1]], [bottom_left[0] - 2000, bottom_left[1]]]
+        )
+    ]
     for i in range(nb_col - 1):
         top_point = top_left + (top_right - top_left) / nb_col * (i + 1)
         bottom_point = bottom_left + (bottom_right - bottom_left) / nb_col * (i + 1)
-        line_coordinates = get_extrapoled_segement([(top_point[0], top_point[1]),
-                                                    (bottom_point[0], bottom_point[1])], 1.3)
-        intersection_line = LineString(line_coordinates).intersection(Polygon(s1_coordinates))
+        line_coordinates = get_extrapoled_segement(
+            [(top_point[0], top_point[1]), (bottom_point[0], bottom_point[1])], 1.3
+        )
+        intersection_line = LineString(line_coordinates).intersection(
+            Polygon(s1_coordinates)
+        )
         if isinstance(intersection_line, MultiLineString):
             for line in intersection_line.geoms:
                 vertical_lines.append(line)
@@ -108,31 +121,39 @@ def vertical_line_splitter(quadrilateral, s1_coordinates, nb_col):
              from prev and next VerticalLine
             '''
         """
-    vertical_lines.append(LineString([[top_right[0]+2000, top_right[1]],
-                                      [bottom_right[0]+2000, bottom_right[1]]]))
+    vertical_lines.append(
+        LineString(
+            [
+                [top_right[0] + 2000, top_right[1]],
+                [bottom_right[0] + 2000, bottom_right[1]],
+            ]
+        )
+    )
     return vertical_lines
 
 
 def horizontal_line_splitter(vertical_lines, nb_row):
     """
-        Create a grid on a polygon defined by s1_coordinates.
-        - The vertical lines are straight. There endpoints coordinates are computed from the
-              quadrilateral top and bottom
-         lines in order to split them in a regular way.
-        - The horizontal "lines" are composed of several segments that "follow" the quadrilateral
-              top and bottom
-         lines shape to represent the brain's depth
+    Create a grid on a polygon defined by s1_coordinates.
+    - The vertical lines are straight. There endpoints coordinates are computed from the
+          quadrilateral top and bottom
+     lines in order to split them in a regular way.
+    - The horizontal "lines" are composed of several segments that "follow" the quadrilateral
+          top and bottom
+     lines shape to represent the brain's depth
 
-        :param vertical_lines: list of vertical LineString that defined the grid
-        :param nb_row:(int) grid number of rows
-        :return list of horizontal LineString
-        """
+    :param vertical_lines: list of vertical LineString that defined the grid
+    :param nb_row:(int) grid number of rows
+    :return list of horizontal LineString
+    """
     horizontal_lines = []
     for i in range(nb_row - 1):
         horizontal_points = []
         for line in vertical_lines:
             line_coords = np.array(line.coords)
-            point = line_coords[0] + (line_coords[1] - line_coords[0]) / nb_row * (i + 1)
+            point = line_coords[0] + (line_coords[1] - line_coords[0]) / nb_row * (
+                i + 1
+            )
             horizontal_points.append(point)
 
         horizontal_line = LineString(horizontal_points)
@@ -150,7 +171,7 @@ def create_depth_polygons(s1_coordinates, horizontal_lines):
     :return: list of shapely polygons representing S1 layers as fonction
              if brain depth
     """
-    #try:
+    # try:
     split_polygons = []
     polygon_to_split = Polygon(s1_coordinates)
     for line in horizontal_lines:
@@ -163,12 +184,11 @@ def create_depth_polygons(s1_coordinates, horizontal_lines):
 
     split_polygons.append(polygon_to_split)
     return split_polygons
-    #except IndexError:
-        #raise NotValidImage
+    # except IndexError:
+    # raise NotValidImage
 
 
-def count_nb_cell_per_polygon(cells_centroid_x, cells_centroid_y,
-                              split_polygons):
+def count_nb_cell_per_polygon(cells_centroid_x, cells_centroid_y, split_polygons):
     """
     Count the number of cells located inside each polygon of split_polygons list
     :param cells_centroid_x:np.array of shape (number of cells, ) of type float
@@ -179,10 +199,10 @@ def count_nb_cell_per_polygon(cells_centroid_x, cells_centroid_y,
                          split_polygons
     """
     nb_cell_per_polygon = [0] * len(split_polygons)
-    for x_coord, y_coord in zip (cells_centroid_x, cells_centroid_y):
+    for x_coord, y_coord in zip(cells_centroid_x, cells_centroid_y):
         for index, polygon in enumerate(split_polygons):
-            if polygon.contains(Point([x_coord,y_coord])):
-                nb_cell_per_polygon[index]+=1
+            if polygon.contains(Point([x_coord, y_coord])):
+                nb_cell_per_polygon[index] += 1
     return nb_cell_per_polygon
 
 
@@ -195,8 +215,9 @@ def compute_cells_depth(split_polygons, cells_centroid_x, cells_centroid_y):
     :param cells_centroid_y: np.array of shape (number of cells, ) of type float
     """
     depthes = [-1] * len(cells_centroid_x)
-    for cell_index, (x_coord, y_coord) in enumerate(zip(cells_centroid_x,
-                                            cells_centroid_y)):
+    for cell_index, (x_coord, y_coord) in enumerate(
+        zip(cells_centroid_x, cells_centroid_y)
+    ):
         for index, polygon in enumerate(split_polygons):
             if polygon.contains(Point([x_coord, y_coord])):
                 depthes[cell_index] = index

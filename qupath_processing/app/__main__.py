@@ -12,7 +12,7 @@ from qupath_processing.app.boundary.batch import batch_boundary
 from qupath_processing.version import VERSION
 
 
-@click.group('pyqupath_processing', help=__doc__.format(esc='\b'))
+@click.group("pyqupath_processing", help=__doc__.format(esc="\b"))
 @click.option("-v", "--verbose", count=True, help="-v for INFO, -vv for DEBUG")
 @click.version_option(VERSION)
 def app(verbose=0):
@@ -20,10 +20,10 @@ def app(verbose=0):
     pass
 
 
-app.add_command(name='convert', cmd=convert_cmd)
-app.add_command(name='batch_convert', cmd=batch_convert)
-app.add_command(name='density', cmd=density)
-app.add_command(name='batch_density', cmd=batch_density)
-app.add_command(name='batch_boundary', cmd=batch_boundary)
-if __name__ == '__main__':
+app.add_command(name="convert", cmd=convert_cmd)
+app.add_command(name="batch_convert", cmd=batch_convert)
+app.add_command(name="density", cmd=density)
+app.add_command(name="batch_density", cmd=batch_density)
+app.add_command(name="batch_boundary", cmd=batch_boundary)
+if __name__ == "__main__":
     app()

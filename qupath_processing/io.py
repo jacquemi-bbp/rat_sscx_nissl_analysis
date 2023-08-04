@@ -18,7 +18,7 @@ def qupath_cells_detection_to_dataframe(file_path):
     :param file_path: (str). Path to the file that contains cells coordinates
     :return: Pandas dataframe containing data from input file_path
     """
-    return pd.read_csv(file_path, sep='	|\t', engine='python')
+    return pd.read_csv(file_path, sep="	|\t", engine="python")
 
 
 def read_cells_coordinate(dataframe):
@@ -32,8 +32,8 @@ def read_cells_coordinate(dataframe):
     """
 
     try:
-        cells_centroid_x = dataframe['Centroid X µm'].to_numpy(dtype=float)
-        cells_centroid_y = dataframe['Centroid Y µm'].to_numpy(dtype=float)
+        cells_centroid_x = dataframe["Centroid X µm"].to_numpy(dtype=float)
+        cells_centroid_y = dataframe["Centroid Y µm"].to_numpy(dtype=float)
         return cells_centroid_x, cells_centroid_y
     except KeyError:
         raise NotValidImage
@@ -52,56 +52,86 @@ def read_qupath_annotations(file_path):
     Notes: The returned coordinates unit is pixel. One needs to multiply coordinate values by the
      pixel size to obtain um as unit
     """
-    with open(file_path, 'rb') as annotation_file:
+    with open(file_path, "rb") as annotation_file:
         annotations_geo = geojson.load(annotation_file)
     annotations = {}
     for entry in annotations_geo:
         try:
             if "name" in entry["properties"].keys():
-                annotations[entry["properties"]["name"]] = \
-                    np.array(entry["geometry"]["coordinates"])
+                annotations[entry["properties"]["name"]] = np.array(
+                    entry["geometry"]["coordinates"]
+                )
             # S1HL annotation has a classification key b4 name
             if "classification" in entry["properties"].keys():
                 if "name" in entry["properties"]["classification"].keys():
-                    if entry["properties"]["classification"]["name"] != "SliceContour" and\
-                            entry["properties"]["classification"]["name"] != 'Other' and \
-                            entry["properties"]["classification"]["name"].find('Layer') == -1:
-                         annotations[entry["properties"]["classification"]["name"]] = np.array(entry["geometry"]["coordinates"])
+                    if (
+                        entry["properties"]["classification"]["name"] != "SliceContour"
+                        and entry["properties"]["classification"]["name"] != "Other"
+                        and entry["properties"]["classification"]["name"].find("Layer")
+                        == -1
+                    ):
+                        print(
+                            f'DEBUG entry["properties"]["classification"]["name"] = {entry["properties"]["classification"]["name"]}'
+                        )
+                        annotations[
+                            entry["properties"]["classification"]["name"]
+                        ] = np.array(entry["geometry"]["coordinates"])
         except KeyError:  # annotation without name
             pass
 
     try:
-        s1_pixel_coordinates = annotations['S1HL'][0]
+        s1_pixel_coordinates = annotations["S1HL"][0]
     except KeyError:
-        s1_pixel_coordinates = annotations['S1'][0]
-    if isinstance(s1_pixel_coordinates, np.ndarray) and s1_pixel_coordinates.shape[0] == 1:
+        s1_pixel_coordinates = annotations["S1"][0]
+    if (
+        isinstance(s1_pixel_coordinates, np.ndarray)
+        and s1_pixel_coordinates.shape[0] == 1
+    ):
         s1_pixel_coordinates = np.array(s1_pixel_coordinates[0])
 
-    out_of_pia = annotations['Outside Pia'][0]
+    out_of_pia = annotations["Outside Pia"][0]
     if isinstance(out_of_pia, np.ndarray) and out_of_pia.shape[0] == 1:
         out_of_pia = np.array(out_of_pia[0])
 
     # These 4 points can not be find via an algo, so we need QuPath annotation
     # These 4 points can not be find via an algo, so we need QuPath annotation
     try:
-        quadrilateral_pixel_coordinates = np.array([annotations['top_left'], annotations['top_right'],
-                                                    annotations['bottom_right'], annotations['bottom_left']])
+        quadrilateral_pixel_coordinates = np.array(
+            [
+                annotations["top_left"],
+                annotations["top_right"],
+                annotations["bottom_right"],
+                annotations["bottom_left"],
+            ]
+        )
     except KeyError as e:
-        '''
+        """
         print(f'! ERROR: {e}')
         value = input("Could we consider that bottom_left and bottom_right are superposed ? Y/n:\n").lower()
         while value != 'y' and value != 'n' and len(value) > 0:
             value = input("Could we consider that bottom_left and bottom_right are superposed ? Y/n:\n")
-        '''
-        value = 'y'
+        """
+        value = "y"
 
-        if value == 'y' or  len(value) == 0:
+        if value == "y" or len(value) == 0:
             try:
-                quadrilateral_pixel_coordinates = np.array([annotations['top_left'], annotations['top_right'],
-                                                            annotations['bottom_right'], annotations['bottom_right']])
+                quadrilateral_pixel_coordinates = np.array(
+                    [
+                        annotations["top_left"],
+                        annotations["top_right"],
+                        annotations["bottom_right"],
+                        annotations["bottom_right"],
+                    ]
+                )
             except KeyError:
-                quadrilateral_pixel_coordinates = np.array([annotations['top_left'], annotations['top_right'],
-                                                            annotations['bottom_left'], annotations['bottom_left']])
+                quadrilateral_pixel_coordinates = np.array(
+                    [
+                        annotations["top_left"],
+                        annotations["top_right"],
+                        annotations["bottom_left"],
+                        annotations["bottom_left"],
+                    ]
+                )
         else:
             raise e
     return s1_pixel_coordinates, quadrilateral_pixel_coordinates, out_of_pia
@@ -113,10 +143,9 @@ def get_qpproject_images_metadata(file_path):
         :param file_path: Path to QuPath project qpproj file
         :return: dictionnary. Keys -> images name. Valuesdict of image Metadata
     """
-    with open(file_path, 'rb') as annotation_file:
+    with open(file_path, "rb") as annotation_file:
         annotations_geo = geojson.load(annotation_file)
-    return annotations_geo['images']
-
+    return annotations_geo["images"]
 
 
 def write_dataframe_to_file(dataframe, image_name, output_path):
@@ -125,12 +154,13 @@ def write_dataframe_to_file(dataframe, image_name, output_path):
     :param dataframe (pandas Dataframe):
     :param output_path(str):
     """
-    dataframe.to_excel(output_path + '/' + image_name + '.xlsx', header=True, index=False)
-    dataframe.to_pickle(output_path + '/' + image_name + '.pkl')
+    dataframe.to_excel(
+        output_path + "/" + image_name + ".xlsx", header=True, index=False
+    )
+    dataframe.to_pickle(output_path + "/" + image_name + ".pkl")
 
 
-def list_images(input_directory, cell_position_suffix,
-                annotations_geojson_suffix):
+def list_images(input_directory, cell_position_suffix, annotations_geojson_suffix):
     """
     Create a list of images name prefix from the content of the input_directory
     :param input_directory:input directory that contains export image information from QuPath
@@ -139,32 +169,42 @@ def list_images(input_directory, cell_position_suffix,
     :return: dictionary: key image prefix, values dictionary of file relative
                     to image_prefix
     """
-    onlyfiles = [file_name for file_name in listdir(input_directory) if
-                 isfile(join(input_directory, file_name))]
-    #print(f'DEBUG onlyfiles {onlyfiles}')
+    onlyfiles = [
+        file_name
+        for file_name in listdir(input_directory)
+        if isfile(join(input_directory, file_name))
+    ]
+    # print(f'DEBUG onlyfiles {onlyfiles}')
     image_dictionary = {}
-    detection_files = [file for file in onlyfiles if file.count('Detections') == 1]
+    detection_files = [file for file in onlyfiles if file.count("Detections") == 1]
     for filename in detection_files:
-        prefix_pos = filename.find(cell_position_suffix) - 1 # SLD_0000521.vsi - 20x_01 Detections.txt
-        #print(f'DEBUG filename [{filename}]  cell_position_suffix [{cell_position_suffix}], prefix_pos {prefix_pos}')
+        prefix_pos = (
+            filename.find(cell_position_suffix) - 1
+        )  # SLD_0000521.vsi - 20x_01 Detections.txt
+        # print(f'DEBUG filename [{filename}]  cell_position_suffix [{cell_position_suffix}], prefix_pos {prefix_pos}')
         if prefix_pos != -1:
             image_name = filename[:prefix_pos]
-            annotation_image_path = input_directory + '/' + image_name + annotations_geojson_suffix
-            #print(f'DEBUG image_name [{image_name}] annotations_geojson_suffix [{annotations_geojson_suffix}]')
-            #print(f'DEBUG annotation_image_path [{annotation_image_path}]')
+            annotation_image_path = (
+                input_directory + "/" + image_name + annotations_geojson_suffix
+            )
+            # print(f'DEBUG image_name [{image_name}] annotations_geojson_suffix [{annotations_geojson_suffix}]')
+            # print(f'DEBUG annotation_image_path [{annotation_image_path}]')
             if image_name + annotations_geojson_suffix in onlyfiles:
                 image_dictionary[image_name] = {}
-                image_dictionary[image_name]['CELL_POSITIONS_PATH'] =\
-                    input_directory + '/' + image_name + " " + cell_position_suffix
-                image_dictionary[image_name]['ANNOTATIONS_PATH'] = annotation_image_path
+                image_dictionary[image_name]["CELL_POSITIONS_PATH"] = (
+                    input_directory + "/" + image_name + " " + cell_position_suffix
+                )
+                image_dictionary[image_name]["ANNOTATIONS_PATH"] = annotation_image_path
 
-                print(f"DEBUG image_dictionary[{image_name}]['CELL_POSITIONS_PATH'] = {image_dictionary[image_name]['CELL_POSITIONS_PATH']}")
-                print(
-                    f"DEBUG image_dictionary[{image_name}]['ANNOTATIONS_PATH'] = {image_dictionary[image_name]['ANNOTATIONS_PATH']}")
+                # print(f"DEBUG image_dictionary[{image_name}]['CELL_POSITIONS_PATH'] = {image_dictionary[image_name]['CELL_POSITIONS_PATH']}")
+                # print(
+                #    f"DEBUG image_dictionary[{image_name}]['ANNOTATIONS_PATH'] = {image_dictionary[image_name]['ANNOTATIONS_PATH']}")
 
             else:
-                print(f"ERROR: {image_name + annotations_geojson_suffix} "
-                      f"does not exist for image {image_name}")
+                print(
+                    f"ERROR: {image_name + annotations_geojson_suffix} "
+                    f"does not exist for image {image_name}"
+                )
 
     return image_dictionary
 
@@ -176,13 +216,15 @@ def get_top_line_coordinates(annotation_position_file_path):
     :return: np.array of shape (2,2) containing top left and right points
     """
     df_annotation = qupath_cells_detection_to_dataframe(annotation_position_file_path)
-    position={}
-    for point_str in ['TOP_LEFT', 'TOP_RIGHT', 'BOTTOM_RIGHT', 'BOTTOM_FEFT']:
+    position = {}
+    for point_str in ["TOP_LEFT", "TOP_RIGHT", "BOTTOM_RIGHT", "BOTTOM_FEFT"]:
         annotation = df_annotation[df_annotation["Name"] == point_str]
-        position[point_str] = [annotation['Centroid X µm'].to_numpy(dtype=float),
-                               annotation['Centroid Y µm'].to_numpy(dtype=float) ]
-    top_left = position['TOP_LEFT']
-    top_right = position['TOP_RIGHT']
+        position[point_str] = [
+            annotation["Centroid X µm"].to_numpy(dtype=float),
+            annotation["Centroid Y µm"].to_numpy(dtype=float),
+        ]
+    top_left = position["TOP_LEFT"]
+    top_right = position["TOP_RIGHT"]
     return np.array(top_left), np.array(top_right)
 
 
@@ -196,4 +238,3 @@ def create_directory_if_not_exist(directory_path):
     if not check_folder:
         makedirs(directory_path)
         print("created folder : ", directory_path)
-
