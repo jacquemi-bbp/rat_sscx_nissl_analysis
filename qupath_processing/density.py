@@ -143,18 +143,11 @@ def compute_cell_density(nb_cell_per_slide, split_polygons, z_length):
     """
     nb_cells = []
     densities = []
-    # areas = []
-    print(f"DEBUG nb_cell_per_slide {nb_cell_per_slide}")
-    print(f"DEBUG len(split_polygons) {len(split_polygons)}")
-    print(f"DEBUG z_length {z_length}")
+
     for nb_cell, polygon in zip(nb_cell_per_slide, split_polygons):
-        # areas.append(polygon.area)
         nb_cells.append(nb_cell)
         densities.append(nb_cell / ((polygon.area / 1e6) * z_length))
-    print(f"DEBUG nb_cells {nb_cells}")
-    print(f"DEBUG densities {densities}")
 
     depth_percentage = [i / len(split_polygons) for i in range(len(split_polygons))]
-    print(f"DEBUG depth_percentage {depth_percentage}")
 
     return depth_percentage, densities, nb_cells

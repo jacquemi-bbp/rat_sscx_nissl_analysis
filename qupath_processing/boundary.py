@@ -22,7 +22,6 @@ def get_layers_extremity(layer_dataframe, fnc, step=20):
             index = fnc(filter_df["Centroid Y µm"])
             x = filter_df.iloc[index]["Centroid X µm"]
             y = filter_df.iloc[index]["Centroid Y µm"]
-            print(f"DEBUG y => {y}")
             points.append([x, y])
         x_min = x_max
     points = np.array(points)
@@ -99,7 +98,7 @@ def compute_dbscan_eps(cell_position_file_path, layers_name, factor=4):
     return layer_dbscan_eps
 
 
-def get_main_cluster_ori(layers_name, layer_dbscan_eps, layer_points):
+def get_main_cluster(layers_name, layer_dbscan_eps, layer_points):
     """
     Apply DBSCAN algorithm on cells for a specific layer and return
     the main cluster. Used to remove cells that are far away from other cells
@@ -107,7 +106,8 @@ def get_main_cluster_ori(layers_name, layer_dbscan_eps, layer_points):
     :param layers_name: (list of str) The layer names
     :param layer_dbscan_eps: list of float value representing DBSCAN eps values
     :param layer_points: dict: key -> (str) layer name values -> numpy.ndarray of shape (N, 2)
-    :return: points from main cluster dict: key -> (str) layer name values -> numpy.ndarray of shape (N, 2)
+    :return: points from main cluster dict: key -> (str) layer name values ->
+     numpy.ndarray of shape (N, 2)
     """
 
     layer_clustered_points = {}
@@ -121,32 +121,6 @@ def get_main_cluster_ori(layers_name, layer_dbscan_eps, layer_points):
             layer_clustered_points[layer_name] = layers_points
 
     return layer_clustered_points
-
-
-def get_main_cluster(layers_name, layer_dbscan_eps, dataframe):
-    """
-    Apply DBSCAN algorithm on cells for a specific layer and return
-    the main cluster. Used to remove cells that are far away from other cells
-    of the same layer
-    :param layers_name: (list of str) The layer names
-    :param layer_dbscan_eps: list of float value representing DBSCAN eps values
-    :param dataframe:
-    :return: points from main cluster dict: key -> (str) layer name values -> numpy.ndarray of shape (N, 2)
-    """
-
-    layer_clustered_points = {}
-    for layer_name, eps_value in zip(layers_name, layer_dbscan_eps):
-        xs = dataframe[dataframe.Class == layer_name]["Centroid X µm"]
-        ys = dataframe[dataframe.Class == layer_name]["Centroid Y µm"]
-        layers_points = layer_points[layer_name]
-        if layers_points.shape[0] > 0:
-            layer_clustered_points[layer_name] = clustering(
-                layer_name, layers_points, eps_value, visualisation=False
-            )
-        else:
-            layer_clustered_points[layer_name] = layers_points
-
-    return result
 
 
 def clustering(layer_name, coordinates, _eps=100, visualisation=False):
@@ -171,7 +145,7 @@ def clustering(layer_name, coordinates, _eps=100, visualisation=False):
 
     # Black removed and is used for noise instead.
     unique_labels = set(labels)
-    colors = [plt.cm.Spectral(each) for each in np.linspace(0, 1, len(unique_labels))]
+    colors = [plt.get_cmap('Spectral')(each) for each in np.linspace(0, 1, len(unique_labels))]
     return_coordinates = []
     for k, col in zip(unique_labels, colors):
         if k == -1:
@@ -207,7 +181,7 @@ def clustering(layer_name, coordinates, _eps=100, visualisation=False):
 
     if visualisation:
         plt.gca().invert_yaxis()
-        title = f"{layer_name} keep {len(return_coordinates) / X.shape[0] * 100:.2f} % of original points in main cluster"
+        title = f"{layer_name} keep {len(return_coordinates) / xy.shape[0] * 100:.2f} % of original points in main cluster"
         plt.title(title)
         plt.show()
     return return_coordinates
@@ -288,7 +262,6 @@ def get_valid_image(dataframe, layers_name):
             pos = image_df[image_df["Layer"] == layer_name][
                 "Layer bottom (um). Origin is top of layer 1"
             ].to_numpy()
-            # print(f'DEBUG {image_name} {layer_name} pos={pos} last_pos={last_pos}')
             if len(pos) == 0:
                 # This layer does not exist
                 # Remove these image layer boundaries from the final, valid dataframe

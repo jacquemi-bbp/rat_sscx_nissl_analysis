@@ -70,9 +70,6 @@ def read_qupath_annotations(file_path):
                         and entry["properties"]["classification"]["name"].find("Layer")
                         == -1
                     ):
-                        print(
-                            f'DEBUG entry["properties"]["classification"]["name"] = {entry["properties"]["classification"]["name"]}'
-                        )
                         annotations[
                             entry["properties"]["classification"]["name"]
                         ] = np.array(entry["geometry"]["coordinates"])
@@ -174,32 +171,23 @@ def list_images(input_directory, cell_position_suffix, annotations_geojson_suffi
         for file_name in listdir(input_directory)
         if isfile(join(input_directory, file_name))
     ]
-    # print(f'DEBUG onlyfiles {onlyfiles}')
     image_dictionary = {}
     detection_files = [file for file in onlyfiles if file.count("Detections") == 1]
     for filename in detection_files:
         prefix_pos = (
             filename.find(cell_position_suffix) - 1
         )  # SLD_0000521.vsi - 20x_01 Detections.txt
-        # print(f'DEBUG filename [{filename}]  cell_position_suffix [{cell_position_suffix}], prefix_pos {prefix_pos}')
-        if prefix_pos != -1:
+            if prefix_pos != -1:
             image_name = filename[:prefix_pos]
             annotation_image_path = (
                 input_directory + "/" + image_name + annotations_geojson_suffix
             )
-            # print(f'DEBUG image_name [{image_name}] annotations_geojson_suffix [{annotations_geojson_suffix}]')
-            # print(f'DEBUG annotation_image_path [{annotation_image_path}]')
-            if image_name + annotations_geojson_suffix in onlyfiles:
+             if image_name + annotations_geojson_suffix in onlyfiles:
                 image_dictionary[image_name] = {}
                 image_dictionary[image_name]["CELL_POSITIONS_PATH"] = (
                     input_directory + "/" + image_name + " " + cell_position_suffix
                 )
                 image_dictionary[image_name]["ANNOTATIONS_PATH"] = annotation_image_path
-
-                # print(f"DEBUG image_dictionary[{image_name}]['CELL_POSITIONS_PATH'] = {image_dictionary[image_name]['CELL_POSITIONS_PATH']}")
-                # print(
-                #    f"DEBUG image_dictionary[{image_name}]['ANNOTATIONS_PATH'] = {image_dictionary[image_name]['ANNOTATIONS_PATH']}")
-
             else:
                 print(
                     f"ERROR: {image_name + annotations_geojson_suffix} "
