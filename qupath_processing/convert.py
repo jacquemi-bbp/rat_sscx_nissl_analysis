@@ -1,7 +1,6 @@
 """
 Convert QuPath Detections and annotation to pandas dataframe
 """
-import numpy as np
 import pandas as pd
 
 from qupath_processing.io import (
@@ -10,10 +9,11 @@ from qupath_processing.io import (
 )
 
 
-def convert(cells_detection_file_path, annotations_file_path):
+def convert(cells_detection_file_path, annotations_file_path, pixel_size):
     """
     :param cells_detection_file_path: path to the cells detection file produced by QuPath
     :param annotations_file_path: path to the annotations file produced by QuPath
+    :param pixel_size(float)
     :return: tuple of pands datafrmae:
                     - points_annotation_dataframe
                     - s1hl_annotation_dataframe
@@ -28,22 +28,22 @@ def convert(cells_detection_file_path, annotations_file_path):
     ) = read_qupath_annotations(annotations_file_path)
 
     points_annotation_dataframe = pd.DataFrame(
-        quadrilateral_pixel_coordinates,
+        quadrilateral_pixel_coordinates *  pixel_size,
         index=["top_left", "top_right", "bottom_right", "bottom_left"],
         columns=["Centroid X µm", "Centroid Y µm"],
     )
 
     s1hl_annotation_dataframe = pd.DataFrame(
-        s1_pixel_coordinates,
+        s1_pixel_coordinates * pixel_size,
         columns=["Centroid X µm", "Centroid Y µm"],
     )
 
     out_of_pia_annotation_dataframe = pd.DataFrame(
-        out_of_pia,
+        out_of_pia *  pixel_size,
         columns=["Centroid X µm", "Centroid Y µm"],
     )
     cells_features_dataframe = qupath_cells_detection_to_dataframe(
-        cells_detection_file_path
+        cells_detection_file_path, pixel_size
     )
 
     return (

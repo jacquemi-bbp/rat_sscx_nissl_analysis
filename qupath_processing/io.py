@@ -3,13 +3,37 @@ Read / Write files modules
 """
 from os import listdir, makedirs
 from os.path import isfile, join, isdir
-from itertools import islice
-import csv
 import numpy as np
 import geojson
 import pandas as pd
 import openpyxl
 from qupath_processing.utilities import NotValidImage
+
+
+
+def convert_files_to_dataframe(
+    cell_position_file_path,
+    annotations_geojson_path,
+    pixel_size
+
+):
+    print(
+        f"INFO: Read input files {cell_position_file_path} and {annotations_geojson_path}"
+    )
+    # try:
+    detection_dataframe = qupath_cells_detection_to_dataframe(cell_position_file_path)
+    (
+        s1_pixel_coordinates,
+        quadrilateral_pixel_coordinates,
+        out_of_pia,
+    ) = read_qupath_annotations(annotations_geojson_path)
+
+    print("INFO: Convert coodonates from pixel to mm")
+    s1_coordinates = s1_pixel_coordinates * pixel_size
+    quadrilateral_coordinates = quadrilateral_pixel_coordinates * pixel_size
+    print("INFO: Create S1 grid as function of brain depth")
+
+    return detection_dataframe, s1_coordinates, quadrilateral_coordinates
 
 
 def qupath_cells_detection_to_dataframe(file_path):
@@ -21,7 +45,7 @@ def qupath_cells_detection_to_dataframe(file_path):
     return pd.read_csv(file_path, sep="	|\t", engine="python")
 
 
-def read_cells_coordinate(dataframe):
+def get_cells_coordinate(dataframe):
     """
     Read file that contains cell positions and create cells centroids x,y position
     :param dataframe:(Pandas dataframe) containing cells coordinate and metadata (layer, ...)
@@ -70,6 +94,7 @@ def read_qupath_annotations(file_path):
                         and entry["properties"]["classification"]["name"].find("Layer")
                         == -1
                     ):
+                        print(f'INFO: Get {entry["properties"]["classification"]["name"]} entry ')
                         annotations[
                             entry["properties"]["classification"]["name"]
                         ] = np.array(entry["geometry"]["coordinates"])
@@ -145,15 +170,16 @@ def get_qpproject_images_metadata(file_path):
     return annotations_geo["images"]
 
 
-def write_dataframe_to_file(dataframe, image_name, output_path):
+def write_dataframe_to_file(dataframe, image_name, output_path, exel_write=True):
     """
     export and save result to xlsx file
     :param dataframe (pandas Dataframe):
     :param output_path(str):
     """
-    dataframe.to_excel(
-        output_path + "/" + image_name + ".xlsx", header=True, index=False
-    )
+    if exel_write:
+        dataframe.to_excel(
+            output_path + "/" + image_name + ".xlsx", header=True, index=False
+        )
     dataframe.to_pickle(output_path + "/" + image_name + ".pkl")
 
 
@@ -177,12 +203,13 @@ def list_images(input_directory, cell_position_suffix, annotations_geojson_suffi
         prefix_pos = (
             filename.find(cell_position_suffix) - 1
         )  # SLD_0000521.vsi - 20x_01 Detections.txt
-            if prefix_pos != -1:
+        if prefix_pos != -1:
             image_name = filename[:prefix_pos]
+            #image_dictionary[image_name]["IMAGE_NAME"] = image_name
             annotation_image_path = (
                 input_directory + "/" + image_name + annotations_geojson_suffix
             )
-             if image_name + annotations_geojson_suffix in onlyfiles:
+            if image_name + annotations_geojson_suffix in onlyfiles:
                 image_dictionary[image_name] = {}
                 image_dictionary[image_name]["CELL_POSITIONS_PATH"] = (
                     input_directory + "/" + image_name + " " + cell_position_suffix

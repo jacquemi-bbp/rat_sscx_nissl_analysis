@@ -53,10 +53,12 @@ def cmd(config_file_path):
     image_immunohistochemistry_list = []
 
     for image_prefix, values in images_dictionary.items():
+        print(f'DEBUG: image_prefix {image_prefix}')
+        print(f'DEBUG: values {values}')
         print("INFO: Process single image {}".format(image_prefix))
         cells_detection_path = values["CELL_POSITIONS_PATH"]
         annotation_path = values["ANNOTATIONS_PATH"]
-        image_name = values["IMAGE_NAME"]
+        image_name = image_prefix # values["IMAGE_NAME"]
         image_name_list.append(image_name)
         image_lateral_list.append(images_lateral[image_name])
         image_animal_list.append(images_animal[image_name])
