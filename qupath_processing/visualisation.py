@@ -37,17 +37,18 @@ def plot_densities(
                 layer_name, xy=(center - 3, int(np.max(densities))), color="red"
             )
 
-    ax.plot(np.array(percentages) * 100, densities)
-    ax.set_xlabel("percentage of depth (%)")
-    ax.set_ylabel("Cell density (cells/mm3)")
+    ax.plot(densities, np.array(percentages) * 100)
+    ax.set_xlabel("Cell density (cells/mm3)")
+    ax.set_ylabel("percentage of depth (%)")
+    ax.invert_yaxis()
+
     title = "Cell densities as function of percentage of depth"
     if image_name:
         title = image_name + " " + title
     ax.set_title(title)
-    x = np.array(percentages) * 100  # the label locations
-    width = 100 / len(percentages)  # the width of the bars
+    #x = np.array(percentages) * 100  # the label locations
 
-    ax.set_xticks(x, percentages)
+    #ax.set_yticks(x, percentages)
     if visualisation_flag:
         plt.show()
     else:
