@@ -114,17 +114,18 @@ def density(
             nb_exclude = 0
 
     print(f'INFO: There are {nb_exclude} / {len(detections_dataframe)} excluded cells)')
-    detections_dataframe = detections_dataframe[detections_dataframe.exclude == False]
+    detections_dataframe# = detections_dataframe[detections_dataframe.exclude == False]
 
 
     write_dataframe_to_file(detections_dataframe, cell_position_with_exclude_path, '.',
                             exel_write=False)
     print(f'INFO: Write dataframe with exclude flag to {cell_position_with_exclude_path}')
     cells_centroid_x, cells_centroid_y = get_cells_coordinate(detections_dataframe)
-
+    excluded_cells_centroid_x, excluded_cells_centroid_y = get_cells_coordinate(detections_dataframe, exclude=True)
     densities_dataframe = single_image_process(
         cells_centroid_x, cells_centroid_y, s1_coordinates, quadrilateral_coordinates,
         thickness_cut, nb_row, nb_col, image_name, layer_names,
+        excluded_cells_centroid_x, excluded_cells_centroid_y,
         layer_boundary_path=layer_boundary_path,
         visualisation_flag=visualisation_flag,
         output_path=output_path,

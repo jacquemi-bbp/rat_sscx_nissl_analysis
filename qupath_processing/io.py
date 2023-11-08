@@ -42,19 +42,24 @@ def qupath_cells_detection_to_dataframe(file_path):
     :param file_path: (str). Path to the file that contains cells coordinates
     :return: Pandas dataframe containing data from input file_path
     """
-    return pd.read_csv(file_path, sep="	|\t", engine="python")
+    if file_path.find('pkl') > 0:
+        return pd.read_pickle(file_path)
+    else:
+        return pd.read_csv(file_path, sep="	|\t", engine="python")
 
 
-def get_cells_coordinate(dataframe):
+def get_cells_coordinate(dataframe, exclude=False):
     """
     Read file that contains cell positions and create cells centroids x,y position
     :param dataframe:(Pandas dataframe) containing cells coordinate and metadata (layer, ...)
+    :excluded :(bool) return exluded cells position if set otherwise none excluded cell.
     :return:
         tuple:
             - cells_centroid_x np.array of shape (number of cells, ) of type float
             - cells_centroid_y np.array of shape (number of cells, ) of type float
     """
-
+    if exclude:
+        dataframe=dataframe[dataframe['exclude'] == True]
     try:
         cells_centroid_x = dataframe["Centroid X µm"].to_numpy(dtype=float)
         cells_centroid_y = dataframe["Centroid Y µm"].to_numpy(dtype=float)
