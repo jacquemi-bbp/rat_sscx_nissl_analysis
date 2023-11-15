@@ -39,7 +39,7 @@ pd.options.mode.chained_assignment = None
 @click.command()
 @click.option("--config-file-path", required=False, help="Configuration file path")
 @click.option("--visualisation-flag", is_flag=True)
-def batch_boundary(config_file_path, visualisation_flag):
+def batch_dbscan_boundary(config_file_path, visualisation_flag):
     config = configparser.ConfigParser()
     config.sections()
     config.read(config_file_path)
