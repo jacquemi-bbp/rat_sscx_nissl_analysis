@@ -10,7 +10,7 @@ from qupath_processing.geometry import compute_cells_depth
 def plot_densities(
     percentages,
     densities,
-    layers_names,
+    layers_names=None,
     boundaries_percentage=None,
     visualisation_flag=None,
     output_path=None,
@@ -26,7 +26,7 @@ def plot_densities(
     """
 
     fig, ax = plt.subplots()
-    if boundaries_percentage:
+    if boundaries_percentage and layers_names:
         boundaries_percentage.insert(0, 0)
         for layer_name, boundary_prev, boundary_next in zip(
             layers_names, boundaries_percentage[0:-1], boundaries_percentage[1:]
@@ -51,7 +51,7 @@ def plot_densities(
     #ax.set_yticks(x, percentages)
     if visualisation_flag:
         plt.show()
-    else:
+    elif output_path:
         file_path = output_path + "/" + image_name + "layer_per_animal_.png"
         plt.savefig(file_path, dpi=150)
 
