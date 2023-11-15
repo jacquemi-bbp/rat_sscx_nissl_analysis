@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from qupath_processing.geometry import compute_cells_depth
 
+plt.rcParams["font.family"] = "Arial"
+
 
 def plot_densities(
     percentages,
@@ -61,6 +63,8 @@ def plot_split_polygons_and_cell_depth(
     s1_coordinates,
     cells_centroid_x,
     cells_centroid_y,
+    excluded_cells_centroid_x=None,
+    excluded_cells_centroid_y=None,
     vertical_lines=None,
     visualisation_flag=False,
     output_path=None,
@@ -94,23 +98,28 @@ def plot_split_polygons_and_cell_depth(
     plt.gca().invert_yaxis()
     for polygon in split_polygons:
         x_coord, y_coord = polygon.exterior.xy
-        plt.plot(x_coord, y_coord)
+        #plt.plot(x_coord, y_coord, c='black')
     plt.plot(s1_coordinates[:, 0], s1_coordinates[:, 1], "r")
-    plt.scatter(cells_centroid_x, cells_centroid_y, c=colors, s=1)
+    plt.scatter(cells_centroid_x, cells_centroid_y, c='blue', s=1, alpha=.5, label='preserved cells')
+    if excluded_cells_centroid_x is not None and excluded_cells_centroid_y is not None:
+        plt.scatter(excluded_cells_centroid_x, excluded_cells_centroid_y, c='red', s=1, label='exluded cells')
     if vertical_lines:
         for line in vertical_lines:
             line = line.coords
-            plt.axline((line[0][0], line[0][1]), (line[1][0], line[1][1]), color="red")
+            #plt.axline((line[0][0], line[0][1]), (line[1][0], line[1][1]), linewidth=1, color="black")
     plt.title(
         "Somatosensory cortex. Each layer represents a percentage of depth following the top of the SSX"
     )
     plt.xlabel("X coordinates (um)")
     plt.ylabel("Y coordinates (um)")
+    plt.legend()
     if visualisation_flag:
         plt.show()
-    else:
-        file_path = output_path + "/" + image_name + "layer_per_animal_.png"
-        plt.savefig(file_path, dpi=150)
+
+    file_path = output_path + "/" + image_name + "layer_per_animal_.svg"
+    print(f'plt.savefig {file_path}')
+    plt.savefig(file_path)
+
 
 
 def plot_raw_data(top_left, top_right, layer_points, image_name=""):

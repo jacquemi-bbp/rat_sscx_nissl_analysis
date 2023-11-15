@@ -22,7 +22,9 @@ from qupath_processing.visualisation import (
 
 def single_image_process(
     cells_centroid_x, cells_centroid_y, s1_coordinates, quadrilateral_coordinates,
-    thickness_cut, nb_row, nb_col, image_prefix, layers_name, layer_boundary_path=None,
+    thickness_cut, nb_row, nb_col, image_prefix, layers_name,
+    excluded_cells_centroid_x=None, excluded_cells_centroid_y=None,
+    layer_boundary_path=None,
     visualisation_flag=False, output_path=None,
 ):
     """
@@ -86,7 +88,9 @@ def single_image_process(
             s1_coordinates,
             cells_centroid_x,
             cells_centroid_y,
-            vertical_lines=None,
+            excluded_cells_centroid_x,
+            excluded_cells_centroid_y,
+            vertical_lines=vertical_lines,
             visualisation_flag=visualisation_flag,
             output_path=output_path,
             image_name=image_prefix,
