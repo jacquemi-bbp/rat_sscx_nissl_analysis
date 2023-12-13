@@ -52,11 +52,11 @@ def batch_density(config_file_path):
                 nb_exclude = detections_dataframe['exclude'].value_counts()[1]
             except IndexError:
                 nb_exclude = 0
-            detections_dataframe = detections_dataframe[detections_dataframe.exclude == False]
-            print(f'INFO: There are {nb_exclude} / {len(detections_dataframe)} excluded cells)')
             exclude_dataframe_filename= image_prefix + '_with_exclude_flags'
             write_dataframe_to_file(detections_dataframe, exclude_dataframe_filename, input_directory,
                                     exel_write=False)
+            detections_dataframe = detections_dataframe[detections_dataframe.exclude == False]
+            print(f'INFO: There are {nb_exclude} / {len(detections_dataframe)} excluded cells)')
             print(f'INFO: Write dataframe with exclude flag to {input_directory + "/" + exclude_dataframe_filename}')
             cells_centroid_x, cells_centroid_y = get_cells_coordinate(detections_dataframe)
             densities_dataframe = single_image_process(
