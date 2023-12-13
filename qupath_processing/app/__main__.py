@@ -8,7 +8,9 @@ from qupath_processing.app.convert.single import cmd as convert_cmd
 from qupath_processing.app.convert.batch import cmd as batch_convert
 from qupath_processing.app.density.single import density
 from qupath_processing.app.density.batch import batch_density
-from qupath_processing.app.boundary.batch import batch_boundary
+from qupath_processing.app.boundary.batch import batch_dbscan_boundary
+from qupath_processing.app.boundary.superpose import superpose_boundary
+
 from qupath_processing.version import VERSION
 
 
@@ -21,9 +23,10 @@ def app(verbose=0):
 
 
 app.add_command(name="convert", cmd=convert_cmd)
-app.add_command(name="batch_convert", cmd=batch_convert)
+app.add_command(name="batch-convert", cmd=batch_convert)
 app.add_command(name="density", cmd=density)
-app.add_command(name="batch_density", cmd=batch_density)
-app.add_command(name="batch_boundary", cmd=batch_boundary)
+app.add_command(name="batch-density", cmd=batch_density)
+app.add_command(name="batch-dbscan-boundary", cmd=batch_dbscan_boundary)
+app.add_command(name="superpose-boundary", cmd=superpose_boundary)
 if __name__ == "__main__":
     app()
