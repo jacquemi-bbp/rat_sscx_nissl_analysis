@@ -43,7 +43,7 @@ def convert(cells_detection_file_path, annotations_file_path, pixel_size):
         columns=["Centroid X µm", "Centroid Y µm"],
     )
     cells_features_dataframe = qupath_cells_detection_to_dataframe(
-        cells_detection_file_path, pixel_size
+        cells_detection_file_path
     )
 
     return (

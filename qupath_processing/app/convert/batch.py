@@ -31,6 +31,7 @@ def cmd(config_file_path):
     annotations_geojson_suffix = config["BATCH"]["annotations_geojson_suffix"].replace(
         '"', ""
     )
+    pixel_size = float(config["BATCH"]["pixel_size"])
     qpproj_path = config["BATCH"]["qpproj_path"]
     output_directory = config["BATCH"]["output_directory"]
 
@@ -69,7 +70,7 @@ def cmd(config_file_path):
             s1hl_annotation_dataframe,
             out_of_pia_annotation_dataframe,
             cells_features_dataframe,
-        ) = convert(cells_detection_path, annotation_path)
+        ) = convert(cells_detection_path, annotation_path, pixel_size)
         # remove Cluster features if exist
         cols = [
             c

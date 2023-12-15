@@ -66,6 +66,7 @@ def plot_split_polygons_and_cell_depth(
     excluded_cells_centroid_x=None,
     excluded_cells_centroid_y=None,
     vertical_lines=None,
+    horizontal_lines=None,
     visualisation_flag=False,
     output_path=None,
     image_name=None,
@@ -80,7 +81,6 @@ def plot_split_polygons_and_cell_depth(
     :param cells_centroid_y: np.array of shape (number of cells, ) of type float
     :return:
     """
-
     cells_depth = compute_cells_depth(
         split_polygons, cells_centroid_x, cells_centroid_y
     )
@@ -106,7 +106,11 @@ def plot_split_polygons_and_cell_depth(
     if vertical_lines:
         for line in vertical_lines:
             line = line.coords
-            #plt.axline((line[0][0], line[0][1]), (line[1][0], line[1][1]), linewidth=1, color="black")
+            plt.axline((line[0][0], line[0][1]), (line[1][0], line[1][1]), linewidth=1, color="black")
+    if horizontal_lines:
+        for line in horizontal_lines:
+            line = line.coords
+            plt.axline((line[0][0], line[0][1]), (line[1][0], line[1][1]), linewidth=1, color="black")
     plt.title(
         "Somatosensory cortex. Each layer represents a percentage of depth following the top of the SSX"
     )

@@ -91,6 +91,7 @@ def single_image_process(
             excluded_cells_centroid_x,
             excluded_cells_centroid_y,
             vertical_lines=vertical_lines,
+            horizontal_lines=horizontal_lines,
             visualisation_flag=visualisation_flag,
             output_path=output_path,
             image_name=image_prefix,
