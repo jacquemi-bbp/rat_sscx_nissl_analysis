@@ -61,7 +61,7 @@ def cmd(
     ) = convert(cells_detection_file_path, annotations_file_path, lateral)
 
     # Write dataframe
-    points_annotation_dataframe.to_pickle(
+    points_annotation_dataframe.to_cvs(
         output_path + "/" + output_prefix + "_points_annotations" + ".pkl"
     )
     s1hl_annotation_dataframe.to_pickle(

@@ -3,12 +3,6 @@ import org.locationtech.jts.geom.util.GeometryFixer
 import org.locationtech.jts.io.WKTWriter
 import org.slf4j.LoggerFactory;
 
-//import qupath.ext.biop.cmd.VirtualEnvironmentRunner.EnvType;
-//import qupath.ext.biop.cellpose.CellposeSetup
-//import qupath.ext.biop.cellpose.CellposeSetup.CellposeVersion;
-//import qupath.ext.biop.cellpose.Cellpose2D
-
-
 def saveFolderPath =  this.args[0]
 logger.info("Save folder: {}", saveFolderPath)
 
@@ -16,7 +10,6 @@ def saveFolder = new File(saveFolderPath)
 
 def entry = getProjectEntry()
 def entryMetadata = entry.getMetadataMap()
-// Run detection for the selected objects
 def imageData = getCurrentImageData()
 
 

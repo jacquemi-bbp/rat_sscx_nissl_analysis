@@ -22,8 +22,8 @@ def app(verbose=0):
     pass
 
 
-app.add_command(name="convert", cmd=convert_cmd)
-app.add_command(name="batch-convert", cmd=batch_convert)
+app.add_command(name="convert-for-ml", cmd=convert_cmd)
+app.add_command(name="batch-convert-for-ml", cmd=batch_convert)
 app.add_command(name="density", cmd=density)
 app.add_command(name="batch-density", cmd=batch_density)
 app.add_command(name="batch-dbscan-boundary", cmd=batch_dbscan_boundary)

@@ -42,9 +42,25 @@ def convert(cells_detection_file_path, annotations_file_path, pixel_size):
         out_of_pia *  pixel_size,
         columns=["Centroid X µm", "Centroid Y µm"],
     )
-    cells_features_dataframe = qupath_cells_detection_to_dataframe(
-        cells_detection_file_path
-    )
+    cells_features_dataframe = pd.read_csv(cells_detection_file_path, sep="	|\t", engine="python", index_col=0)
+    # Drop the features that cannot be used by the ML model
+    features_to_drop = ['Object ID', 'Name', 'Class', 'Parent', 'ROI', 'Distance to midline mm',
+                        'Distance to annotation with S1HL µm',
+                        'Distance to annotation with SliceContour µm',
+                        'Smoothed: 25 µm: Distance to annotation with S1HL µm',
+                        'Smoothed: 25 µm: Distance to annotation with SliceContour µm',
+                        'Smoothed: 50 µm: Distance to annotation with S1HL µm',
+                        'Smoothed: 50 µm: Distance to annotation with SliceContour µm']
+    for feature in features_to_drop:
+        cells_features_dataframe = cells_features_dataframe.drop(feature, axis=1)
+
+
+
+
+
+
+
+
 
     return (
         points_annotation_dataframe,

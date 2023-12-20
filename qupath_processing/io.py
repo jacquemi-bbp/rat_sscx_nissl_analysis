@@ -45,7 +45,7 @@ def qupath_cells_detection_to_dataframe(file_path):
     if file_path.find('pkl') > 0:
         return pd.read_pickle(file_path)
     else:
-        return pd.read_csv(file_path, sep="	|\t", engine="python")
+        return pd.read_csv(file_path, sep="	|\t", engine="python", index_col=0)
 
 
 def get_cells_coordinate(dataframe, exclude=False):
@@ -99,7 +99,6 @@ def read_qupath_annotations(file_path):
                         and entry["properties"]["classification"]["name"].find("Layer")
                         == -1
                     ):
-                        print(f'INFO: Get {entry["properties"]["classification"]["name"]} entry ')
                         annotations[
                             entry["properties"]["classification"]["name"]
                         ] = np.array(entry["geometry"]["coordinates"])
@@ -115,7 +114,6 @@ def read_qupath_annotations(file_path):
         and s1_pixel_coordinates.shape[0] == 1
     ):
         s1_pixel_coordinates = np.array(s1_pixel_coordinates[0])
-
     out_of_pia = annotations["Outside Pia"][0]
     if isinstance(out_of_pia, np.ndarray) and out_of_pia.shape[0] == 1:
         out_of_pia = np.array(out_of_pia[0])
@@ -222,7 +220,7 @@ def list_images(input_directory, cell_position_suffix, annotations_geojson_suffi
                 image_dictionary[image_name]["ANNOTATIONS_PATH"] = annotation_image_path
             else:
                 print(
-                    f"ERROR: {image_name + annotations_geojson_suffix} "
+                    f"ERROR: {input_directory} {image_name + annotations_geojson_suffix} "
                     f"does not exist for image {image_name}"
                 )
 

@@ -28,15 +28,14 @@ def cmd(config_file_path):
 
     input_directory = config["BATCH"]["input_directory"]
     cell_position_suffix = config["BATCH"]["cell_position_suffix"].replace('"', "")
-    annotations_geojson_suffix = config["BATCH"]["annotations_geojson_suffix"].replace(
-        '"', ""
-    )
     pixel_size = float(config["BATCH"]["pixel_size"])
     qpproj_path = config["BATCH"]["qpproj_path"]
     output_directory = config["BATCH"]["output_directory"]
+    annotations_geojson_suffix = config["BATCH"]["annotations_geojson_suffix"]
 
     images_metadata = get_qpproject_images_metadata(qpproj_path)
     images_lateral = get_image_lateral(images_metadata)
+    print(f'DEBUG images_lateral{images_lateral}')
     images_immunohistochemistry = get_image_immunohistochemistry(images_metadata)
     images_animal = get_image_animal(images_metadata)
 
@@ -54,8 +53,6 @@ def cmd(config_file_path):
     image_immunohistochemistry_list = []
 
     for image_prefix, values in images_dictionary.items():
-        print(f'DEBUG: image_prefix {image_prefix}')
-        print(f'DEBUG: values {values}')
         print("INFO: Process single image {}".format(image_prefix))
         cells_detection_path = values["CELL_POSITIONS_PATH"]
         annotation_path = values["ANNOTATIONS_PATH"]
@@ -71,7 +68,10 @@ def cmd(config_file_path):
             out_of_pia_annotation_dataframe,
             cells_features_dataframe,
         ) = convert(cells_detection_path, annotation_path, pixel_size)
-        # remove Cluster features if exist
+
+
+        # Remove Cluster features if exist
+        # One removes the cluster feature because they are all the same for each cell
         cols = [
             c
             for c in cells_features_dataframe.columns
@@ -79,20 +79,30 @@ def cmd(config_file_path):
         ]
         cells_features_dataframe = cells_features_dataframe[cols]
 
+
         # Write dataframe
-        points_annotation_dataframe.to_pickle(
-            output_directory + "/" + image_name + "_points_annotations" + ".pkl"
+        points_annotation_dataframe.to_csv(
+            output_directory + "/" + image_name + "_points_annotations" + ".csv"
         )
-        s1hl_annotation_dataframe.to_pickle(
-            output_directory + "/" + image_name + "_S1HL_annotations" + ".pkl"
+        s1hl_annotation_dataframe.to_csv(
+            output_directory + "/" + image_name + "_S1HL_annotations" + ".csv"
         )
-        cells_features_dataframe.to_pickle(
-            output_directory + "/" + image_name + "_cells_features" + ".pkl"
+
+        out_of_pia_annotation_dataframe.to_csv(
+            output_directory + "/" + image_name + "_out_of_pia" + ".csv"
         )
-        out_of_pia_annotation_dataframe.to_pickle(
-            output_directory + "/" + image_name + "_out_of_pia" + ".pkl"
+
+        '''
+        # Add image metadata
+        bregma = images_lateral[image_name]
+        bregma = bregma[bregma.find('around ') + 7:bregma.find('mm')]
+        cells_features_dataframe['bregma'] = bregma
+        '''
+
+        cells_features_dataframe.to_csv(
+            output_directory + "/" + image_name + "_cells_features" + ".csv"
         )
-        print(f"Done for {image_name}")
+
 
     metadata_df = pd.DataFrame(
         {
