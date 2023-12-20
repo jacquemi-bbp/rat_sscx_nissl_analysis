@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pandas as pd
 import configparser
@@ -33,9 +34,10 @@ def cmd(config_file_path):
     output_directory = config["BATCH"]["output_directory"]
     annotations_geojson_suffix = config["BATCH"]["annotations_geojson_suffix"]
 
+    os.makedirs(output_directory, exist_ok=True)
+
     images_metadata = get_qpproject_images_metadata(qpproj_path)
     images_lateral = get_image_lateral(images_metadata)
-    print(f'DEBUG images_lateral{images_lateral}')
     images_immunohistochemistry = get_image_immunohistochemistry(images_metadata)
     images_animal = get_image_animal(images_metadata)
 
@@ -95,7 +97,6 @@ def cmd(config_file_path):
         '''
         # Add image metadata
         bregma = images_lateral[image_name]
-        bregma = bregma[bregma.find('around ') + 7:bregma.find('mm')]
         cells_features_dataframe['bregma'] = bregma
         '''
 
@@ -113,4 +114,4 @@ def cmd(config_file_path):
         }
     )
     metadata_df.to_pickle(output_directory + "/" "metadata.pkl")
-    print("Done !")
+    print(f"Done ! All export dataframe saved into {output_directory}")

@@ -44,7 +44,7 @@ def convert(cells_detection_file_path, annotations_file_path, pixel_size):
     )
     cells_features_dataframe = pd.read_csv(cells_detection_file_path, sep="	|\t", engine="python", index_col=0)
     # Drop the features that cannot be used by the ML model
-    features_to_drop = ['Object ID', 'Name', 'Class', 'Parent', 'ROI', 'Distance to midline mm',
+    features_to_drop = ['Object ID', 'Name', 'Class', 'Parent', 'ROI',# 'Distance to midline mm',
                         'Distance to annotation with S1HL µm',
                         'Distance to annotation with SliceContour µm',
                         'Smoothed: 25 µm: Distance to annotation with S1HL µm',

@@ -1,4 +1,5 @@
 import click
+import os
 import numpy as np
 import pandas as pd
 
@@ -9,7 +10,11 @@ from qupath_processing.io import (
 from qupath_processing.convert import (
     convert,
 )
-from qupath_processing.utilities import get_image_lateral
+from qupath_processing.utilities import (
+    get_image_lateral,
+    get_image_animal,
+    get_image_immunohistochemistry,
+)
 
 
 @click.command()
@@ -23,7 +28,6 @@ from qupath_processing.utilities import get_image_lateral
     required=True,
     help="QuPath exported file that contains images annotations (S1HL, top_left, ...",
 )
-@click.option("--output-prefix", required=True, help="The prefix of the output files")
 @click.option(
     "--output-path",
     required=True,
@@ -37,14 +41,18 @@ from qupath_processing.utilities import get_image_lateral
 @click.option(
     "--qupath-image-name", required=True, help="iamge name inside the qupath project"
 )
+@click.option(
+    "--pixel-size", required=True, type=float, help="The pixel size in the QuPath project"
+)
 def cmd(
     cells_detection_file_path,
     annotations_file_path,
-    output_prefix,
     output_path,
     qupath_project_path,
     qupath_image_name,
+    pixel_size
 ):
+    os.makedirs(output_path, exist_ok=True)
     images_metadata = get_qpproject_images_metadata(qupath_project_path)
     images_lateral = get_image_lateral(images_metadata)
     try:
@@ -58,19 +66,43 @@ def cmd(
         s1hl_annotation_dataframe,
         out_of_pia_annotation_dataframe,
         cells_features_dataframe,
-    ) = convert(cells_detection_file_path, annotations_file_path, lateral)
+    ) = convert(cells_detection_file_path, annotations_file_path, pixel_size)
+
+    # Remove Cluster features if exist
+    # One removes the cluster feature because they are all the same for each cell
+    cols = [
+        c
+        for c in cells_features_dataframe.columns
+        if c.lower().find("cluster") == -1
+    ]
+    cells_features_dataframe = cells_features_dataframe[cols]
+
 
     # Write dataframe
-    points_annotation_dataframe.to_cvs(
-        output_path + "/" + output_prefix + "_points_annotations" + ".pkl"
+    points_annotation_dataframe.to_csv(
+        output_path + "/" + qupath_image_name + "_points_annotations" + ".csv"
     )
-    s1hl_annotation_dataframe.to_pickle(
-        output_path + "/" + output_prefix + "_S1HL_annotations" + ".pkl"
+    s1hl_annotation_dataframe.to_csv(
+        output_path + "/" + qupath_image_name + "_S1HL_annotations" + ".csv"
     )
-    cells_features_dataframe.to_pickle(
-        output_path + "/" + output_prefix + "_cells_features" + ".pkl"
+
+    out_of_pia_annotation_dataframe.to_csv(
+        output_path + "/" + qupath_image_name + "_out_of_pia" + ".csv"
     )
-    out_of_pia_annotation_dataframe.to_pickle(
-        output_path + "/" + output_prefix + "_out_of_pia" + ".pkl"
+
+    cells_features_dataframe.to_csv(
+        output_path + "/" + qupath_image_name + "_cells_features" + ".csv"
     )
-    print("Done !")
+
+    images_immunohistochemistry = get_image_immunohistochemistry(images_metadata)
+    images_animal = get_image_animal(images_metadata)
+    metadata_df = pd.DataFrame(
+    {
+        "image": qupath_image_name,
+        "lateral": lateral,
+        "animal": images_animal,
+        "immunohistochemistry ID": images_immunohistochemistry,
+    }
+    )
+    metadata_df.to_pickle(output_path + "/" + qupath_image_name + "_" "metadata.pkl")
+    print(f"Done ! All export dataframe saved into {output_path}")
