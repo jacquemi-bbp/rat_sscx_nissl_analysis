@@ -256,3 +256,10 @@ def create_directory_if_not_exist(directory_path):
     if not check_folder:
         makedirs(directory_path)
         print("created folder : ", directory_path)
+
+
+def save_dataframe_without_space_in_path(dataframe, path):
+    path = path.replace(" ", "")
+    dataframe.to_csv(path)
+
+

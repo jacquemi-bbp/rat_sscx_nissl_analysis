@@ -44,22 +44,26 @@ def convert(cells_detection_file_path, annotations_file_path, pixel_size):
     )
     cells_features_dataframe = pd.read_csv(cells_detection_file_path, sep="	|\t", engine="python", index_col=0)
     # Drop the features that cannot be used by the ML model
-    features_to_drop = ['Object ID', 'Name', 'Class', 'Parent', 'ROI',# 'Distance to midline mm',
+
+    features_to_drop = ['Object ID', 'Class', 'Parent', 'ROI',# 'Distance to midline mm',
                         'Distance to annotation with S1HL µm',
                         'Distance to annotation with SliceContour µm',
                         'Smoothed: 25 µm: Distance to annotation with S1HL µm',
                         'Smoothed: 25 µm: Distance to annotation with SliceContour µm',
                         'Smoothed: 50 µm: Distance to annotation with S1HL µm',
                         'Smoothed: 50 µm: Distance to annotation with SliceContour µm']
+
     for feature in features_to_drop:
-        cells_features_dataframe = cells_features_dataframe.drop(feature, axis=1)
+        try:
+            cells_features_dataframe = cells_features_dataframe.drop(feature, axis=1)
+        except KeyError as e:
+            print(e)
 
+    cells_features_dataframe = cells_features_dataframe.rename(columns={"Name": "Expert_layer"})
 
-
-
-
-
-
+    # if layers have not been set by and expert set the feature Expert_layer to N/A
+    cells_features_dataframe.loc[cells_features_dataframe['Expert_layer'].
+    str.contains('Cellpose Julie Full'), 'Expert_layer'] = "Not applicable"
 
 
     return (

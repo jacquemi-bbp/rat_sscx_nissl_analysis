@@ -8,6 +8,7 @@ from qupath_processing.io import (
     write_dataframe_to_file,
     list_images,
     get_qpproject_images_metadata,
+    save_dataframe_without_space_in_path,
 )
 
 from qupath_processing.convert import (
@@ -28,6 +29,7 @@ def cmd(config_file_path):
     config.read(config_file_path)
 
     input_directory = config["BATCH"]["input_directory"]
+
     cell_position_suffix = config["BATCH"]["cell_position_suffix"].replace('"', "")
     pixel_size = float(config["BATCH"]["pixel_size"])
     qpproj_path = config["BATCH"]["qpproj_path"]
@@ -83,26 +85,23 @@ def cmd(config_file_path):
 
 
         # Write dataframe
-        points_annotation_dataframe.to_csv(
-            output_directory + "/" + image_name + "_points_annotations" + ".csv"
-        )
-        s1hl_annotation_dataframe.to_csv(
-            output_directory + "/" + image_name + "_S1HL_annotations" + ".csv"
-        )
+        save_dataframe_without_space_in_path(points_annotation_dataframe,
+                                             output_directory + "/" + image_name + "_points_annotations" + ".csv")
 
-        out_of_pia_annotation_dataframe.to_csv(
-            output_directory + "/" + image_name + "_out_of_pia" + ".csv"
-        )
+
+        save_dataframe_without_space_in_path(s1hl_annotation_dataframe,
+                                             output_directory + "/" + image_name + "_S1HL_annotations" + ".csv")
+
+        save_dataframe_without_space_in_path(out_of_pia_annotation_dataframe,
+                                             output_directory + "/" + image_name + "_out_of_pia" + ".csv")
 
         '''
         # Add image metadata
         bregma = images_lateral[image_name]
         cells_features_dataframe['bregma'] = bregma
         '''
-
-        cells_features_dataframe.to_csv(
-            output_directory + "/" + image_name + "_cells_features" + ".csv"
-        )
+        save_dataframe_without_space_in_path(cells_features_dataframe,
+                                             output_directory + "/" + "Features_" + image_name + ".csv")
 
 
     metadata_df = pd.DataFrame(
