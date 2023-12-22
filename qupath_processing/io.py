@@ -22,16 +22,21 @@ def convert_files_to_dataframe(
     )
     # try:
     detection_dataframe = qupath_cells_detection_to_dataframe(cell_position_file_path)
-    (
-        s1_pixel_coordinates,
-        quadrilateral_pixel_coordinates,
-        out_of_pia,
-    ) = read_qupath_annotations(annotations_geojson_path)
+    try:
+        s1_coordinates = None
+        quadrilateral_coordinates = None
+        (
+            s1_pixel_coordinates,
+            quadrilateral_pixel_coordinates,
+            out_of_pia,
+        ) = read_qupath_annotations(annotations_geojson_path)
 
-    print("INFO: Convert coodonates from pixel to mm")
-    s1_coordinates = s1_pixel_coordinates * pixel_size
-    quadrilateral_coordinates = quadrilateral_pixel_coordinates * pixel_size
-    print("INFO: Create S1 grid as function of brain depth")
+        print("INFO: Convert coodonates from pixel to mm")
+        s1_coordinates = s1_pixel_coordinates * pixel_size
+        quadrilateral_coordinates = quadrilateral_pixel_coordinates * pixel_size
+        print("INFO: Create S1 grid as function of brain depth")
+    except ValueError as e:
+        print(e)
 
     return detection_dataframe, s1_coordinates, quadrilateral_coordinates
 

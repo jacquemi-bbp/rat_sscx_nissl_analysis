@@ -23,7 +23,12 @@ from qupath_processing.utilities import (
 
 @click.command()
 @click.option("--config-file-path", required=False, help="Configuration file path")
-def cmd(config_file_path):
+@click.option("--not-convert-annotation", required=False, help="If set do not convert the annotation files", is_flag=True)
+def cmd(config_file_path, not_convert_annotation):
+
+    convert_annotation_flag = True
+    if not_convert_annotation:
+        convert_annotation_flag = False
     config = configparser.ConfigParser()
     config.sections()
     config.read(config_file_path)
@@ -32,16 +37,20 @@ def cmd(config_file_path):
 
     cell_position_suffix = config["BATCH"]["cell_position_suffix"].replace('"', "")
     pixel_size = float(config["BATCH"]["pixel_size"])
-    qpproj_path = config["BATCH"]["qpproj_path"]
+    try:
+        qpproj_path = config["BATCH"]["qpproj_path"]
+    except KeyError:
+        qpproj_path = None
     output_directory = config["BATCH"]["output_directory"]
     annotations_geojson_suffix = config["BATCH"]["annotations_geojson_suffix"]
 
     os.makedirs(output_directory, exist_ok=True)
 
-    images_metadata = get_qpproject_images_metadata(qpproj_path)
-    images_lateral = get_image_lateral(images_metadata)
-    images_immunohistochemistry = get_image_immunohistochemistry(images_metadata)
-    images_animal = get_image_animal(images_metadata)
+    if qpproj_path:
+        images_metadata = get_qpproject_images_metadata(qpproj_path)
+        images_lateral = get_image_lateral(images_metadata)
+        images_immunohistochemistry = get_image_immunohistochemistry(images_metadata)
+        images_animal = get_image_animal(images_metadata)
 
     images_dictionary = list_images(
         input_directory, cell_position_suffix, annotations_geojson_suffix
@@ -62,16 +71,17 @@ def cmd(config_file_path):
         annotation_path = values["ANNOTATIONS_PATH"]
         image_name = image_prefix # values["IMAGE_NAME"]
         image_name_list.append(image_name)
-        image_lateral_list.append(images_lateral[image_name])
-        image_animal_list.append(images_animal[image_name])
-        image_immunohistochemistry_list.append(images_immunohistochemistry[image_name])
+        if qpproj_path:
+            image_lateral_list.append(images_lateral[image_name])
+            image_animal_list.append(images_animal[image_name])
+            image_immunohistochemistry_list.append(images_immunohistochemistry[image_name])
 
         (
             points_annotation_dataframe,
             s1hl_annotation_dataframe,
             out_of_pia_annotation_dataframe,
             cells_features_dataframe,
-        ) = convert(cells_detection_path, annotation_path, pixel_size)
+        ) = convert(cells_detection_path, annotation_path, pixel_size, convert_annotation=convert_annotation_flag)
 
 
         # Remove Cluster features if exist
@@ -85,14 +95,17 @@ def cmd(config_file_path):
 
 
         # Write dataframe
-        save_dataframe_without_space_in_path(points_annotation_dataframe,
-                                             output_directory + "/" + image_name + "_points_annotations" + ".csv")
+        if points_annotation_dataframe:
+            save_dataframe_without_space_in_path(points_annotation_dataframe,
+                                              output_directory + "/" + image_name + "_points_annotations" + ".csv")
 
 
-        save_dataframe_without_space_in_path(s1hl_annotation_dataframe,
+        if s1hl_annotation_dataframe:
+            save_dataframe_without_space_in_path(s1hl_annotation_dataframe,
                                              output_directory + "/" + image_name + "_S1HL_annotations" + ".csv")
 
-        save_dataframe_without_space_in_path(out_of_pia_annotation_dataframe,
+        if out_of_pia_annotation_dataframe:
+            save_dataframe_without_space_in_path(out_of_pia_annotation_dataframe,
                                              output_directory + "/" + image_name + "_out_of_pia" + ".csv")
 
         '''
@@ -103,14 +116,14 @@ def cmd(config_file_path):
         save_dataframe_without_space_in_path(cells_features_dataframe,
                                              output_directory + "/" + "Features_" + image_name + ".csv")
 
-
-    metadata_df = pd.DataFrame(
-        {
-            "image": image_name_list,
-            "lateral": image_lateral_list,
-            "animal": image_animal_list,
-            "immunohistochemistry ID": image_immunohistochemistry_list,
-        }
-    )
-    metadata_df.to_pickle(output_directory + "/" "metadata.pkl")
+    if qpproj_path:
+        metadata_df = pd.DataFrame(
+            {
+                "image": image_name_list,
+                "lateral": image_lateral_list,
+                "animal": image_animal_list,
+                "immunohistochemistry ID": image_immunohistochemistry_list,
+            }
+        )
+        metadata_df.to_pickle(output_directory + "/" "metadata.pkl")
     print(f"Done ! All export dataframe saved into {output_directory}")
