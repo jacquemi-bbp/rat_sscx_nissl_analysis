@@ -95,8 +95,7 @@ println "imageData $imageData"
 cellpose.detectObjects(imageData, pathObjects)
 
 println 'Cellpose algorithm for cellular segmentation Done!'
-// CIRCULARY CORRECTION START
-import org.locationtech.jts.geom.util.GeometryFixer
+// CIRCULARITY CORRECTION START
 
 // Run this code after cellpose
 
