@@ -3,13 +3,13 @@ removeMeasurements(qupath.lib.objects.PathDetectionObject, "Smoothed: 25 µm: Ar
 removeMeasurements(qupath.lib.objects.PathDetectionObject, "Cluster mean: Area µm^2", "Cluster mean: Length µm", "Cluster mean: Circularity", "Cluster mean: Solidity", "Cluster mean: Max diameter µm", "Cluster mean: Min diameter µm", "Cluster mean: Hematoxylin: Mean", "Cluster mean: Hematoxylin: Median", "Cluster mean: Hematoxylin: Min", "Cluster mean: Hematoxylin: Max", "Cluster mean: Hematoxylin: Std.Dev.", "Cluster mean: DAB: Mean", "Cluster mean: DAB: Median", "Cluster mean: DAB: Min", "Cluster mean: DAB: Max", "Cluster mean: DAB: Std.Dev.", "Cluster mean: Distance to annotation with Outside Pia µm", "Cluster mean: Distance to annotation with SliceContour µm", "Cluster mean: Distance to annotation with S1HL µm", "Cluster size");
 
 
-// Delaunay connctions are not stored in the measurement table, they need to be removed manually
+// Delaunay connections are not stored in the measurement table, they need to be removed manually
 def imageData = getCurrentImageData()
 
 def connections = imageData.getProperties().get("OBJECT_CONNECTIONS")
 connections.clear()
 
-
+// Recompute the features
 def outsidePia = getAnnotationObjects().find{it.getPathClass()==getPathClass("Outside Pia")}
 
 setSelectedObject(outsidePia)
@@ -21,5 +21,7 @@ selectAnnotations()
 runPlugin('qupath.opencv.features.DelaunayClusteringPlugin', '{"distanceThresholdMicrons": 0.0,  "limitByClass": false,  "addClusterMeasurements": true}')
 runPlugin('qupath.lib.plugins.objects.SmoothFeaturesPlugin', '{"fwhmMicrons": 50.0,  "smoothWithinClasses": false}')
 
+
+// Remove Cluster feature as all cells get the same and unique cluster values 
 removeMeasurements(qupath.lib.objects.PathDetectionObject, "Cluster mean: Area µm^2", "Cluster mean: Length µm", "Cluster mean: Circularity", "Cluster mean: Solidity", "Cluster mean: Max diameter µm", "Cluster mean: Min diameter µm", "Cluster mean: Hematoxylin: Mean", "Cluster mean: Hematoxylin: Median", "Cluster mean: Hematoxylin: Min", "Cluster mean: Hematoxylin: Max", "Cluster mean: Hematoxylin: Std.Dev.", "Cluster mean: DAB: Mean", "Cluster mean: DAB: Median", "Cluster mean: DAB: Min", "Cluster mean: DAB: Max", "Cluster mean: DAB: Std.Dev.", "Cluster mean: Distance to annotation with Outside Pia µm", "Cluster mean: Distance to annotation with SliceContour µm", "Cluster mean: Distance to annotation with S1HL µm", "Cluster size");
 
