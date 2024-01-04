@@ -68,8 +68,7 @@ def convert(cells_detection_file_path, annotations_file_path, pixel_size, conver
     cells_features_dataframe = cells_features_dataframe.rename(columns={"Name": "Expert_layer"})
 
     # if layers have not been set by and expert set the feature Expert_layer to N/A
-    cells_features_dataframe.loc[cells_features_dataframe['Expert_layer'].
-    str.contains('Cellpose Julie Full'), 'Expert_layer'] = "Not applicable"
+    cells_features_dataframe.loc[cells_features_dataframe['Expert_layer'].astype(str).str.contains('Cellpose Julie Full'), 'Expert_layer'] = "Not applicable"
 
 
     return (
