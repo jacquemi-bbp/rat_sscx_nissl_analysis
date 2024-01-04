@@ -13,14 +13,14 @@ From these images and some QuPath annotations, this package can generate:
 <img src="Doc/percentage_of_depth.png" alt="Doc/percentage_of_depth.png" width="400"/>
 
 # The pipeline consists of two main steps:
-1. (groovy + QuPath) Cells detection, export annotations, and cells coordinates
+1. (groovy + QuPath) Cells detection, export cells features and annotations
 2. (python) Processing for rat somatosensory cortex QuPath Nissl data
  
 # Lexicon
 The following definitions will stay in effect throughout the code.
 -S1HL annotation: S1HL annotation in QuPath that defines the rat somatosensory cortex
 
-# Cells densities processing Steps
+# Cells densities as a function of percentage of the sscx depth processing Steps
 - Read input data from QuPath results
 - Convert annotations to cartesian point coordinates and shapely polygon.
 - Split the S1HL polygon following the S1HL "top and bottom lines" shapes in n polygons (named spitted_polygon)
@@ -31,10 +31,8 @@ The following definitions will stay in effect throughout the code.
 
 # Layers boundaries processing Steps
 - Read input data from QuPath results
-- Apply the DBSCAN algorithm on each layer to remove isolated cells ((https://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html))
-- Rotate all cells coordinates with angle beetween the top line and x axis
-- Locate the boundaries by finding the bottom of each line (average y position of the n lower points)  
-- Export the results
+- Train a ML model from GroundTruth data produces by some experts
+- Use the ML model to predict the layers
 
 ## Installation
 - QuPath: https://qupath.github.io/
@@ -81,10 +79,6 @@ $ pyqupath_processing density --config-file-path ./Config/linux/batch_density.in
 ```
 
 # Compute the layers boundaries of one images
-- modify ./Config/linux/boundary.ini with your configuration
-- execute the python script
-```shell
-# pyqupath_processing batch_density --config-file-path ./Config/linux/boundary.ini 
 ```
 
 
