@@ -7,7 +7,9 @@ removeMeasurements(qupath.lib.objects.PathDetectionObject, "Cluster mean: Area Â
 def imageData = getCurrentImageData()
 
 def connections = imageData.getProperties().get("OBJECT_CONNECTIONS")
-connections.clear()
+if (connections) {
+	connections.clear()
+}
 
 // Recompute the features
 def outsidePia = getAnnotationObjects().find{it.getPathClass()==getPathClass("Outside Pia")}
@@ -18,7 +20,20 @@ detectionToAnnotationDistances(true)
 
 selectAnnotations()
 
-runPlugin('qupath.opencv.features.DelaunayClusteringPlugin', '{"distanceThresholdMicrons": 0.0,  "limitByClass": false,  "addClusterMeasurements": true}')
+// For some images SH1L is contains inside SliceContour and that raises an error with the Delaunay plugin
+// Need to fix it
+def S1HL = getAnnotationObjects().find{it.getPathClass()==getPathClass("S1HL")}
+def SliceContour = getAnnotationObjects().find{it.getPathClass()==getPathClass("SliceContour")}
+if (SliceContour) {
+	SliceContour.clearChildObjects()
+}
+if (S1HL) {
+	addObject(S1HL)
+}
+fireHierarchyUpdate()
+
+
+runPlugin('qupath.opencv.features.DelaunayClusteringPlugin', '{"distanceThresholdMicrons": 0.0,  "limitByClass": false,  "addClusterMeasurements": false}')
 runPlugin('qupath.lib.plugins.objects.SmoothFeaturesPlugin', '{"fwhmMicrons": 50.0,  "smoothWithinClasses": false}')
 
 
