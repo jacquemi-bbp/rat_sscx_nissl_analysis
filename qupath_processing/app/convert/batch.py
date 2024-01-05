@@ -53,7 +53,7 @@ def cmd(config_file_path, not_convert_annotation):
         images_animal = get_image_animal(images_metadata)
 
     images_dictionary = list_images(
-        input_directory, cell_position_suffix, annotations_geojson_suffix
+        input_directory, cell_position_suffix, annotations_geojson_suffix, convert_annotation_flag
     )
     print(f"INFO: input files: {list(images_dictionary.keys())}")
     if len(images_dictionary) == 0:
@@ -68,7 +68,9 @@ def cmd(config_file_path, not_convert_annotation):
     for image_prefix, values in images_dictionary.items():
         print("INFO: Process single image {}".format(image_prefix))
         cells_detection_path = values["CELL_POSITIONS_PATH"]
-        annotation_path = values["ANNOTATIONS_PATH"]
+        annotation_path = None
+        if convert_annotation_flag:
+            annotation_path = values["ANNOTATIONS_PATH"]
         image_name = image_prefix # values["IMAGE_NAME"]
         image_name_list.append(image_name)
         if qpproj_path:

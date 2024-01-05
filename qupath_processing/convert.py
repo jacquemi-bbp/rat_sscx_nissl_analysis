@@ -57,7 +57,11 @@ def convert(cells_detection_file_path, annotations_file_path, pixel_size, conver
                         'Smoothed: 25 µm: Distance to annotation with S1HL µm',
                         'Smoothed: 25 µm: Distance to annotation with SliceContour µm',
                         'Smoothed: 50 µm: Distance to annotation with S1HL µm',
-                        'Smoothed: 50 µm: Distance to annotation with SliceContour µm']
+                        'Smoothed: 50 µm: Distance to annotation with SliceContour µm',
+                        'Classification',
+                        'Distance to midline mm',
+                        'Object type',
+                        'Smoothed: 50 µm: Distance to midline mm']
 
     for feature in features_to_drop:
         try:

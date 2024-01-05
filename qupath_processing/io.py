@@ -191,7 +191,7 @@ def write_dataframe_to_file(dataframe, image_name, output_path, exel_write=True)
     dataframe.to_pickle(output_path + "/" + image_name + ".pkl")
 
 
-def list_images(input_directory, cell_position_suffix, annotations_geojson_suffix):
+def list_images(input_directory, cell_position_suffix, annotations_geojson_suffix, convert_annotation_flag):
     """
     Create a list of images name prefix from the content of the input_directory
     :param input_directory:input directory that contains export image information from QuPath
@@ -217,17 +217,19 @@ def list_images(input_directory, cell_position_suffix, annotations_geojson_suffi
             annotation_image_path = (
                 input_directory + "/" + image_name + annotations_geojson_suffix
             )
-            if image_name + annotations_geojson_suffix in onlyfiles:
+            #if image_name + annotations_geojson_suffix in onlyfiles:
+            if image_name + " " + cell_position_suffix in onlyfiles:
                 image_dictionary[image_name] = {}
                 image_dictionary[image_name]["CELL_POSITIONS_PATH"] = (
                     input_directory + "/" + image_name + " " + cell_position_suffix
                 )
-                image_dictionary[image_name]["ANNOTATIONS_PATH"] = annotation_image_path
-            else:
-                print(
-                    f"ERROR: {input_directory} {image_name + annotations_geojson_suffix} "
-                    f"does not exist for image {image_name}"
-                )
+                if convert_annotation_flag:
+                    image_dictionary[image_name]["ANNOTATIONS_PATH"] = annotation_image_path
+                else:
+                    print(
+                        f"ERROR: {input_directory} {image_name + annotations_geojson_suffix} "
+                        f"does not exist for image {image_name}"
+                    )
 
     return image_dictionary
 
