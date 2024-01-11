@@ -14,14 +14,15 @@ from qupath_processing.utilities import NotValidImage
 def convert_files_to_dataframe(
     cell_position_file_path,
     annotations_geojson_path,
-    pixel_size
+    pixel_size,
+    get_index_col = False
 
 ):
     print(
         f"INFO: Read input files {cell_position_file_path} and {annotations_geojson_path}"
     )
     # try:
-    detection_dataframe = qupath_cells_detection_to_dataframe(cell_position_file_path)
+    detection_dataframe = qupath_cells_detection_to_dataframe(cell_position_file_path, get_index_col)
     try:
         s1_coordinates = None
         quadrilateral_coordinates = None
@@ -41,7 +42,7 @@ def convert_files_to_dataframe(
     return detection_dataframe, s1_coordinates, quadrilateral_coordinates
 
 
-def qupath_cells_detection_to_dataframe(file_path):
+def qupath_cells_detection_to_dataframe(file_path, get_index_col=False):
     """
     Ream input file that contains QuPah cells detection and return and pandas data frame
     :param file_path: (str). Path to the file that contains cells coordinates
@@ -49,8 +50,16 @@ def qupath_cells_detection_to_dataframe(file_path):
     """
     if file_path.find('pkl') > 0:
         return pd.read_pickle(file_path)
+    elif file_path.find('csv') > 0:
+        if get_index_col==True:
+            return pd.read_csv(file_path)
+        else:
+            return pd.read_csv(file_path, index_col=0)
     else:
-        return pd.read_csv(file_path, sep="	|\t", engine="python", index_col=0) # comment for Ground Truth
+        if get_index_col==True:
+            return pd.read_csv(file_path, sep="	|\t", engine="python") 
+        else:
+            return pd.read_csv(file_path, sep="	|\t", engine="python", index_col=0) # comment for Ground Truth
 
 
 def get_cells_coordinate(dataframe, exclude=False):
@@ -188,7 +197,7 @@ def write_dataframe_to_file(dataframe, image_name, output_path, exel_write=True)
         dataframe.to_excel(
             output_path + "/" + image_name + ".xlsx", header=True, index=False
         )
-    dataframe.to_pickle(output_path + "/" + image_name + ".pkl")
+    dataframe.to_csv(output_path + "/" + image_name + ".csv")
 
 
 def list_images(input_directory, cell_position_suffix, annotations_geojson_suffix, convert_annotation_flag):

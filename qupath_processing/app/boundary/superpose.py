@@ -1,12 +1,8 @@
 import click
 
 import pandas as pd
-from paquo.projects import QuPathProject
 
 from pathlib import Path
-from paquo.projects import QuPathProject
-from paquo.images import QuPathImageType
-from paquo.classes import QuPathPathClass
 from shapely.geometry import Point, Polygon, MultiPoint
 import numpy as np
 import matplotlib.pyplot as plt
@@ -34,6 +30,10 @@ layers_color = {"Layer 1": "#ff0000"
 
 def superpose_boundary(qupath_project_path, ml_prediction_file_path,
                        image_name, pixel_size, visualisation_flag):
+
+    from paquo.projects import QuPathProject
+    from paquo.images import QuPathImageType
+    from paquo.classes import QuPathPathClass                       
 
     ml_result = pd.read_csv(ml_prediction_file_path)
 

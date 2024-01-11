@@ -61,12 +61,13 @@ def density(
         config = configparser.ConfigParser()
         config.read(config_file_path)
         cell_position_file_path = config["DEFAULT"]["cell_position_file_path"]
+        cell_position_with_exclude_flag_file_path = config["DEFAULT"]["cell_position_with_exclude_flag"]
         annotations_geojson_path = config["DEFAULT"]["annotations_path"]
         pixel_size = float(config["DEFAULT"]["pixel_size"])
         thickness_cut = float(config["DEFAULT"]["thickness_cut"])
         nb_row = int(config["DEFAULT"]["grid_nb_row"])
         nb_col = int(config["DEFAULT"]["grid_nb_col"])
-        output_path = config["DEFAULT"]["output_path"]
+        output_plot_path = config["DEFAULT"]["output_plot_path"]
         layer_names = config["DEFAULT"]["layer_names"]
     else:
         layer_names = [
@@ -79,12 +80,9 @@ def density(
             "Layer 6 b",
         ]
 
-        if output_path == None:
-            print("ERROR --output-path is required")
-            return
-
-    cell_position_with_exclude_path = (cell_position_file_path[:cell_position_file_path.find(' Detections.txt')] +
-                          '_with_exclude_flags')
+    #cell_position_with_exclude_path = cell_position_with_exclude_flag_file_path[:cell_position_file_path.find(' Detections.txt')] +
+    #                      '_with_exclude_flags')
+    cell_position_with_exclude_path = cell_position_with_exclude_flag_file_path
 
     image_name = cell_position_file_path[
         cell_position_file_path.rfind("/") + 1 : cell_position_file_path.rfind(".")
@@ -94,42 +92,48 @@ def density(
     detections_dataframe, s1_coordinates, quadrilateral_coordinates = (
         convert_files_to_dataframe(cell_position_file_path,
                                    annotations_geojson_path,
-                                   pixel_size, ))
+                                   pixel_size, get_index_col=True))
     
     # Apply stereology exclusion if needed.
-    print("INFO: Apply stereology exclusion")
+    print("INFO: Looks for stereology exclusion column")
     if recompute_exclusion_flag:
-        detections_dataframe = stereology_exclusion(detections_dataframe)
-    try:
-        nb_exclude = detections_dataframe['exclude'].value_counts()[1]
+        print("INFO: Apply stereology exclusion")
+        detections_dataframe = stereology_exclusion(detections_dataframe)  
+     try:
+        nb_exclude = detections_dataframe['exclude_for_density'].value_counts()[1] 
+                                           
     except IndexError:
         nb_exclude = 0
-    except KeyError:
-        # The exclude row does not exist, need to compute it"
-        print("INFO: The stereology exclude row does not exist in the dataframe, one needs to compute it now.")
+    except KeyError as e:
+        # The exclude_for_density row does not exist, need to compute it"
+        print("INFO: The stereology exclude_for_density row does not exist in the dataframe, one needs to compute it now.")
+        print("INFO: Apply stereology exclusion")
         detections_dataframe = stereology_exclusion(detections_dataframe)
+        detections_dataframe.to_csv('/tmp/detections_dataframe.csv')
         try:
-            nb_exclude = detections_dataframe['exclude'].value_counts()[1]
+            nb_exclude = detections_dataframe['exclude_for_density'].value_counts()[1]
         except IndexError:
             nb_exclude = 0
+        
+        nb_exclude = detections_dataframe['exclude_for_density'].value_counts()[1]
+        print(f'INFO: There are {nb_exclude} / {len(detections_dataframe)} excluded cells)')
+        detections_dataframe = detections_dataframe[detections_dataframe['exclude_for_density'] == False]
 
-    print(f'INFO: There are {nb_exclude} / {len(detections_dataframe)} excluded cells)')
-    detections_dataframe# = detections_dataframe[detections_dataframe.exclude == False]
 
 
-    write_dataframe_to_file(detections_dataframe, cell_position_with_exclude_path, '.',
-                            exel_write=False)
-    print(f'INFO: Write dataframe with exclude flag to {cell_position_with_exclude_path}')
     cells_centroid_x, cells_centroid_y = get_cells_coordinate(detections_dataframe)
-    excluded_cells_centroid_x, excluded_cells_centroid_y = get_cells_coordinate(detections_dataframe, exclude=True)
+    excluded_cells_centroid_x, excluded_cells_centroid_y = get_cells_coordinate(detections_dataframe, exclude=recompute_exclusion_flag)
     densities_dataframe = single_image_process(
         cells_centroid_x, cells_centroid_y, s1_coordinates, quadrilateral_coordinates,
         thickness_cut, nb_row, nb_col, image_name, layer_names,
         excluded_cells_centroid_x, excluded_cells_centroid_y,
         layer_boundary_path=layer_boundary_path,
         visualisation_flag=visualisation_flag,
-        output_path=output_path,
+        output_path=output_plot_path,
     )
     print("INFO: ", densities_dataframe)
     print("INFO: Write results")
-    write_dataframe_to_file(densities_dataframe, image_name, output_path)
+    write_dataframe_to_file(detections_dataframe, cell_position_with_exclude_path, '.',
+                            exel_write=False)
+    print(f'INFO: Write dataframe with exclude flag to {cell_position_with_exclude_path}')
+    #write_dataframe_to_file(densities_dataframe, image_name, output_path)

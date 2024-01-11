@@ -19,6 +19,7 @@ def stereology_exclusion(dataframe):
     we randomly assign a -z coordinate to each cell as well as an appropriate diameter
     (estimated from the nearest neighbouring cells)
     """
+
     data = dataframe[["Centroid X µm","Centroid Y µm"]].values
     nbrs = NearestNeighbors(n_neighbors=5,algorithm="kd_tree").fit(data)
     dataframe['mean_diameter'] = 0.5*(dataframe["Max diameter µm"] + dataframe["Min diameter µm"])
@@ -27,9 +28,8 @@ def stereology_exclusion(dataframe):
         sample['neighbors'] = nbrs.kneighbors(data,6,return_distance=False)[sample.name,:] #sample.name = row index
         neighbor_mean = dataframe.iloc[sample['neighbors']]['mean_diameter'].mean()
         sample['neighbor_mean'] = neighbor_mean
-        sample['exclude'] = random.uniform(0,slice_thickness) + neighbor_mean/2 >= slice_thickness
+        sample['exclude_for_density'] = random.uniform(0,slice_thickness) + neighbor_mean/2 >= slice_thickness
         return sample
-
     dataframe_with_exclude_flag = dataframe.apply(exclude,axis=1)
     return dataframe_with_exclude_flag
 
