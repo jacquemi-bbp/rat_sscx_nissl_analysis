@@ -58,12 +58,12 @@ def single_image_process(
     )
 
     total_used_cells = sum(nb_cells)
-    if total_used_cells != len(cells_centroid_x) + len(excluded_cells_centroid_x):
+    if total_used_cells != len(cells_centroid_x) :
         densities_dataframe = pd.DataFrame(
             {"image": [image_prefix], "depth_percentage": None, "densities": None}
         )
         print(
-            f"ERROR there are  {len(cells_centroid_x) + len(excluded_cells_centroid_x) - total_used_cells } \
+            f"ERROR there are  {len(cells_centroid_x) - total_used_cells } \
                 cells outside the grid for a total of {len(cells_centroid_x)} cells"
         )
         print(f'ERROR there are  {len(cells_centroid_x)} cells_centroid_x')
