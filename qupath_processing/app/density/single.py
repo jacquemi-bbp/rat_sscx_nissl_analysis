@@ -34,8 +34,13 @@ from qupath_processing.utilities import stereology_exclusion
     "--nb-col", default=100, help="Number of columns for the grid (default 100)"
 )
 @click.option(
-    "--output-path", help="Output path where result files will be save", required=False
+    "--output-path", help="Output path where result files will be save", required=True
 )
+
+@click.option(
+    "--cell-position-with-exclude-output-path", help="Output path for the Cells dataframe with the excluded flag", required=False
+)
+
 @click.option(
     "--layer-boundary-path",
     help="Path to a pickle file that contains the dataframe of layer boundaries",
@@ -53,6 +58,7 @@ def density(
     nb_row,
     nb_col,
     output_path,
+    cell_position_with_exclude_output_path,
     layer_boundary_path,
     recompute_exclusion_flag,
     visualisation_flag,
