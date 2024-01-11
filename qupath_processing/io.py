@@ -62,7 +62,7 @@ def qupath_cells_detection_to_dataframe(file_path, get_index_col=False):
             return pd.read_csv(file_path, sep="	|\t", engine="python", index_col=0) # comment for Ground Truth
 
 
-def get_cells_coordinate(dataframe, exclude=False):
+def get_cells_coordinate(dataframe, exclude_flag=False):
     """
     Read file that contains cell positions and create cells centroids x,y position
     :param dataframe:(Pandas dataframe) containing cells coordinate and metadata (layer, ...)
@@ -72,14 +72,12 @@ def get_cells_coordinate(dataframe, exclude=False):
             - cells_centroid_x np.array of shape (number of cells, ) of type float
             - cells_centroid_y np.array of shape (number of cells, ) of type float
     """
-    if exclude:
-        dataframe=dataframe[dataframe['exclude'] == True]
-    try:
-        cells_centroid_x = dataframe["Centroid X µm"].to_numpy(dtype=float)
-        cells_centroid_y = dataframe["Centroid Y µm"].to_numpy(dtype=float)
-        return cells_centroid_x, cells_centroid_y
-    except KeyError:
-        raise NotValidImage
+
+    dataframe = dataframe[dataframe['exclude_for_density']==exclude_flag]
+    cells_centroid_x = dataframe["Centroid X µm"].to_numpy(dtype=float)
+    cells_centroid_y = dataframe["Centroid Y µm"].to_numpy(dtype=float)
+    return cells_centroid_x, cells_centroid_y
+
 
 
 def read_qupath_annotations(file_path):

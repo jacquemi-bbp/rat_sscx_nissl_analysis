@@ -198,6 +198,10 @@ def count_nb_cell_per_polygon(cells_centroid_x, cells_centroid_y, split_polygons
     :return: list of int:The number of cells located inside each polygons of
                          split_polygons
     """
+    #print(f'DEBUG cells_centroid_x {cells_centroid_x}')
+    #print(f'DEBUG cells_centroid_y {cells_centroid_y}')
+    #for poly in split_polygons:
+    #``    print(f'DEBUG poly {poly}')
     nb_cell_per_polygon = [0] * len(split_polygons)
     for x_coord, y_coord in zip(cells_centroid_x, cells_centroid_y):
         for index, polygon in enumerate(split_polygons):

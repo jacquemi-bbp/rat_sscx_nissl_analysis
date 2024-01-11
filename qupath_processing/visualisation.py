@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from qupath_processing.geometry import compute_cells_depth
 
-plt.rcParams["font.family"] = "Arial"
+#plt.rcParams["font.family"] = "Arial"
 
 
 def plot_densities(
@@ -56,7 +56,7 @@ def plot_densities(
     if visualisation_flag:
         plt.show()
     else:
-        file_path = output_path + "/" + image_name + "layer_per_animal_.png"
+        file_path = output_path + "/" + image_name + "_density_per_animal_.png"
         print(f'DEBUG plot_density file_path {file_path}' )
         plt.savefig(file_path, dpi=150)
 
@@ -84,6 +84,7 @@ def plot_split_polygons_and_cell_depth(
     :param cells_centroid_y: np.array of shape (number of cells, ) of type float
     :return:
     """
+    print('DEBUG plot_split_polygons_and_cell_depth')
     cells_depth = compute_cells_depth(
         split_polygons, cells_centroid_x, cells_centroid_y
     )
@@ -123,7 +124,8 @@ def plot_split_polygons_and_cell_depth(
     if visualisation_flag:
         plt.show()
 
-    file_path = output_path + "/" + image_name + "layer_per_animal_.svg"
+    file_path = output_path + "/" + image_name + "_split_polygons_per_animal_.png"
+    print(f'DEBUG plot_split_polygons_and_cell_depth asve_fig {file_path}')
     print(f'plt.savefig {file_path}')
     plt.savefig(file_path)
 

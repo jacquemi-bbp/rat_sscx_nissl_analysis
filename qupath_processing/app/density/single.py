@@ -61,7 +61,7 @@ def density(
         config = configparser.ConfigParser()
         config.read(config_file_path)
         cell_position_file_path = config["DEFAULT"]["cell_position_file_path"]
-        cell_position_with_exclude_flag_file_path = config["DEFAULT"]["cell_position_with_exclude_flag"]
+        cell_position_with_exclude_output_path = config["DEFAULT"]["cell_position_with_exclude_output_path"]
         annotations_geojson_path = config["DEFAULT"]["annotations_path"]
         pixel_size = float(config["DEFAULT"]["pixel_size"])
         thickness_cut = float(config["DEFAULT"]["thickness_cut"])
@@ -80,9 +80,7 @@ def density(
             "Layer 6 b",
         ]
 
-    #cell_position_with_exclude_path = cell_position_with_exclude_flag_file_path[:cell_position_file_path.find(' Detections.txt')] +
-    #                      '_with_exclude_flags')
-    cell_position_with_exclude_path = cell_position_with_exclude_flag_file_path
+    cell_position_with_exclude_path = cell_position_with_exclude_output_path
 
     image_name = cell_position_file_path[
         cell_position_file_path.rfind("/") + 1 : cell_position_file_path.rfind(".")
@@ -120,12 +118,13 @@ def density(
         
         nb_exclude = detections_dataframe['exclude_for_density'].value_counts()[1]
         print(f'INFO: There are {nb_exclude} / {len(detections_dataframe)} excluded cells)')
-        detections_dataframe = detections_dataframe[detections_dataframe['exclude_for_density'] == False]
+        #detections_dataframe = detections_dataframe[detections_dataframe['exclude_for_density'] == False]
 
 
 
     cells_centroid_x, cells_centroid_y = get_cells_coordinate(detections_dataframe)
-    excluded_cells_centroid_x, excluded_cells_centroid_y = get_cells_coordinate(detections_dataframe, exclude=recompute_exclusion_flag)
+    excluded_cells_centroid_x, excluded_cells_centroid_y = get_cells_coordinate(
+        detections_dataframe, exclude_flag=True)
     densities_dataframe = single_image_process(
         cells_centroid_x, cells_centroid_y, s1_coordinates, quadrilateral_coordinates,
         thickness_cut, nb_row, nb_col, image_name, layer_names,
@@ -134,13 +133,15 @@ def density(
         visualisation_flag=visualisation_flag,
         output_path=output_path,
     )
-    print("INFO: ", densities_dataframe)
+
+    print("INFO: Write results")
     densities_dataframe_full_path = output_path + '/'+ image_name + '.csv'
+
     write_dataframe_to_file(densities_dataframe, densities_dataframe_full_path)
     print(f'INFO: Write density dataframe =to {densities_dataframe_full_path}')
 
-    print("INFO: Write results")
+
     if apply_exclusion:
-        write_dataframe_to_file(detections_dataframe, cell_position_with_exclude_path)
-        print(f'INFO: Write Cells dataframe with exclude flag to {cell_position_with_exclude_path}')
+        write_dataframe_to_file(detections_dataframe, cell_position_with_exclude_output_path)
+        print(f'INFO: Write Cells dataframe with exclude flag to {cell_position_with_exclude_output_path}')
 
