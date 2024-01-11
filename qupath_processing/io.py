@@ -50,7 +50,7 @@ def qupath_cells_detection_to_dataframe(file_path):
     if file_path.find('pkl') > 0:
         return pd.read_pickle(file_path)
     else:
-        return pd.read_csv(file_path, sep="	|\t", engine="python", index_col=0)
+        return pd.read_csv(file_path, sep="	|\t", engine="python", index_col=0) # comment for Ground Truth
 
 
 def get_cells_coordinate(dataframe, exclude=False):
