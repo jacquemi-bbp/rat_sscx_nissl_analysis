@@ -187,17 +187,15 @@ def get_qpproject_images_metadata(file_path):
     return annotations_geo["images"]
 
 
-def write_dataframe_to_file(dataframe, image_name, output_path, exel_write=True):
+def write_dataframe_to_file(dataframe, image_path):
     """
     export and save result to xlsx file
     :param dataframe (pandas Dataframe):
     :param output_path(str):
     """
-    if exel_write:
-        dataframe.to_excel(
-            output_path + "/" + image_name + ".xlsx", header=True, index=False
-        )
-    dataframe.to_csv(output_path + "/" + image_name + ".csv")
+    if image_path.find('.txt'):
+        image_path = image_path.replace('.txt', '.csv')
+    dataframe.to_csv(image_path)
 
 
 def list_images(input_directory, cell_position_suffix, annotations_geojson_suffix, convert_annotation_flag):

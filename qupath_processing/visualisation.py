@@ -51,10 +51,13 @@ def plot_densities(
     #x = np.array(percentages) * 100  # the label locations
 
     #ax.set_yticks(x, percentages)
+    print(f'DEBUG plot_density visualisation_flag {visualisation_flag}' )
+    
     if visualisation_flag:
         plt.show()
     else:
         file_path = output_path + "/" + image_name + "layer_per_animal_.png"
+        print(f'DEBUG plot_density file_path {file_path}' )
         plt.savefig(file_path, dpi=150)
 
 

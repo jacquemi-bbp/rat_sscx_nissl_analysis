@@ -67,7 +67,7 @@ def density(
         thickness_cut = float(config["DEFAULT"]["thickness_cut"])
         nb_row = int(config["DEFAULT"]["grid_nb_row"])
         nb_col = int(config["DEFAULT"]["grid_nb_col"])
-        output_plot_path = config["DEFAULT"]["output_plot_path"]
+        output_path = config["DEFAULT"]["output_path"]
         layer_names = config["DEFAULT"]["layer_names"]
     else:
         layer_names = [
@@ -95,12 +95,15 @@ def density(
                                    pixel_size, get_index_col=True))
     
     # Apply stereology exclusion if needed.
+    apply_exclusion=False
     print("INFO: Looks for stereology exclusion column")
     if recompute_exclusion_flag:
         print("INFO: Apply stereology exclusion")
-        detections_dataframe = stereology_exclusion(detections_dataframe)  
-     try:
+        detections_dataframe = stereology_exclusion(detections_dataframe) 
+        apply_exclusion = True 
+    try:
         nb_exclude = detections_dataframe['exclude_for_density'].value_counts()[1] 
+        print("INFO: Find stereology exclusion column")
                                            
     except IndexError:
         nb_exclude = 0
@@ -109,7 +112,7 @@ def density(
         print("INFO: The stereology exclude_for_density row does not exist in the dataframe, one needs to compute it now.")
         print("INFO: Apply stereology exclusion")
         detections_dataframe = stereology_exclusion(detections_dataframe)
-        detections_dataframe.to_csv('/tmp/detections_dataframe.csv')
+        apply_exclusion = True 
         try:
             nb_exclude = detections_dataframe['exclude_for_density'].value_counts()[1]
         except IndexError:
@@ -129,11 +132,15 @@ def density(
         excluded_cells_centroid_x, excluded_cells_centroid_y,
         layer_boundary_path=layer_boundary_path,
         visualisation_flag=visualisation_flag,
-        output_path=output_plot_path,
+        output_path=output_path,
     )
     print("INFO: ", densities_dataframe)
+    densities_dataframe_full_path = output_path + '/'+ image_name + '.csv'
+    write_dataframe_to_file(densities_dataframe, densities_dataframe_full_path)
+    print(f'INFO: Write density dataframe =to {densities_dataframe_full_path}')
+
     print("INFO: Write results")
-    write_dataframe_to_file(detections_dataframe, cell_position_with_exclude_path, '.',
-                            exel_write=False)
-    print(f'INFO: Write dataframe with exclude flag to {cell_position_with_exclude_path}')
-    #write_dataframe_to_file(densities_dataframe, image_name, output_path)
+    if apply_exclusion:
+        write_dataframe_to_file(detections_dataframe, cell_position_with_exclude_path)
+        print(f'INFO: Write Cells dataframe with exclude flag to {cell_position_with_exclude_path}')
+
