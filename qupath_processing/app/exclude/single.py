@@ -24,8 +24,11 @@ def cmd(
     #Write Cells featrues dataframe
     slash_pos = dataframe_file_path.rfind('/')
     if slash_pos > -1:
-        dataframe_output_file_path = dataframe_output_path[slash_pos + 1:]
+        file_name = dataframe_file_path[slash_pos + 1:]
     else:
-        dataframe_output_file_path = dataframe_output_path
-    print(f'INFO: Export cells features to {dataframe_output_file_path}')
-    cells_features_dataframe.to_csv(dataframe_output_file_path)
+        file_name = dataframe_file_path
+
+    full_path = dataframe_output_path + '/' + file_name
+
+    print(f'INFO: Export cells features to {full_path}')
+    cells_features_dataframe.to_csv(full_path)
