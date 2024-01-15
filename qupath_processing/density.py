@@ -20,11 +20,19 @@ from qupath_processing.visualisation import (
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-locals
 
+def single_image_process(cell_position_file_path):
+    """
+    param cell_position_file_path:
+    returns:
+    """
+    cells_features_df = pd.read_csv(cell_position_file_path, index_col=0)
+    assert 'exclude_for_density' in cells_features_df.columns
+'''
 def single_image_process(
     cells_centroid_x, cells_centroid_y, s1_coordinates, quadrilateral_coordinates,
     thickness_cut, nb_row, nb_col, image_prefix, layers_name,
     excluded_cells_centroid_x=None, excluded_cells_centroid_y=None,
-    layer_boundary_path=None,
+
     visualisation_flag=False, output_path=None,
 ):
     """
@@ -37,7 +45,6 @@ def single_image_process(
     :param nb_col:(int)
     :param image_prefix(str)
     :param layers_name(list of str)
-    :param layer_boundary_path:(str)
     :param visualisation_flag:(bool)
     :param output_path:(str)
     :return: densities_dataframe(pandas dataframe)
@@ -79,14 +86,6 @@ def single_image_process(
             }
         )
 
-    if layer_boundary_path:
-        boundary_df = pd.read_pickle(layer_boundary_path)
-        boundaries_percentage = list(
-            boundary_df["Layer bottom (percentage). Origin is top of layer 1"]
-        )
-    else:
-        boundaries_percentage = None
-
     plot_split_polygons_and_cell_depth(
         split_polygons,
         s1_coordinates,
@@ -112,7 +111,7 @@ def single_image_process(
     )
     
     return densities_dataframe
-
+'''
 
 def compute_cell_density(nb_cell_per_slide, split_polygons, z_length):
     """
