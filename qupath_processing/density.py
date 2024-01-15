@@ -127,8 +127,6 @@ def compute_cell_density(nb_cell_per_slide, split_polygons, z_length):
     nb_cells = []
     densities = []
 
-    print(f'DEBUG nb_cell_per_slide {nb_cell_per_slide}')
-
     for nb_cell, polygon in zip(nb_cell_per_slide, split_polygons):
         nb_cells.append(nb_cell)
         densities.append(nb_cell / ((polygon.area / 1e6) * z_length))

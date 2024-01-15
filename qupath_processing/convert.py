@@ -1,15 +1,100 @@
 """
 Convert QuPath Detections and annotation to pandas dataframe
 """
+import os
+import numpy as np
 import pandas as pd
 
 from qupath_processing.io import (
-    qupath_cells_detection_to_dataframe,
+    get_qpproject_images_metadata,
+)
+
+from qupath_processing.utilities import (
+    get_specific_metadata,
+)
+from qupath_processing.utilities import stereology_exclusion
+
+from qupath_processing.io import (
     read_qupath_annotations,
 )
 
 
-def convert(cells_detection_file_path, annotations_file_path, pixel_size, convert_annotation=True):
+def single_image_conversion(output_path, qupath_project_path, image_name,
+                            cells_detection_path, annotations_path,
+                            pixel_size, exclude=False):
+    os.makedirs(output_path, exist_ok=True)
+    if qupath_project_path:
+        print(f'INFO: Get QuPath Project metadata')
+        images_metadata = get_qpproject_images_metadata(qupath_project_path)
+        lateral = get_specific_metadata(images_metadata, 'Distance to midline', default=np.nan)
+        images_immunohistochemistry = get_specific_metadata(images_metadata, 'Immunohistochemistry ID', default='ND')
+        images_animal = get_specific_metadata(images_metadata, 'imageName', default='ND')
+        analysed = get_specific_metadata(images_metadata, 'Analyze', default='False')
+        rotated = get_specific_metadata(images_metadata, 'Rotated', default='False')
+        # Analyze:True, Rotated:Yes
+
+        metadata_df = pd.DataFrame(
+            {
+                "image": image_name,
+                "lateral": lateral,
+                "animal": images_animal,
+                "immunohistochemistry ID": images_immunohistochemistry,
+                "analysed": analysed,
+                "rotated": rotated,
+            }
+        )
+        meta_path = output_path + "/" + image_name + "_" "metadata.csv"
+        print(f'INFO: Export Project metadata to {meta_path}')
+        metadata_df.to_csv(meta_path)
+
+    print(f'INFO: Start annotation and cells features convertion')
+    (
+        points_annotation_dataframe,
+        s1hl_annotation_dataframe,
+        out_of_pia_annotation_dataframe,
+        cells_features_dataframe,
+    ) = convert(cells_detection_path, annotations_path, image_name, pixel_size)
+
+    # Remove Cluster features if exist
+    # One removes the cluster feature because they are all the same for each cell
+    cols = [
+        c
+        for c in cells_features_dataframe.columns
+        if c.lower().find("cluster") == -1
+    ]
+    print(f'INFO: Remove cluster features if exist')
+    cells_features_dataframe = cells_features_dataframe[cols]
+
+    # START CELL EXCLUSION
+    if exclude:
+        print(f'INFO: Start cells exclusion')
+        cells_features_dataframe = stereology_exclusion(cells_features_dataframe)
+        nb_exclude = cells_features_dataframe['exclude_for_density'].value_counts()[1]
+        print(f'INFO: There are {nb_exclude} / {len(cells_features_dataframe)} excluded cells)')
+
+    # Write Cells featrues dataframe
+    cells_features_path = output_path + "/" + image_name + "_cells_features" + ".csv"
+    print(f'INFO: Export cells features to {cells_features_path}')
+    cells_features_dataframe.to_csv(cells_features_path)
+
+    if annotations_path:
+        # Write annotaion dataframe
+        points_annotation_path =  output_path + "/" + image_name + "_points_annotations" + ".csv"
+        print(f'INFO: Export points annotation to {points_annotation_path}')
+        points_annotation_dataframe.to_csv(points_annotation_path)
+
+
+        s1hl_path = output_path + "/" + image_name + "_S1HL_annotations" + ".csv"
+        print(f'INFO: Export S1HL annotation to {s1hl_path}')
+        s1hl_annotation_dataframe.to_csv(s1hl_path )
+
+        out_of_pia_path = output_path + "/" + image_name + "_out_of_pia" + ".csv"
+        print(f'INFO: Export Out_of_pia annotation to {out_of_pia_path}')
+        out_of_pia_annotation_dataframe.to_csv(out_of_pia_path)
+
+    print(f"Done ! All export dataframe saved into {output_path}")
+
+def convert(cells_detection_path, annotations_path,image_name,  pixel_size):
     """
     :param cells_detection_file_path: path to the cells detection file produced by QuPath
     :param annotations_file_path: path to the annotations file produced by QuPath
@@ -23,15 +108,14 @@ def convert(cells_detection_file_path, annotations_file_path, pixel_size, conver
     """
     points_annotation_dataframe = None
     s1hl_annotation_dataframe = None
-    s1hl_annotation_dataframe = None
     out_of_pia_annotation_dataframe = None
 
-    if convert_annotation:
+    if annotations_path:
         (
             s1_pixel_coordinates,
             quadrilateral_pixel_coordinates,
             out_of_pia,
-        ) = read_qupath_annotations(annotations_file_path)
+        ) = read_qupath_annotations(annotations_path, image_name)
 
         points_annotation_dataframe = pd.DataFrame(
             quadrilateral_pixel_coordinates *  pixel_size,
@@ -48,8 +132,9 @@ def convert(cells_detection_file_path, annotations_file_path, pixel_size, conver
             out_of_pia *  pixel_size,
             columns=["Centroid X µm", "Centroid Y µm"],
         )
-    cells_features_dataframe = pd.read_csv(cells_detection_file_path, sep="\t", engine="python", index_col=0)
-    print(list(cells_features_dataframe.columns))
+
+    cells_detection_file_path = cells_detection_path + '/' + image_name + ' Detections.txt'
+    cells_features_dataframe = pd.read_csv(cells_detection_file_path, sep="\t", engine="python")
     # Drop the features that cannot be used by the ML model
 
     features_to_drop = ['Object ID', 'Class', 'Parent', 'ROI',# 'Distance to midline mm',
@@ -70,7 +155,7 @@ def convert(cells_detection_file_path, annotations_file_path, pixel_size, conver
         try:
             cells_features_dataframe = cells_features_dataframe.drop(feature, axis=1)
         except KeyError as e:
-            print(e)
+            pass
 
     #cells_features_dataframe = cells_features_dataframe.rename(columns={"Name": "Expert_layer"}) # comment for Ground Truth
     cells_features_dataframe = cells_features_dataframe.rename(columns={"Classification": "Expert_layer"}) # uncomment Ground Truth 
