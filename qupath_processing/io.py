@@ -11,6 +11,7 @@ from qupath_processing.utilities import NotValidImage
 
 
 
+'''
 def convert_files_to_dataframe(
     cell_position_file_path,
     annotations_geojson_path,
@@ -42,24 +43,20 @@ def convert_files_to_dataframe(
     return detection_dataframe, s1_coordinates, quadrilateral_coordinates
 
 
-def qupath_cells_detection_to_dataframe(file_path, get_index_col=False):
+def qupath_cells_detection_to_dataframe(file_path):
     """
     Ream input file that contains QuPah cells detection and return and pandas data frame
     :param file_path: (str). Path to the file that contains cells coordinates
     :return: Pandas dataframe containing data from input file_path
     """
-    if file_path.find('pkl') > 0:
-        return pd.read_pickle(file_path)
-    elif file_path.find('csv') > 0:
+    if file_path.find('csv') > 0:
         if get_index_col==True:
             return pd.read_csv(file_path)
         else:
             return pd.read_csv(file_path, index_col=0)
     else:
-        if get_index_col==True:
-            return pd.read_csv(file_path, sep="	|\t", engine="python") 
-        else:
-            return pd.read_csv(file_path, sep="	|\t", engine="python", index_col=0) # comment for Ground Truth
+        return pd.read_csv(file_path, sep="	|\t", engine="python") 
+'''
 
 
 def get_cells_coordinate(dataframe, exclude_flag=False):
@@ -80,10 +77,11 @@ def get_cells_coordinate(dataframe, exclude_flag=False):
 
 
 
-def read_qupath_annotations(file_path):
+def read_qupath_annotations(directory_path, image_name):
     """
     Read file that contains quPath annotations
-    :param file_path:
+    :param directory_path:
+    :param image_name:
     :return:
         tuple:
             - s1_coordinates: np.array(float) of shape (nb_vertices, 2) containing S1HL polygon
@@ -93,6 +91,8 @@ def read_qupath_annotations(file_path):
     Notes: The returned coordinates unit is pixel. One needs to multiply coordinate values by the
      pixel size to obtain um as unit
     """
+    file_path = directory_path + '/' + image_name + '_annotations.json'
+    print(f'DEBUG file_path {file_path}')
     with open(file_path, "rb") as annotation_file:
         annotations_geo = geojson.load(annotation_file)
     annotations = {}
@@ -196,7 +196,7 @@ def write_dataframe_to_file(dataframe, image_path):
     dataframe.to_csv(image_path)
 
 
-def list_images(input_directory, cell_position_suffix, annotations_geojson_suffix, convert_annotation_flag):
+def list_images(input_directory_detection, cell_position_suffix, annotations_geojson_suffix=None, input_annotation_directory=None):
     """
     Create a list of images name prefix from the content of the input_directory
     :param input_directory:input directory that contains export image information from QuPath
@@ -207,9 +207,10 @@ def list_images(input_directory, cell_position_suffix, annotations_geojson_suffi
     """
     onlyfiles = [
         file_name
-        for file_name in listdir(input_directory)
-        if isfile(join(input_directory, file_name))
+        for file_name in listdir(input_directory_detection)
+        if isfile(join(input_directory_detection, file_name))
     ]
+
     image_dictionary = {}
     detection_files = [file for file in onlyfiles if file.count("Detections") == 1]
     for filename in detection_files:
@@ -218,23 +219,25 @@ def list_images(input_directory, cell_position_suffix, annotations_geojson_suffi
         )  # SLD_0000521.vsi - 20x_01 Detections.txt
         if prefix_pos != -1:
             image_name = filename[:prefix_pos]
-            #image_dictionary[image_name]["IMAGE_NAME"] = image_name
-            annotation_image_path = (
-                input_directory + "/" + image_name + annotations_geojson_suffix
+            if input_annotation_directory and annotations_geojson_suffix:
+                annotation_image_path = (
+                    input_annotation_directory + "/" + image_name + annotations_geojson_suffix
             )
             #if image_name + annotations_geojson_suffix in onlyfiles:
             if image_name + " " + cell_position_suffix in onlyfiles:
                 image_dictionary[image_name] = {}
                 image_dictionary[image_name]["CELL_POSITIONS_PATH"] = (
-                    input_directory + "/" + image_name + " " + cell_position_suffix
+                    input_directory_detection + "/" + image_name + " " + cell_position_suffix
                 )
-                if convert_annotation_flag:
+                if annotations_geojson_suffix and input_annotation_directory:
                     image_dictionary[image_name]["ANNOTATIONS_PATH"] = annotation_image_path
+                '''
                 else:
                     print(
-                        f"ERROR: {input_directory} {image_name + annotations_geojson_suffix} "
+                        f"ERROR: {input_annotation_directory} {image_name + annotations_geojson_suffix} "
                         f"does not exist for image {image_name}"
                     )
+                '''
 
     return image_dictionary
 

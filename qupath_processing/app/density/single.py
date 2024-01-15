@@ -3,11 +3,10 @@ import click
 from qupath_processing.density import single_image_process
 from qupath_processing.io import (
     write_dataframe_to_file,
-    convert_files_to_dataframe,
     get_cells_coordinate
 )
 
-from qupath_processing.utilities import stereology_exclusion
+
 
 
 
@@ -34,8 +33,13 @@ from qupath_processing.utilities import stereology_exclusion
     "--nb-col", default=100, help="Number of columns for the grid (default 100)"
 )
 @click.option(
-    "--output-path", help="Output path where result files will be save", required=False
+    "--output-path", help="Output path where result files will be save", default='/tmp', required=False
 )
+
+@click.option(
+    "--cell-position-with-exclude-output-path", help="Output path for the Cells dataframe with the excluded flag", required=False
+)
+
 @click.option(
     "--layer-boundary-path",
     help="Path to a pickle file that contains the dataframe of layer boundaries",
@@ -53,6 +57,7 @@ def density(
     nb_row,
     nb_col,
     output_path,
+    cell_position_with_exclude_output_path,
     layer_boundary_path,
     recompute_exclusion_flag,
     visualisation_flag,
@@ -92,35 +97,6 @@ def density(
                                    annotations_geojson_path,
                                    pixel_size, get_index_col=True))
     
-    # Apply stereology exclusion if needed.
-    apply_exclusion=False
-    print("INFO: Looks for stereology exclusion column")
-    if recompute_exclusion_flag:
-        print("INFO: Apply stereology exclusion")
-        detections_dataframe = stereology_exclusion(detections_dataframe) 
-        apply_exclusion = True 
-    try:
-        nb_exclude = detections_dataframe['exclude_for_density'].value_counts()[1] 
-        print("INFO: Find stereology exclusion column")
-                                           
-    except IndexError:
-        nb_exclude = 0
-    except KeyError as e:
-        # The exclude_for_density row does not exist, need to compute it"
-        print("INFO: The stereology exclude_for_density row does not exist in the dataframe, one needs to compute it now.")
-        print("INFO: Apply stereology exclusion")
-        detections_dataframe = stereology_exclusion(detections_dataframe)
-        apply_exclusion = True 
-        try:
-            nb_exclude = detections_dataframe['exclude_for_density'].value_counts()[1]
-        except IndexError:
-            nb_exclude = 0
-        
-        nb_exclude = detections_dataframe['exclude_for_density'].value_counts()[1]
-        print(f'INFO: There are {nb_exclude} / {len(detections_dataframe)} excluded cells)')
-        #detections_dataframe = detections_dataframe[detections_dataframe['exclude_for_density'] == False]
-
-
 
     cells_centroid_x, cells_centroid_y = get_cells_coordinate(detections_dataframe)
     excluded_cells_centroid_x, excluded_cells_centroid_y = get_cells_coordinate(
@@ -139,9 +115,3 @@ def density(
 
     write_dataframe_to_file(densities_dataframe, densities_dataframe_full_path)
     print(f'INFO: Write density dataframe =to {densities_dataframe_full_path}')
-
-
-    if apply_exclusion:
-        write_dataframe_to_file(detections_dataframe, cell_position_with_exclude_output_path)
-        print(f'INFO: Write Cells dataframe with exclude flag to {cell_position_with_exclude_output_path}')
-

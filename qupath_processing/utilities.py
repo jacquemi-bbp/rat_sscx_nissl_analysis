@@ -107,3 +107,21 @@ def get_image_lateral(images_metadata):
         else:
             images_lateral[image["imageName"]] = np.nan
     return images_lateral
+
+
+def get_specific_metadata(images_metadata, meta_name, default=np.nan):
+    """
+    Get a metadata value
+    :param images_metadata: (dictionary) Key -> Image name. Values -> image metadata
+    :param meta_name: (str)> The name of the metadata
+    :default: the default value to return if metadata name does not exist
+    :return:
+        float|str: The metadata value oif exist or default if not existing
+    """
+    result = {}
+    for image in images_metadata:
+        if meta_name in image["metadata"]:
+            result[image["imageName"]] = image["metadata"][meta_name]
+        else:
+            result[image["imageName"]] = default
+    return result

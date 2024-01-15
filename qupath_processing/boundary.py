@@ -2,7 +2,7 @@
 Layers boundary module
 
 """
-
+'''
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import DBSCAN
@@ -275,3 +275,4 @@ def get_valid_image(dataframe, layers_name):
                     invalid_image.add(image_name)
                 last_pos = pos
     return return_df, invalid_image
+'''
