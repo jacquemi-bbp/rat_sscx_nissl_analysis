@@ -37,9 +37,9 @@ def cmd(config_file_path):
 
     exclude_flag = config.getboolean('BATCH', 'exclude')
 
-
     cell_position_suffix = config["BATCH"]["cell_position_suffix"].replace('"', "")
     pixel_size = float(config["BATCH"]["pixel_size"])
+
     try:
         qupath_project_path = config["BATCH"]["qpproj_path"]
     except KeyError:

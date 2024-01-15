@@ -47,7 +47,7 @@ def single_image_conversion(output_path, qupath_project_path, image_name,
         print(f'INFO: Export Project metadata to {meta_path}')
         metadata_df.to_csv(meta_path)
 
-    print(f'INFO: Start annotation and cells features convertion')
+    print(f'INFO: Start annotation and cells features conversion')
     (
         points_annotation_dataframe,
         s1hl_annotation_dataframe,
