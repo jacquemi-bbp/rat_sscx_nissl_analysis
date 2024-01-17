@@ -10,6 +10,11 @@ from qupath_processing.geometry import (
     count_nb_cell_per_polygon,
 )
 
+from qupath_processing.io import (
+    get_cells_coordinate
+)
+
+
 from qupath_processing.visualisation import (
     plot_densities,
     plot_split_polygons_and_cell_depth,
@@ -20,40 +25,41 @@ from qupath_processing.visualisation import (
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-locals
 
-def single_image_process(cell_position_file_path):
+def single_image_process(image_name,
+                         cell_position_file_path,
+                        points_annotations_path,
+                        s1hl_path,
+                        output_path,
+                        thickness_cut=50,
+                        nb_row=10, nb_col=10,
+                        visualisation_flag = False,
+                        save_plot_flag = False):
     """
     param cell_position_file_path:
+    param nb_row:
+    param nb_col
     returns:
     """
     cells_features_df = pd.read_csv(cell_position_file_path, index_col=0)
     assert 'exclude_for_density' in cells_features_df.columns
-'''
-def single_image_process(
-    cells_centroid_x, cells_centroid_y, s1_coordinates, quadrilateral_coordinates,
-    thickness_cut, nb_row, nb_col, image_prefix, layers_name,
-    excluded_cells_centroid_x=None, excluded_cells_centroid_y=None,
+    (cells_centroid_x, cells_centroid_y,
+     excluded_cells_centroid_x, excluded_cells_centroid_y) = get_cells_coordinate(cells_features_df)
 
-    visualisation_flag=False, output_path=None,
-):
-    """
-    :param cells_centroid_x:(np.array)
-    :param cells_centroid_y:(np.array)
-    :param s1_coordinates:(np.array)
-    :param quadrilateral_coordinates:(np.array)
-    :param thickness_cut:(float) um
-    :param nb_row:(int)
-    :param nb_col:(int)
-    :param image_prefix(str)
-    :param layers_name(list of str)
-    :param visualisation_flag:(bool)
-    :param output_path:(str)
-    :return: densities_dataframe(pandas dataframe)
+    # Create grid from annotation
+    s1_coordinates_dataframe = pd.read_csv(s1hl_path, index_col=0)
+    points_annotations_dataframe = pd.read_csv(points_annotations_path, index_col=0)
+    s1_coordinates = s1_coordinates_dataframe.to_numpy()
+    top_left = points_annotations_dataframe[points_annotations_dataframe.index == 'top_left'].to_numpy()[0]
+    top_right = points_annotations_dataframe[points_annotations_dataframe.index == 'top_right'].to_numpy()[0]
+    bottom_right = points_annotations_dataframe[points_annotations_dataframe.index == 'bottom_right'].to_numpy()[0]
+    bottom_left = points_annotations_dataframe[points_annotations_dataframe.index == 'bottom_left'].to_numpy()[0]
 
-    """
-   
     horizontal_lines, vertical_lines = create_grid(
-        quadrilateral_coordinates, s1_coordinates, nb_row, nb_col
+        top_left, top_right, bottom_left, bottom_right,
+        s1_coordinates, nb_row, nb_col
     )
+
+
     split_polygons = create_depth_polygons(s1_coordinates, horizontal_lines)
     print("INFO: Computes the cells densities as function of percentage depth")
     nb_cell_per_slide = count_nb_cell_per_polygon(
@@ -67,7 +73,7 @@ def single_image_process(
     total_used_cells = sum(nb_cells)
     if total_used_cells != len(cells_centroid_x) :
         densities_dataframe = pd.DataFrame(
-            {"image": [image_prefix], "depth_percentage": None, "densities": None}
+            {"image": [image_name], "depth_percentage": None, "densities": None}
         )
         print(
             f"ERROR there are  {len(cells_centroid_x) - total_used_cells } \
@@ -80,38 +86,41 @@ def single_image_process(
     else:
         densities_dataframe = pd.DataFrame(
             {
-                "image": [image_prefix] * len(depth_percentage),
+                "image": [image_name] * len(depth_percentage),
                 "depth_percentage": depth_percentage,
                 "densities": densities,
             }
         )
 
-    plot_split_polygons_and_cell_depth(
-        split_polygons,
-        s1_coordinates,
-        cells_centroid_x,
-        cells_centroid_y,
-        excluded_cells_centroid_x,
-        excluded_cells_centroid_y,
-        vertical_lines=vertical_lines,
-        horizontal_lines=horizontal_lines,
-        visualisation_flag=visualisation_flag,
-        output_path=output_path,
-        image_name=image_prefix,
-    )
+    if visualisation_flag or save_plot_flag:
+        plot_split_polygons_and_cell_depth(
+            split_polygons,
+            s1_coordinates,
+            cells_centroid_x,
+            cells_centroid_y,
+            excluded_cells_centroid_x,
+            excluded_cells_centroid_y,
 
-    plot_densities(
-        depth_percentage,
-        densities,
-        layers_name,
-        boundaries_percentage=boundaries_percentage,
-        visualisation_flag=visualisation_flag,
-        output_path=output_path,
-        image_name=image_prefix,
-    )
-    
+            vertical_lines=vertical_lines,
+            horizontal_lines=None,
+            output_path=output_path,
+            image_name=image_name,
+
+            visualisation_flag=visualisation_flag,
+            save_plot_flag=save_plot_flag,
+        )
+
+        plot_densities(
+            depth_percentage,
+            densities,
+            output_path=output_path,
+            image_name=image_name,
+            visualisation_flag=visualisation_flag,
+            save_plot_flag=save_plot_flag,
+        )
+
     return densities_dataframe
-'''
+
 
 def compute_cell_density(nb_cell_per_slide, split_polygons, z_length):
     """

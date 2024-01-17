@@ -27,7 +27,12 @@ def cmd(config_file_path):
     config.sections()
     config.read(config_file_path)
 
-    input_detection_directory = config["BATCH"]["input_detection_directory"]
+    try:
+        input_detection_directory = config["BATCH"]["input_detection_directory"]
+        cell_position_suffix = config["BATCH"]["cell_position_suffix"].replace('"', "")
+    except KeyError:
+        input_detection_directory = None
+        cell_position_suffix = None
     try:
         input_annotation_directory = config["BATCH"]["input_annotation_directory"]
         annotations_geojson_suffix = config["BATCH"]["annotations_geojson_suffix"]
@@ -35,9 +40,12 @@ def cmd(config_file_path):
         input_annotation_directory = None
         annotations_geojson_suffix = None
 
-    exclude_flag = config.getboolean('BATCH', 'exclude')
+    try:
+        exclude_flag = config.getboolean('BATCH', 'exclude')
+    except configparser.NoOptionError:
+        exclude_flag = True
 
-    cell_position_suffix = config["BATCH"]["cell_position_suffix"].replace('"', "")
+
     pixel_size = float(config["BATCH"]["pixel_size"])
 
     try:
@@ -47,7 +55,8 @@ def cmd(config_file_path):
     output_path = config["BATCH"]["output_directory"]
 
     images_dictionary = list_images(
-        input_detection_directory, cell_position_suffix, annotations_geojson_suffix, input_annotation_directory
+        input_detection_directory, cell_position_suffix, 
+        input_annotation_directory, annotations_geojson_suffix
     )
 
     for image_prefix, values in images_dictionary.items():

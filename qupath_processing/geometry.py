@@ -41,7 +41,7 @@ def get_extrapoled_segement(segment_endpoints_coordinates, extrapol_ratio=1.5):
     return np.array([new_pt1, new_pt2])
 
 
-def create_grid(quadrilateral, s1_coordinates, nb_row, nb_col):
+def create_grid(top_left, top_right, bottom_left, bottom_right, s1_coordinates, nb_row, nb_col):
     """
     Create a grid on a polygon defined by s1_coordinates.
     - The vertical lines are straight. There endpoints coordinates are computed from the
@@ -51,7 +51,7 @@ def create_grid(quadrilateral, s1_coordinates, nb_row, nb_col):
          top and bottom
      lines shape to represent the brain's depth
 
-    :param quadrilateral:(np.array) of shape(5, 2) containing the following points coordinates(mm)
+    :param points_annotations:(np.array) of shape(5, 2) containing the following points coordinates(mm)
                         direction:top_left, top_right, bottom_right, bottom_left, top_left
     :param s1_coordinates:(np.array) shape (nb_vertices, 2) containing S1 polygon coordinates (mm)
     :param nb_row:(int) grid number of rows
@@ -60,18 +60,19 @@ def create_grid(quadrilateral, s1_coordinates, nb_row, nb_col):
         - list of horizontal LineString that defined the grid
 
     """
-    vertical_lines = vertical_line_splitter(quadrilateral, s1_coordinates, nb_col)
+    vertical_lines = vertical_line_splitter(top_left, top_right, bottom_left, bottom_right,
+                                            s1_coordinates, nb_col)
     return horizontal_line_splitter(vertical_lines, nb_row), vertical_lines
 
 
-def vertical_line_splitter(quadrilateral, s1_coordinates, nb_col):
+def vertical_line_splitter(top_left, top_right,bottom_left, bottom_right, s1_coordinates, nb_col):
     """
     Create some vertical lined on a polygon defined by s1_coordinates.
     - The vertical lines are straight. There endpoints coordinates are computed from the
      quadrilateral top and bottom
      lines in order to split them in a regular way.
 
-    :param quadrilateral:(np.array) shape(5, 2) containing the following points coordinates(mm)
+    :param points_annotations_dataframe:(pandas dataframe containing the following points coordinates(mm)
                         in clockwise direction: top_left, top_right, bottom_right, bottom_left,
                         top_left
     :param s1_coordinates:(np.array) of shape (nb_vertices, 2) containing S1 polygon coordinates
@@ -80,16 +81,14 @@ def vertical_line_splitter(quadrilateral, s1_coordinates, nb_col):
 
     :return  list of vertical LineString
     """
-    top_left = quadrilateral[0]
-    top_right = quadrilateral[1]
-    bottom_right = quadrilateral[2]
-    bottom_left = quadrilateral[3]
     # Vertical lines
+
     vertical_lines = [
         LineString(
             [[top_left[0] - 2000, top_left[1]], [bottom_left[0] - 2000, bottom_left[1]]]
         )
     ]
+
     for i in range(nb_col - 1):
         top_point = top_left + (top_right - top_left) / nb_col * (i + 1)
         bottom_point = bottom_left + (bottom_right - bottom_left) / nb_col * (i + 1)
@@ -105,22 +104,6 @@ def vertical_line_splitter(quadrilateral, s1_coordinates, nb_col):
                 break
         else:
             vertical_lines.append(intersection_line)
-        """
-        try:
-            intersection_line = \
-                Polygon(s1_coordinates).intersection(LineString(line_coordinates)).coords
-            vertical_lines.append(intersection_line)
-
-        except NotImplementedError:
-            print('WARNING: A VerticalLine on {} not created'.format(nb_col))
-            '''
-             In some case, several point of S1 intersect with the LineString and produce
-             shapely NotImplementedError error. In this case, we just de not create the
-             corresponding vertical line. If the number of row is important (~100). This will
-             not change the result a lot. Just the "shape" of corresponding polygon will be average
-             from prev and next VerticalLine
-            '''
-        """
     vertical_lines.append(
         LineString(
             [
