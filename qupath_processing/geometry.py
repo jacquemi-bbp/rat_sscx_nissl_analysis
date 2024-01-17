@@ -5,6 +5,7 @@ Geometry module that contains geometric functions
 from math import sqrt
 import numpy as np
 from shapely.geometry import Point, LineString, Polygon, MultiLineString, shape
+
 from shapely.ops import split
 from qupath_processing.utilities import NotValidImage
 

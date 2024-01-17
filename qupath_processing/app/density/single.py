@@ -55,8 +55,8 @@ def density(
         config = configparser.ConfigParser()
         config.read(config_file_path)
         cell_position_file_path = config["DEFAULT"]["cell_position_file_path"]
-        points_annotations_path = config["DEFAULT"]["points_annotations_path"]
-        s1hl_path = config["DEFAULT"]["s1hl_path"]
+        points_annotations_path = config["DEFAULT"]["points_annotations_file_path"]
+        s1hl_path = config["DEFAULT"]["s1hl_file_path"]
 
         thickness_cut = float(config["DEFAULT"]["thickness_cut"])
         nb_row = int(config["DEFAULT"]["grid_nb_row"])
@@ -65,16 +65,12 @@ def density(
 
         save_plot_flag = config.getboolean('DEFAULT', 'save_plot_flag')
 
-
-
-
     image_name = cell_position_file_path[
         cell_position_file_path.rfind("/") + 1 : cell_position_file_path.rfind(".")
     ]
 
     if not os.path.exists(output_path):
-        # if the demo_folder directory is not present
-        # then create it.
+        # if the directory is not present then create it.
         os.makedirs(output_path)
         print(f'INFO: Create output_path {output_path}')
 

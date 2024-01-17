@@ -1,5 +1,9 @@
+import os
+import glob
+
 import configparser
 import click
+
 from qupath_processing.density import single_image_process
 from qupath_processing.io import (write_dataframe_to_file,
                                   list_images,
@@ -9,64 +13,75 @@ from qupath_processing.utilities import concat_dataframe, NotValidImage, stereol
 
 @click.command()
 @click.option("--config-file-path", required=False, help="Configuration file path")
-def batch_density(config_file_path):
+@click.option("--visualisation-flag", is_flag=True)
+@click.option("--save-plot-flag", is_flag=True)
+
+def batch_density(config_file_path, visualisation_flag, save_plot_flag):
     config = configparser.ConfigParser()
     config.sections()
     config.read(config_file_path)
-    input_detection_directory = config["BATCH"]["input_detection_directory"]
-    input_annotation_directory = config["BATCH"]["input_annotation_directory"]
-    cell_position_suffix = config["BATCH"]["cell_position_suffix"].replace('"', "")
-    annotations_geojson_suffix = config["BATCH"]["annotations_geojson_suffix"].replace(
-        '"', ""
-    )
+    cell_position_path = config["BATCH"]["cell_position_path"]
+    cell_position_file_prefix = config["BATCH"]["cell_position_file_prefix"]
+
+    points_annotations_path = config["BATCH"]["points_annotations_path"]
+    points_annotations_file_prefix = config["BATCH"]["points_annotations_file_prefix"]
+
+    s1hl_path = config["BATCH"]["s1hl_path"]
+    s1hl_file_prefix = config["BATCH"]["s1hl_file_prefix"]
+
     output_path = config["BATCH"]["output_path"]
-    output_file_prefix = config["BATCH"]["output_file_prefix"]
-    pixel_size = float(config["BATCH"]["pixel_size"])
     thickness_cut = float(config["BATCH"]["thickness_cut"])
-    grid_nb_row = int(config["BATCH"]["grid_nb_row"])
-    grid_nb_col = int(config["BATCH"]["grid_nb_col"])
-    layer_names = config["BATCH"]["layer_names"]
+    nb_row = int(config["BATCH"]["nb_row"])
+    nb_col = int(config["BATCH"]["nb_col"])
+
+    # List images to compute
+    image_path_list = glob.glob(cell_position_path + '/*.csv')
+
+    image_list = []
+    feature_str_length = len('Features_')
+    for path in image_path_list:
+        feature_pos = path.rfind('Features_') + feature_str_length
+        image_list.append(path[feature_pos:path.find('.csv')])
 
 
-    image_dictionary = list_images(
-        input_detection_directory, input_annotation_directory, cell_position_suffix, annotations_geojson_suffix
-    )
-    print(f"INFO: input files: {list(image_dictionary.keys())}")
-    if len(image_dictionary) == 0:
-        print("WARNING: No input files to proccess.")
+    if len(image_list) == 0:
+        print("WARNING: No input files to process.")
         return
 
-    for image_prefix, values in image_dictionary.items():
-        print("INFO: Process single image {}".format(image_prefix))
-        try:
-            detections_dataframe, s1_coordinates, quadrilateral_coordinates = (
-                convert_files_to_dataframe(values["CELL_POSITIONS_PATH"],
-                                           values["ANNOTATIONS_PATH"],
-                                           pixel_size, ))
+    print(f'INFO" {len(image_list)} to process')
 
-            # Apply stereology exclusion.
-            print("INFO: Apply stereology exclusion")
-            detections_dataframe = stereology_exclusion(detections_dataframe)
-            try:
-                nb_exclude = detections_dataframe['exclude'].value_counts()[1]
-            except IndexError:
-                nb_exclude = 0
-            detections_dataframe = detections_dataframe[detections_dataframe.exclude == False]
-            print(f'INFO: There are {nb_exclude} / {len(detections_dataframe)} excluded cells)')
-            exclude_dataframe_filename= output_path+ + '/' + image_prefix + '_with_exclude_flags'
-            write_dataframe_to_file(detections_dataframe, exclude_dataframe_filename)
-            print(f'INFO: Write dataframe with exclude flag to {input_directory + "/" + exclude_dataframe_filename}')
-            cells_centroid_x, cells_centroid_y = get_cells_coordinate(detections_dataframe)
-            densities_dataframe = single_image_process(
-                cells_centroid_x, cells_centroid_y, s1_coordinates, quadrilateral_coordinates,
-                thickness_cut, grid_nb_row, grid_nb_col, image_prefix, layer_names,
-                output_path=output_path,
-            )
-            print("INFO: ", densities_dataframe)
-            print("INFO: Concatenate results for image {}".format(image_prefix))
-            final_dataframe = concat_dataframe(densities_dataframe, final_dataframe)
-        except NotValidImage:
-            print("WARNING. No cells position data for {}".format(image_prefix))
+    if not os.path.exists(output_path):
+        # if the directory is not present then create it.
+        os.makedirs(output_path)
+        print(f'INFO: Create output_path {output_path}')
 
-    if final_dataframe is not None:
-        write_dataframe_to_file(final_dataframe, output_file_prefix, output_path)
+    for image_name in image_list:
+        print("INFO: Process single image ", image_name)
+        cell_position_file_path = cell_position_path + '/' + cell_position_file_prefix + image_name + '.csv'
+        points_annotations_file_path = (points_annotations_path + '/' + points_annotations_file_prefix +
+                                        image_name + '_points_annotations.csv')
+
+        s1hl_file_path = s1hl_path + '/' + s1hl_file_prefix + image_name + '_S1HL_annotations.csv'
+
+
+        densities_dataframe = single_image_process(image_name,
+                             cell_position_file_path,
+                             points_annotations_file_path,
+                             s1hl_file_path,
+                             output_path,
+                             thickness_cut = thickness_cut,
+                             nb_col = nb_col,
+                             nb_row = nb_row,
+                             visualisation_flag = visualisation_flag,
+                             save_plot_flag = save_plot_flag
+                             )
+        if densities_dataframe is None:
+            print("ERROR: The computed density is not valid")
+        else:
+            print("INFO: Write results")
+            densities_dataframe_full_path = output_path + '/'+ image_name + '.csv'
+
+            write_dataframe_to_file(densities_dataframe, densities_dataframe_full_path)
+            print(f'INFO: Write density dataframe =to {densities_dataframe_full_path}')
+
+
