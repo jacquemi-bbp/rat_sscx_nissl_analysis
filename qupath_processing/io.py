@@ -2,64 +2,18 @@
 Read / Write files modules
 """
 from os import listdir, makedirs
-from os.path import isfile, join, isdir
+from os.path import isfile, join
+import glob
 import numpy as np
 import geojson
 import pandas as pd
 import openpyxl
 from qupath_processing.utilities import NotValidImage
+from collections import defaultdict
 
 
 
-'''
-def convert_files_to_dataframe(
-    cell_position_file_path,
-    annotations_geojson_path,
-    pixel_size,
-    get_index_col = False
-
-):
-    print(
-        f"INFO: Read input files {cell_position_file_path} and {annotations_geojson_path}"
-    )
-    # try:
-    detection_dataframe = qupath_cells_detection_to_dataframe(cell_position_file_path, get_index_col)
-    try:
-        s1_coordinates = None
-        quadrilateral_coordinates = None
-        (
-            s1_pixel_coordinates,
-            quadrilateral_pixel_coordinates,
-            out_of_pia,
-        ) = read_qupath_annotations(annotations_geojson_path)
-
-        print("INFO: Convert coodonates from pixel to mm")
-        s1_coordinates = s1_pixel_coordinates * pixel_size
-        quadrilateral_coordinates = quadrilateral_pixel_coordinates * pixel_size
-        print("INFO: Create S1 grid as function of brain depth")
-    except ValueError as e:
-        print(e)
-
-    return detection_dataframe, s1_coordinates, quadrilateral_coordinates
-
-
-def qupath_cells_detection_to_dataframe(file_path):
-    """
-    Ream input file that contains QuPah cells detection and return and pandas data frame
-    :param file_path: (str). Path to the file that contains cells coordinates
-    :return: Pandas dataframe containing data from input file_path
-    """
-    if file_path.find('csv') > 0:
-        if get_index_col==True:
-            return pd.read_csv(file_path)
-        else:
-            return pd.read_csv(file_path, index_col=0)
-    else:
-        return pd.read_csv(file_path, sep="	|\t", engine="python") 
-'''
-
-
-def get_cells_coordinate(dataframe, exclude_flag=False):
+def get_cells_coordinate(dataframe):
     """
     Read file that contains cell positions and create cells centroids x,y position
     :param dataframe:(Pandas dataframe) containing cells coordinate and metadata (layer, ...)
@@ -70,10 +24,14 @@ def get_cells_coordinate(dataframe, exclude_flag=False):
             - cells_centroid_y np.array of shape (number of cells, ) of type float
     """
 
-    dataframe = dataframe[dataframe['exclude_for_density']==exclude_flag]
-    cells_centroid_x = dataframe["Centroid X µm"].to_numpy(dtype=float)
-    cells_centroid_y = dataframe["Centroid Y µm"].to_numpy(dtype=float)
-    return cells_centroid_x, cells_centroid_y
+    valid_cells_dataframe = dataframe[dataframe['exclude_for_density']==False]
+    cells_centroid_x = valid_cells_dataframe["Centroid X µm"].to_numpy(dtype=float)
+    cells_centroid_y = valid_cells_dataframe["Centroid Y µm"].to_numpy(dtype=float)
+
+    exluded_cells_dataframe = dataframe[dataframe['exclude_for_density'] == True]
+    excluded_cells_centroid_x = exluded_cells_dataframe["Centroid X µm"].to_numpy(dtype=float)
+    excluded_cells_centroid_y = exluded_cells_dataframe["Centroid Y µm"].to_numpy(dtype=float)
+    return cells_centroid_x, cells_centroid_y, excluded_cells_centroid_x, excluded_cells_centroid_y
 
 
 
@@ -92,7 +50,6 @@ def read_qupath_annotations(directory_path, image_name):
      pixel size to obtain um as unit
     """
     file_path = directory_path + '/' + image_name + '_annotations.json'
-    print(f'DEBUG file_path {file_path}')
     with open(file_path, "rb") as annotation_file:
         annotations_geo = geojson.load(annotation_file)
     annotations = {}
@@ -111,9 +68,31 @@ def read_qupath_annotations(directory_path, image_name):
                         and entry["properties"]["classification"]["name"].find("Layer")
                         == -1
                     ):
-                        annotations[
-                            entry["properties"]["classification"]["name"]
-                        ] = np.array(entry["geometry"]["coordinates"])
+                        try:
+                            key = entry["properties"]["classification"]["name"]
+                            value = entry["geometry"]["coordinates"]
+                            annotations[key] = np.array(value)
+                        except ValueError:
+                            '''
+                            Because of miss created annotation by user, some QuPath annotation type 
+                            are not simple polygon, but ROI (composition of several polygons.
+                            In this case, we get the bigger polygon and do noy used the other
+
+                                ---
+                                | | 
+                            -------
+                            |   |
+                            |   |
+                            -----
+
+                            '''
+                            value = np.array(value, dtype="object")
+                            value = np.vstack(value.flatten())
+                            value = value.astype(np.float64)
+                            shape = value.shape
+                            if shape[0] != 1:
+                                value = value.reshape([1, shape[0], shape[1]])
+                            annotations[key] = value
         except KeyError:  # annotation without name
             pass
 
@@ -196,48 +175,53 @@ def write_dataframe_to_file(dataframe, image_path):
     dataframe.to_csv(image_path)
 
 
-def list_images(input_directory_detection, cell_position_suffix, annotations_geojson_suffix=None, input_annotation_directory=None):
+def list_images(cell_features_path=None, cell_features_suffix=None, 
+                annotation_path=None, annotations_geojson_suffix=None):
     """
-    Create a list of images name prefix from the content of the input_directory
-    :param input_directory:input directory that contains export image information from QuPath
-    :param cell_position_suffix:(str) The one defined in config.ini
-    :param annotations_geojson_suffix:(str) The one defined in config.ini
-    :return: dictionary: key image prefix, values dictionary of file relative
-                    to image_prefix
-    """
-    onlyfiles = [
-        file_name
-        for file_name in listdir(input_directory_detection)
-        if isfile(join(input_directory_detection, file_name))
-    ]
+    Generate of dictionary of directory that contains the cell_feature and annotation pathes for each images
 
-    image_dictionary = {}
-    detection_files = [file for file in onlyfiles if file.count("Detections") == 1]
-    for filename in detection_files:
+    :param cell_features_path: input directory that contains export cells features from QuPath
+    :param cell_features_suffix:(str) cell features files suffix
+    :param annotation_path:(str) input directory that contains export annotations information from QuPath
+    :param annotations_geojson_suffix:(str) annotation files suffix
+    :return: dictionary of dictionary: key image prefix -> dictionary of files CELL_POSITIONS_PATH and ANNOTATIONS_PATH
+    """
+    
+    cells_file_list= []
+    if cell_features_path:
+        cells_file_list = glob.glob(cell_features_path + '/*' + cell_features_suffix)
+
+    annotation_file_list=[]
+    if annotation_path:
+        annotation_file_list = glob.glob(annotation_path + '/*' + annotations_geojson_suffix)
+ 
+
+
+
+
+    image_dictionary = defaultdict(dict)
+
+    for cell_feature_filename in cells_file_list:
         prefix_pos = (
-            filename.find(cell_position_suffix) - 1
-        )  # SLD_0000521.vsi - 20x_01 Detections.txt
+            cell_feature_filename.find(cell_features_suffix) - 1
+        )
         if prefix_pos != -1:
-            image_name = filename[:prefix_pos]
-            if input_annotation_directory and annotations_geojson_suffix:
-                annotation_image_path = (
-                    input_annotation_directory + "/" + image_name + annotations_geojson_suffix
+            slash_pos = cell_feature_filename.rfind('/')
+            image_name = cell_feature_filename[slash_pos+1:prefix_pos]
+            image_dictionary[image_name]["CELL_POSITIONS_PATH"] = cell_feature_filename
+
+
+    for annotation_filename in annotation_file_list:
+        print(f'annotation_filename {annotation_filename}')
+        prefix_pos = (
+                annotation_filename.find(annotations_geojson_suffix) - 1
             )
-            #if image_name + annotations_geojson_suffix in onlyfiles:
-            if image_name + " " + cell_position_suffix in onlyfiles:
-                image_dictionary[image_name] = {}
-                image_dictionary[image_name]["CELL_POSITIONS_PATH"] = (
-                    input_directory_detection + "/" + image_name + " " + cell_position_suffix
-                )
-                if annotations_geojson_suffix and input_annotation_directory:
-                    image_dictionary[image_name]["ANNOTATIONS_PATH"] = annotation_image_path
-                '''
-                else:
-                    print(
-                        f"ERROR: {input_annotation_directory} {image_name + annotations_geojson_suffix} "
-                        f"does not exist for image {image_name}"
-                    )
-                '''
+        print(f'prefix_pos {prefix_pos}')
+        if prefix_pos != -1:
+            slash_pos = annotation_filename.rfind('/')
+            image_name = annotation_filename[slash_pos+1:prefix_pos+1]
+            print(f'image_name {image_name}')
+            image_dictionary[image_name]["ANNOTATIONS_PATH"] = annotation_filename
 
     return image_dictionary
 

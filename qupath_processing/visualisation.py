@@ -12,33 +12,20 @@ from qupath_processing.geometry import compute_cells_depth
 def plot_densities(
     percentages,
     densities,
-    layers_names,
-    boundaries_percentage=None,
-    visualisation_flag=None,
     output_path=None,
     image_name="",
+    visualisation_flag=False,
+    save_plot_flag=False,
 ):
     """
     Plot the density per layers that represent the brain depth
     :param percentages: list of brain depth percentage (float)
     :param layers_names: list of str
     :param densities:  list of float (nb cells / mm3)
-    :param boundaries_percentage:
     :param image_name:
     """
 
     fig, ax = plt.subplots()
-    if boundaries_percentage:
-        boundaries_percentage.insert(0, 0)
-        for layer_name, boundary_prev, boundary_next in zip(
-            layers_names, boundaries_percentage[0:-1], boundaries_percentage[1:]
-        ):
-            center = int((boundary_next + boundary_prev) * 100 / 2)
-            ax.axvline(boundary_prev * 100, color="red", markersize=2)
-            ax.annotate(
-                layer_name, xy=(center - 3, int(np.max(densities))), color="red"
-            )
-
     ax.plot(densities, np.array(percentages) * 100)
     ax.set_xlabel("Cell density (cells/mm3)")
     ax.set_ylabel("percentage of depth (%)")
@@ -52,7 +39,7 @@ def plot_densities(
     
     if visualisation_flag:
         plt.show()
-    else:
+    elif save_plot_flag:
         file_path = output_path + "/" + image_name + "_density_per_animal_.png"
         plt.savefig(file_path, dpi=150)
 
@@ -66,9 +53,11 @@ def plot_split_polygons_and_cell_depth(
     excluded_cells_centroid_y=None,
     vertical_lines=None,
     horizontal_lines=None,
-    visualisation_flag=False,
     output_path=None,
     image_name=None,
+
+    visualisation_flag=False,
+    save_plot_flag=False,
 ):
     """
     Plot splitted S1 polgygons and cell coordiantes and depth
@@ -96,8 +85,7 @@ def plot_split_polygons_and_cell_depth(
     plt.axis("equal")
     plt.gca().invert_yaxis()
     for polygon in split_polygons:
-        x_coord, y_coord = polygon.exterior.xy
-        #plt.plot(x_coord, y_coord, c='black')
+        plt.plot(*polygon.exterior.xy, c='black')
     plt.plot(s1_coordinates[:, 0], s1_coordinates[:, 1], "r")
     plt.scatter(cells_centroid_x, cells_centroid_y, c='blue', s=1, alpha=.5, label='preserved cells')
     if excluded_cells_centroid_x is not None and excluded_cells_centroid_y is not None:
@@ -105,11 +93,13 @@ def plot_split_polygons_and_cell_depth(
     if vertical_lines:
         for line in vertical_lines:
             line = line.coords
-            plt.axline((line[0][0], line[0][1]), (line[1][0], line[1][1]), linewidth=1, color="black")
+            plt.axline((line[0][0], line[0][1]), (line[1][0], line[1][1]), linewidth=.2, color="black")
     if horizontal_lines:
         for line in horizontal_lines:
-            line = line.coords
-            plt.axline((line[0][0], line[0][1]), (line[1][0], line[1][1]), linewidth=1, color="black")
+            x = line.xy[0]
+            y = line.xy[1]
+            for i in range(0, len(x), 1):
+                plt.plot(x[i:i + 2], y[i:i + 2], '-', linewidth=1, c='black')
     plt.title(
         "Somatosensory cortex. Each layer represents a percentage of depth following the top of the SSX"
     )
@@ -118,10 +108,10 @@ def plot_split_polygons_and_cell_depth(
     plt.legend()
     if visualisation_flag:
         plt.show()
-
-    file_path = output_path + "/" + image_name + "_split_polygons_per_animal_.png"
-    print(f'plt.savefig {file_path}')
-    plt.savefig(file_path)
+    elif save_plot_flag:
+        file_path = output_path + "/" + image_name + "_split_polygons_per_animal_.png"
+        print(f'plt.savefig {file_path}')
+        plt.savefig(file_path)
 
 
 

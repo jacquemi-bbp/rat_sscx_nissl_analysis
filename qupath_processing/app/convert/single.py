@@ -5,7 +5,7 @@ from qupath_processing.convert import single_image_conversion
 @click.command()
 @click.option(
     "--cells-detection-path",
-    required=True,
+    required=False,
     help="The directory path that contains cells feature files",
 )
 @click.option(
@@ -24,7 +24,7 @@ from qupath_processing.convert import single_image_conversion
     help="qupath project path that contains images metadata",
 )
 @click.option(
-    "--image-name", required=True, help="iamge name inside the qupath project"
+    "--image-name", required=True, help="image name inside the qupath project"
 )
 @click.option(
     "--pixel-size", required=True, type=float, help="The pixel size in the QuPath project"
@@ -40,6 +40,7 @@ def cmd(
     pixel_size,
     exclude
 ):
+
     single_image_conversion(output_path, qupath_project_path, image_name,
                             cells_detection_path, annotations_path,
                             pixel_size, exclude)
