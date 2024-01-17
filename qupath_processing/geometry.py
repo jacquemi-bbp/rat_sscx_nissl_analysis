@@ -167,8 +167,6 @@ def create_depth_polygons(s1_coordinates, horizontal_lines):
 
     split_polygons.append(polygon_to_split)
     return split_polygons
-    # except IndexError:
-    # raise NotValidImage
 
 
 def count_nb_cell_per_polygon(cells_centroid_x, cells_centroid_y, split_polygons):

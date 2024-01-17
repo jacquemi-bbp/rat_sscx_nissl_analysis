@@ -91,11 +91,13 @@ def density(
                          visualisation_flag = visualisation_flag,
                          save_plot_flag = save_plot_flag
                          )
+    if densities_dataframe is None:
+        print("ERROR: The computed density is not valid")
+    else:
+        print("INFO: Write results")
+        densities_dataframe_full_path = output_path + '/'+ image_name + '.csv'
 
-    print("INFO: Write results")
-    densities_dataframe_full_path = output_path + '/'+ image_name + '.csv'
-
-    write_dataframe_to_file(densities_dataframe, densities_dataframe_full_path)
-    print(f'INFO: Write density dataframe =to {densities_dataframe_full_path}')
+        write_dataframe_to_file(densities_dataframe, densities_dataframe_full_path)
+        print(f'INFO: Write density dataframe =to {densities_dataframe_full_path}')
 
 

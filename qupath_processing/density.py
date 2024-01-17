@@ -43,7 +43,8 @@ def single_image_process(image_name,
     cells_features_df = pd.read_csv(cell_position_file_path, index_col=0)
     assert 'exclude_for_density' in cells_features_df.columns
     (cells_centroid_x, cells_centroid_y,
-     excluded_cells_centroid_x, excluded_cells_centroid_y) = get_cells_coordinate(cells_features_df)
+     excluded_cells_centroid_x, excluded_cells_centroid_y) =\
+        get_cells_coordinate(cells_features_df)
 
     # Create grid from annotation
     s1_coordinates_dataframe = pd.read_csv(s1hl_path, index_col=0)
@@ -76,12 +77,11 @@ def single_image_process(image_name,
             {"image": [image_name], "depth_percentage": None, "densities": None}
         )
         print(
-            f"ERROR there are  {len(cells_centroid_x) - total_used_cells } \
-                cells outside the grid for a total of {len(cells_centroid_x)} cells"
+            f"ERROR there are  {len(cells_centroid_x) - total_used_cells } "
+            f"cells outside the grid for a total of {len(cells_centroid_x)} cells"
         )
-        print(f'ERROR there are  {len(cells_centroid_x)} cells_centroid_x')
-        print(f'ERROR there are  {len(excluded_cells_centroid_x)} excluded_cells_centroid_x')
-        print(f'ERROR there are  {total_used_cells} total_used_cells')
+        print(f'ERROR there are  {total_used_cells}/{len(cells_centroid_x)}  used cells')
+        return None
 
     else:
         densities_dataframe = pd.DataFrame(
