@@ -125,3 +125,16 @@ def get_specific_metadata(images_metadata, meta_name, default=np.nan):
         else:
             result[image["imageName"]] = default
     return result
+
+
+def  get_image_to_exlude_list(df_image_to_exclude):
+    df_image_to_exclude=df_image_to_exclude.dropna().reset_index(drop=True)
+    # Step 2: Apply a function to each value
+    def remove_space(image_name):
+        return image_name.replace(" ", "")
+    new_image_name_column = df_image_to_exclude['Image ID to exclude'].apply(remove_space)
+
+    # Step 3: Assign the new values back to the column
+    df_image_to_exclude['Image ID to exclude'] = new_image_name_column
+    return list(df_image_to_exclude['Image ID to exclude'])
+

@@ -2,6 +2,7 @@ import os
 
 import configparser
 import click
+import pandas as pd
 
 from qupath_processing.density import single_image_process
 from qupath_processing.io import (
@@ -9,6 +10,7 @@ from qupath_processing.io import (
     get_cells_coordinate
 )
 
+from qupath_processing.utilities import get_image_to_exlude_list
 
 
 
@@ -25,6 +27,10 @@ from qupath_processing.io import (
 @click.option(
     "--points-annotations-path", help="Annotations dataframe file path.", required=False
 )
+@click.option(
+    "--image-to-exlude-path", help="exel files taht contan the list of image to exclude (xlsx).", required=False
+)
+
 @click.option(
     "--thickness-cut", default=50, help="The thikness of the cut (default 50 um)"
 )
@@ -46,6 +52,7 @@ def density(
     nb_row,
     nb_col,
     output_path,
+    image_to_exlude_path,
     visualisation_flag,
     save_plot_flag
 ):
@@ -65,9 +72,31 @@ def density(
 
         save_plot_flag = config.getboolean('DEFAULT', 'save_plot_flag')
 
+        image_to_exlude_path = config["DEFAULT"]["image_to_exlude_path"]
+
+    if points_annotations_path is None:
+        print('ERROR: points-annotations-path is mandatory')
+        return
+
+    if s1hl_path is None:
+        print('ERROR: s1hl-path is mandatory')
+        return    
+
     image_name = cell_position_file_path[
         cell_position_file_path.rfind("/") + 1 : cell_position_file_path.rfind(".")
     ]
+
+    # Verify that the image is not in the exlude images list
+    if image_to_exlude_path:
+        df_image_to_exclude = pd.read_excel(image_to_exlude_path, index_col=0, skiprows=[0,1,2,3,4,5,6])
+        images_to_exlude = get_image_to_exlude_list(df_image_to_exclude)
+        foo = image_name.replace(" ", "")
+        print (f'DEBUG image_name {foo}')
+        print (f'DEBUG images_to_exlude {images_to_exlude}')
+        if image_name.replace(" ", "") in images_to_exlude:
+            print(f'ERROR {image_name} is present in {image_to_exlude_path} file')
+            os.exit(-1)
+    
 
     if not os.path.exists(output_path):
         # if the directory is not present then create it.
@@ -85,7 +114,7 @@ def density(
                          nb_col = nb_col,
                          nb_row = nb_row,
                          visualisation_flag = visualisation_flag,
-                         save_plot_flag = save_plot_flag
+                         save_plot_flag = save_plot_flag,
                          )
     if densities_dataframe is None:
         print("ERROR: The computed density is not valid")

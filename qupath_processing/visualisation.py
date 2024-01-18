@@ -8,6 +8,10 @@ from qupath_processing.geometry import compute_cells_depth
 
 #plt.rcParams["font.family"] = "Arial"
 
+def plot_segment(line, color='black'):
+    pt1 = line[0]
+    pt2 = line[1]
+    plt.plot([pt1[0], pt2[0]], [pt1[1], pt2[1]],  linestyle="-", c=color)
 
 def plot_densities(
     percentages,
@@ -93,7 +97,8 @@ def plot_split_polygons_and_cell_depth(
     if vertical_lines:
         for line in vertical_lines:
             line = line.coords
-            plt.axline((line[0][0], line[0][1]), (line[1][0], line[1][1]), linewidth=.2, color="black")
+            #plt.axline((line[0][0], line[0][1]), (line[1][0], line[1][1]), linewidth=.2, color="black")
+            plot_segment(line)
     if horizontal_lines:
         for line in horizontal_lines:
             x = line.xy[0]
