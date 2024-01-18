@@ -100,9 +100,10 @@ def plot_split_polygons_and_cell_depth(
             y = line.xy[1]
             for i in range(0, len(x), 1):
                 plt.plot(x[i:i + 2], y[i:i + 2], '-', linewidth=1, c='black')
-    plt.title(
-        "Somatosensory cortex. Each layer represents a percentage of depth following the top of the SSX"
-    )
+    title = "Somatosensory cortex. Each layer represents a percentage of depth following the top of the SSX"
+    if image_name:
+        title = image_name + " " + title
+    plt.title(title)
     plt.xlabel("X coordinates (um)")
     plt.ylabel("Y coordinates (um)")
     plt.legend()

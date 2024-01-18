@@ -5,10 +5,6 @@ import os
 import numpy as np
 import pandas as pd
 
-from qupath_processing.io import (
-    get_qpproject_images_metadata,
-)
-
 from qupath_processing.utilities import (
     get_specific_metadata,
 )
@@ -23,30 +19,6 @@ def single_image_conversion(output_path, qupath_project_path, image_name,
                             cells_detection_path, annotations_path,
                             pixel_size, exclude=False):
     os.makedirs(output_path, exist_ok=True)
-    if qupath_project_path:
-        print(f'INFO: Get QuPath Project metadata')
-        images_metadata = get_qpproject_images_metadata(qupath_project_path)
-        lateral = get_specific_metadata(images_metadata, 'Distance to midline', default=np.nan)
-        images_immunohistochemistry = get_specific_metadata(images_metadata, 'Immunohistochemistry ID', default='ND')
-        images_animal = get_specific_metadata(images_metadata, 'imageName', default='ND')
-        analysed = get_specific_metadata(images_metadata, 'Analyze', default='False')
-        rotated = get_specific_metadata(images_metadata, 'Rotated', default='False')
-        # Analyze:True, Rotated:Yes
-
-        metadata_df = pd.DataFrame(
-            {
-                "image": image_name,
-                "lateral": lateral,
-                "animal": images_animal,
-                "immunohistochemistry ID": images_immunohistochemistry,
-                "analysed": analysed,
-                "rotated": rotated,
-            }
-        )
-        meta_path = output_path + "/" + image_name + "_" "metadata.csv"
-        meta_path =  meta_path.replace(" ", "")
-        print(f'INFO: Export Project metadata to {meta_path}')
-        metadata_df.to_csv(meta_path)
 
     print(f'INFO: Start annotation and cells features conversion')
     (
