@@ -126,6 +126,8 @@ def get_specific_metadata(images_metadata, meta_name, default=np.nan):
             result[image["imageName"]] = default
     return result
 
+ 
+
 
 def  get_image_to_exlude_list(df_image_to_exclude):
     df_image_to_exclude=df_image_to_exclude.dropna().reset_index(drop=True)

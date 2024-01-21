@@ -159,9 +159,9 @@ def get_qpproject_images_metadata(file_path):
         :param file_path: Path to QuPath project qpproj file
         :return: dictionnary. Keys -> images name. Valuesdict of image Metadata
     """
-    with open(file_path, "rb") as annotation_file:
-        annotations_geo = geojson.load(annotation_file)
-    return annotations_geo["images"]
+    with open(file_path, "rb") as qpproj_file:
+        qpproj_metadata = geojson.load(qpproj_file)
+    return qpproj_metadata["images"]
 
 
 def write_dataframe_to_file(dataframe, image_path):

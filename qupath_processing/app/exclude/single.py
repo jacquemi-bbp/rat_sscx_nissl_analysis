@@ -1,3 +1,4 @@
+import os
 import click
 import pandas as pd
 from qupath_processing.utilities import stereology_exclusion
@@ -15,6 +16,8 @@ from qupath_processing.utilities import stereology_exclusion
 
 def cmd(
     dataframe_file_path, dataframe_output_path):
+
+    os.makedirs(dataframe_output_path, exist_ok=True)
 
     print(f'INFO: Start cells exclusion')
     cells_features_dataframe = pd.read_csv(dataframe_file_path, index_col=0)
