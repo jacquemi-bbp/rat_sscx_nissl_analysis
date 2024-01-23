@@ -41,6 +41,6 @@ def cmd(
     exclude
 ):
 
-    single_image_conversion(output_path, qupath_project_path, image_name,
+    single_image_conversion(output_path, image_name,
                             cells_detection_path, annotations_path,
                             pixel_size, exclude)

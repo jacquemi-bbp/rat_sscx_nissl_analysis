@@ -13,7 +13,7 @@ from qupath_processing.io import (
 )
 
 
-def single_image_conversion(output_path, qupath_project_path, image_name,
+def single_image_conversion(output_path, image_name,
                             cells_detection_path, annotations_path,
                             pixel_size, exclude=False):
     os.makedirs(output_path, exist_ok=True)
@@ -45,7 +45,8 @@ def single_image_conversion(output_path, qupath_project_path, image_name,
             print(f'INFO: There are {nb_exclude} / {len(cells_features_dataframe)} excluded cells)')
 
         # Write Cells featrues dataframe
-        cells_features_path = output_path + "/" + "Features" + image_name + ".csv"
+        cells_features_path = output_path + "/" + "Features_" + image_name + ".csv"
+        cells_features_path =  cells_features_path.replace(" ", "")
         print(f'INFO: Export cells features to {cells_features_path}')
         cells_features_dataframe.to_csv(cells_features_path)
 

@@ -61,6 +61,6 @@ def cmd(config_file_path):
 
     for image_prefix, values in images_dictionary.items():
         print("INFO: Process single image {}".format(image_prefix))
-        single_image_conversion(output_path, qupath_project_path, image_prefix,
+        single_image_conversion(output_path, image_prefix,
                                 input_detection_directory, input_annotation_directory,
                                 pixel_size, exclude = exclude_flag)
