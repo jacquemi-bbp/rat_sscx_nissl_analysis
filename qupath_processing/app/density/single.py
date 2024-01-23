@@ -91,11 +91,10 @@ def density(
         df_image_to_exclude = pd.read_excel(image_to_exlude_path, index_col=0, skiprows=[0,1,2,3,4,5,6])
         images_to_exlude = get_image_to_exlude_list(df_image_to_exclude)
         foo = image_name.replace(" ", "")
-        print (f'DEBUG image_name {foo}')
-        print (f'DEBUG images_to_exlude {images_to_exlude}')
-        if image_name.replace(" ", "") in images_to_exlude:
-            print(f'ERROR {image_name} is present in {image_to_exlude_path} file')
-            os.exit(-1)
+        search_name = image_name.replace('Features_', '')
+        if search_name.replace(" ", "") in images_to_exlude:
+            print(f'ERROR {search_name} is present in {image_to_exlude_path} file')
+            return
     
 
     if not os.path.exists(output_path):

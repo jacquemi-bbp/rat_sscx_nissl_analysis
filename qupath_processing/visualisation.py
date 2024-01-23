@@ -95,7 +95,7 @@ def plot_split_polygons_and_cell_depth(
     if excluded_cells_centroid_x is not None and excluded_cells_centroid_y is not None:
         plt.scatter(excluded_cells_centroid_x, excluded_cells_centroid_y, c='red', s=1, label='exluded cells')
     if vertical_lines:
-        for line in vertical_lines:
+        for line in vertical_lines[1:-1]:
             line = line.coords
             #plt.axline((line[0][0], line[0][1]), (line[1][0], line[1][1]), linewidth=.2, color="black")
             plot_segment(line)
