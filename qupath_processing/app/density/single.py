@@ -114,12 +114,19 @@ def density(
                          alpha=alpha
                          )
     if percentage_dataframe is None:
-        print("ERROR: The computed density is not valid")
+        print("ERROR: The computed density percentage is not valid")
     else:
-        print("INFO: Write results")
+        print("INFO: Write density percentage dataframe")
         densities_dataframe_full_path = output_path + '/'+ image_name + '.csv'
-
         write_dataframe_to_file(percentage_dataframe, densities_dataframe_full_path)
-        print(f'INFO: Write density dataframe =to {densities_dataframe_full_path}')
+        print(f'INFO: Write density percentage dataframe =to {densities_dataframe_full_path}')
+
+    if per_layer_dataframe is None:
+        print("ERROR: The computed density per layer is not valid")
+    else:
+        print("INFO: Write density per layer dataframe")
+        densities_per_layer_dataframe_full_path = output_path + '/'+ image_name + '_per_layer.csv'
+        write_dataframe_to_file(per_layer_dataframe, densities_per_layer_dataframe_full_path)
+        print(f'INFO: Write density per layer dataframe =to {densities_per_layer_dataframe_full_path}')
 
 

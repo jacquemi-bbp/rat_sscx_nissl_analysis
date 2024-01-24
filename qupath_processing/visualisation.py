@@ -311,7 +311,7 @@ def plot_densities_by_layer(layers, layers_densities, image_name, output_path, v
         y_pos = np.arange(len(layers))
         plt.barh(y_pos, layers_densities,  align='center')
         plt.gca().set_yticks(y_pos, labels=layers)
-        plt.title(image_name + " Cells density by layers (nb cell / um3)")
+        plt.title(image_name + " Cells density by layers (nb cell / mm3)")
         plt.gca().invert_yaxis()
         if visualisation_flag:
             plt.show()

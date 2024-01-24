@@ -150,7 +150,7 @@ def single_image_process(image_name,
     cells_features_df = pd.read_csv(cell_position_file_path, index_col=0)
     assert 'exclude_for_density' in cells_features_df.columns
 
-    layers_densities = None
+    per_layer_dataframe = None
     if 'RF_prediction' in cells_features_df:
         layers = np.unique(cells_features_df.RF_prediction)
         layers_densities, cells_pos_list, polygons = densities_from_layers(cells_features_df, layers, thickness_cut, alpha=alpha)
@@ -158,6 +158,9 @@ def single_image_process(image_name,
             plot_layers(cells_pos_list, polygons,image_name, alpha, output_path, visualisation_flag)
             plot_densities_by_layer(layers, layers_densities, image_name, output_path, visualisation_flag)
 
+        print(f'layers_densities {layers_densities}')
+        print(f'layers {layers}')
+        per_layer_dataframe = pd.DataFrame([layers_densities],  columns=layers)
 
     percentage_dataframe = compute_depth_density(image_name,
                         cells_features_df,
@@ -170,7 +173,7 @@ def single_image_process(image_name,
                         visualisation_flag = visualisation_flag,
                         save_plot_flag = save_plot_flag)
 
-    return percentage_dataframe, layers_densities
+    return percentage_dataframe, per_layer_dataframe
 
 def densities_from_layers(image_dataframe: pd.DataFrame, layers: list ,  thickness_cut: float=50, alpha: float=0.001) -> list:
     """
