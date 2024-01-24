@@ -2,11 +2,16 @@
 Geometry module that contains geometric functions
 """
 
+import math
 from math import sqrt
 import numpy as np
-from shapely.geometry import Point, LineString, Polygon, MultiLineString, shape
 
-from shapely.ops import split
+from scipy.spatial import Delaunay
+from shapely.geometry import Point, LineString, Polygon, MultiLineString, shape
+from shapely.ops import split, unary_union, polygonize
+from shapely.geometry.multipolygon import MultiPolygon
+from shapely import geometry
+
 from qupath_processing.utilities import NotValidImage
 
 
@@ -204,3 +209,80 @@ def compute_cells_depth(split_polygons, cells_centroid_x, cells_centroid_y):
             if polygon.contains(Point([x_coord, y_coord])):
                 depthes[cell_index] = index
     return depthes
+
+
+def alpha_shape(points, alpha):
+    """
+    Compute the alpha shape (concave hull) of a set of points.
+
+    @param points: Iterable container of shapely.geometry.point.Point.
+    @param alpha: alpha value to influence the gooeyness of the border. Smaller
+                  numbers don't fall inward as much as larger numbers. Too large,
+                  and you lose everything!
+    """
+    if len(points) < 4:
+        # When you have a triangle, there is no sense in computing an alpha
+        # shape.
+        return geometry.MultiPoint(list(points)).convex_hull
+
+    def add_edge(edges, edge_points, coords, i, j):
+        """Add a line between the i-th and j-th points, if not in the list already"""
+        if (i, j) in edges or (j, i) in edges:
+            # already added
+            return
+        edges.add( (i, j) )
+        edge_points.append(coords[ [i, j] ])
+
+    coords = np.array([point.coords[0] for point in points])
+
+    tri = Delaunay(coords)
+    edges = set()
+    edge_points = []
+    # loop over triangles:
+    # ia, ib, ic = indices of corner points of the triangle
+    for ia, ib, ic in tri.simplices:
+        pa = coords[ia]
+        pb = coords[ib]
+        pc = coords[ic]
+
+        # Lengths of sides of triangle
+        a = math.sqrt((pa[0]-pb[0])**2 + (pa[1]-pb[1])**2)
+        b = math.sqrt((pb[0]-pc[0])**2 + (pb[1]-pc[1])**2)
+        c = math.sqrt((pc[0]-pa[0])**2 + (pc[1]-pa[1])**2)
+
+        # Semiperimeter of triangle
+        s = (a + b + c)/2.0
+
+        # Area of triangle by Heron's formula
+        area = math.sqrt(s*(s-a)*(s-b)*(s-c))
+        circum_r = a*b*c/(4.0*area)
+
+        # Here's the radius filter.
+        #print circum_r
+        if circum_r < 1.0/alpha:
+            add_edge(edges, edge_points, coords, ia, ib)
+            add_edge(edges, edge_points, coords, ib, ic)
+            add_edge(edges, edge_points, coords, ic, ia)
+
+    m = geometry.MultiLineString(edge_points)
+    triangles = list(polygonize(m))
+    return unary_union(triangles), edge_points
+
+def get_bigger_polygon(multipolygon: MultiPolygon) -> Polygon:
+    polygon = None
+    for poly in multipolygon.geoms:
+        if polygon is None:
+            polygon = poly
+        else:
+            if polygon.area < poly.area:
+                polygon = poly
+    return polygon
+
+
+def get_inside_points(polygon: Polygon , points: np.array) -> np.array:
+    inside_points = []
+    for point in points:
+        shapely_point = geometry.Point([point[0],point[1]])
+        if polygon.contains(shapely_point):
+            inside_points.append(point)
+    return np.array(inside_points)

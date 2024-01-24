@@ -10,7 +10,6 @@ from qupath_processing.io import (
     get_cells_coordinate
 )
 
-from qupath_processing.utilities import get_image_to_exlude_list
 
 
 
@@ -34,6 +33,10 @@ from qupath_processing.utilities import get_image_to_exlude_list
 @click.option(
     "--thickness-cut", default=50, help="The thikness of the cut (default 50 um)"
 )
+@click.option(
+    "--alpha", default= 0.01, type=float,
+    required=False, help="Alpha value used to create alpha shape polygon from layer points"
+)
 @click.option("--nb-row", default=10, help="Number of row for the grid (default 100)")
 @click.option(
     "--nb-col", default=10, help="Number of columns for the grid (default 100)"
@@ -54,7 +57,8 @@ def density(
     output_path,
     image_to_exlude_path,
     visualisation_flag,
-    save_plot_flag
+    save_plot_flag,
+    alpha
 ):
 
     if config_file_path:
@@ -89,13 +93,6 @@ def density(
     # Verify that the image is not in the exlude images list
     if image_to_exlude_path:
         df_image_to_exclude = pd.read_excel(image_to_exlude_path, index_col=0, skiprows=[0,1,2,3,4,5,6])
-        images_to_exlude = get_image_to_exlude_list(df_image_to_exclude)
-        foo = image_name.replace(" ", "")
-        search_name = image_name.replace('Features_', '')
-        if search_name.replace(" ", "") in images_to_exlude:
-            print(f'ERROR {search_name} is present in {image_to_exlude_path} file')
-            return
-    
 
     if not os.path.exists(output_path):
         # if the directory is not present then create it.
@@ -103,25 +100,26 @@ def density(
         print(f'INFO: Create output_path {output_path}')
 
     print("INFO: Process single image ", image_name)
-
-    densities_dataframe = single_image_process(image_name,
+    percentage_dataframe, per_layer_dataframe = single_image_process(image_name,
                          cell_position_file_path,
                          points_annotations_path,
                          s1hl_path,
                          output_path,
+                         df_image_to_exclude = df_image_to_exclude,
                          thickness_cut = thickness_cut,
                          nb_col = nb_col,
                          nb_row = nb_row,
                          visualisation_flag = visualisation_flag,
                          save_plot_flag = save_plot_flag,
+                         alpha=alpha
                          )
-    if densities_dataframe is None:
+    if percentage_dataframe is None:
         print("ERROR: The computed density is not valid")
     else:
         print("INFO: Write results")
         densities_dataframe_full_path = output_path + '/'+ image_name + '.csv'
 
-        write_dataframe_to_file(densities_dataframe, densities_dataframe_full_path)
+        write_dataframe_to_file(percentage_dataframe, densities_dataframe_full_path)
         print(f'INFO: Write density dataframe =to {densities_dataframe_full_path}')
 
 

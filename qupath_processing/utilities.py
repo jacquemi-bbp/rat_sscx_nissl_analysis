@@ -140,3 +140,4 @@ def  get_image_to_exlude_list(df_image_to_exclude):
     df_image_to_exclude['Image ID to exclude'] = new_image_name_column
     return list(df_image_to_exclude['Image ID to exclude'])
 
+

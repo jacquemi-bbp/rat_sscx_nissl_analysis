@@ -304,3 +304,34 @@ def plot_layer_per_animal(
     else:
         file_path = output_path + "/" + image_name + "layer_per_animal_.png"
         plt.savefig(file_path, dpi=150)
+
+
+def plot_densities_by_layer(layers, layers_densities, image_name, output_path, visualisation_flag=False):
+        print(f'DEBUG visualisation_flag {visualisation_flag}')
+        y_pos = np.arange(len(layers))
+        plt.barh(y_pos, layers_densities,  align='center')
+        plt.gca().set_yticks(y_pos, labels=layers)
+        plt.title(image_name + " Cells density by layers (nb cell / um3)")
+        plt.gca().invert_yaxis()
+        if visualisation_flag:
+            plt.show()
+        else:
+            file_path = output_path + "/" + image_name + "_densities_by_layer.png"
+            plt.savefig(file_path, dpi=150)
+            plt.clf()
+
+
+
+def plot_layers(cells_pos_list, polygons, image_name, alpha, output_path, visualisation_flag=False):
+    for cells_pos, polygon in zip(cells_pos_list, polygons):
+        plt.scatter(cells_pos[:, 0], cells_pos[:, 1], s=1)
+        x, y = polygon.exterior.xy
+        plt.plot(x, y)
+    plt.title(f'{image_name} Layer polygon for alpha={alpha}')
+    plt.gca().invert_yaxis()
+    if visualisation_flag:
+        plt.show()
+    else:
+        file_path = output_path + "/" + image_name + "_layer_from_points.png"
+        plt.savefig(file_path, dpi=150)
+        plt.clf()
