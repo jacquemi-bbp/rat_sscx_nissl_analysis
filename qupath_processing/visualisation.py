@@ -46,6 +46,7 @@ def plot_densities(
     elif save_plot_flag:
         file_path = output_path + "/" + image_name + "_density_per_animal_.png"
         plt.savefig(file_path, dpi=150)
+    plt.clf()
 
 
 def plot_split_polygons_and_cell_depth(
@@ -118,6 +119,7 @@ def plot_split_polygons_and_cell_depth(
         file_path = output_path + "/" + image_name + "_split_polygons_per_animal_.png"
         print(f'plt.savefig {file_path}')
         plt.savefig(file_path)
+    plt.clf()
 
 
 
@@ -141,6 +143,7 @@ def plot_raw_data(top_left, top_right, layer_points, image_name=""):
         plt.scatter(XY[:, 0], XY[:, 1], s=6, alpha=1.0)
     plt.title(image_name + " Raw data cells (one color per layer)")
     plt.show()
+    plt.clf()
 
 
 def plot_cluster_cells(top_left, top_right, layer_clustered_points, image_name=""):
@@ -168,7 +171,7 @@ def plot_cluster_cells(top_left, top_right, layer_clustered_points, image_name="
         plt.title(image_name + " After removing points outside the clusters")
         plt.plot(x_values, y_values, c="black")
     plt.show()
-
+    plt.clf()
 
 def plot_rotated_cells(rotated_top_line, layer_rotatated_points, image_name=""):
     """
@@ -191,6 +194,7 @@ def plot_rotated_cells(rotated_top_line, layer_rotatated_points, image_name=""):
             plt.scatter(XY[:, 0], XY[:, 1], s=6, alpha=1.0)
     plt.title(image_name + " After clustering and rotation")
     plt.show()
+    plt.clf()
 
 
 def plot_layers_bounderies(
@@ -250,6 +254,7 @@ def plot_layers_bounderies(
     else:
         file_path = output_path + "/" + image_name + ".png"
         plt.savefig(file_path, dpi=150)
+    plt.clf()
 
 
 def plot_layer_per_image(
@@ -277,6 +282,7 @@ def plot_layer_per_image(
     else:
         file_path = output_path + "/" + image_name + "layer_per_image_.png"
         plt.savefig(file_path, dpi=150)
+    plt.clf()
 
 
 def plot_layer_per_animal(
@@ -304,10 +310,10 @@ def plot_layer_per_animal(
     else:
         file_path = output_path + "/" + image_name + "layer_per_animal_.png"
         plt.savefig(file_path, dpi=150)
+    plt.clf()
 
 
 def plot_densities_by_layer(layers, layers_densities, image_name, output_path, visualisation_flag=False):
-        print(f'DEBUG visualisation_flag {visualisation_flag}')
         y_pos = np.arange(len(layers))
         plt.barh(y_pos, layers_densities,  align='center')
         plt.gca().set_yticks(y_pos, labels=layers)
@@ -318,7 +324,7 @@ def plot_densities_by_layer(layers, layers_densities, image_name, output_path, v
         else:
             file_path = output_path + "/" + image_name + "_densities_by_layer.png"
             plt.savefig(file_path, dpi=150)
-            plt.clf()
+        plt.clf()
 
 
 
@@ -334,4 +340,4 @@ def plot_layers(cells_pos_list, polygons, image_name, alpha, output_path, visual
     else:
         file_path = output_path + "/" + image_name + "_layer_from_points.png"
         plt.savefig(file_path, dpi=150)
-        plt.clf()
+    plt.clf()

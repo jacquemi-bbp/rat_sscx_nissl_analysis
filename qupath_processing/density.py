@@ -144,7 +144,7 @@ def single_image_process(image_name,
         search_name = image_name.replace('Features_', '')
         if search_name.replace(" ", "") in images_to_exlude:
             print(f'ERROR {search_name} is present in the df_image_to_exclude dataset')
-            return
+            return None, None
 
 
     cells_features_df = pd.read_csv(cell_position_file_path, index_col=0)
@@ -157,9 +157,6 @@ def single_image_process(image_name,
         if visualisation_flag or save_plot_flag:
             plot_layers(cells_pos_list, polygons,image_name, alpha, output_path, visualisation_flag)
             plot_densities_by_layer(layers, layers_densities, image_name, output_path, visualisation_flag)
-
-        print(f'layers_densities {layers_densities}')
-        print(f'layers {layers}')
         per_layer_dataframe = pd.DataFrame([layers_densities],  columns=layers)
 
     percentage_dataframe = compute_depth_density(image_name,

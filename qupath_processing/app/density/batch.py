@@ -95,7 +95,6 @@ def batch_density(config_file_path, visualisation_flag, save_plot_flag, image_to
         if densities_dataframe is None:
             print("ERROR: The computed density is not valid")
         else:
-            print("INFO: Write results")
             densities_dataframe_full_path = output_path + '/'+ image_name + '.csv'
 
             write_dataframe_to_file(densities_dataframe, densities_dataframe_full_path)
@@ -104,7 +103,6 @@ def batch_density(config_file_path, visualisation_flag, save_plot_flag, image_to
         if per_layer_dataframe is None:
             print("ERROR: The computed density per layer is not valid")
         else:
-            print("INFO: Write density per layer dataframe")
             densities_per_layer_dataframe_full_path = output_path + '/' + image_name + '_per_layer.csv'
             write_dataframe_to_file(per_layer_dataframe, densities_per_layer_dataframe_full_path)
             print(f'INFO: Write density per layer dataframe =to {densities_per_layer_dataframe_full_path}')
