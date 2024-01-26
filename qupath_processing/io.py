@@ -78,21 +78,45 @@ def read_qupath_annotations(directory_path, image_name):
                             are not simple polygon, but ROI (composition of several polygons.
                             In this case, we get the bigger polygon and do noy used the other
 
-                                ---
-                                | | 
-                            -------
-                            |   |
-                            |   |
-                            -----
+                            Because of miss created annotation by user, some QuPath annotation type 
+                            are not simple polygon, but ROI (composition of several polygons.
+                            In this case, we get the bigger polygon and do noy used the other
+
+
 
                             '''
-                            value = np.array(value, dtype="object")
-                            value = np.vstack(value.flatten())
-                            value = value.astype(np.float64)
-                            shape = value.shape
-                            if shape[0] != 1:
-                                value = value.reshape([1, shape[0], shape[1]])
-                            annotations[key] = value
+                            if len(value[0]) == 1 and len(value[1]) == 1:
+                                '''
+                                --
+                                | | 
+
+                                
+                                -------
+                                |   |
+                                |   |
+                                -----
+                                '''
+                                max_len = 0
+                                for i, entry in enumerate(value):
+        
+                                    if len(entry) > max_len:
+                                        max_len = len(entry)
+                                        print(f'max_len = {max_len}')
+                                        bigger_array = np.array(entry)
+                                annotations[key] = bigger_array
+                            else:
+                                '''
+                                    ---
+                                    | | 
+                                -------
+                                |   |
+                                |   |
+                                -----
+                                '''
+                                if len(value[0]) > len(value[1]):
+                                    annotations[key] = np.array([value[0]])
+                                else:
+                                    annotations[key] = np.array([value[1]])
         except KeyError:  # annotation without name
             pass
 

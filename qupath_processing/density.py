@@ -44,7 +44,8 @@ def compute_depth_density(image_name,
                         thickness_cut=50,
                         nb_row=10, nb_col=10,
                         visualisation_flag = False,
-                        save_plot_flag = False):
+                        save_plot_flag = False,
+                        ):
     """
 
     """
@@ -77,26 +78,7 @@ def compute_depth_density(image_name,
         nb_cell_per_slide, split_polygons, thickness_cut / 1e3
     )
 
-    total_used_cells = sum(nb_cells)
-    if total_used_cells != len(cells_centroid_x) :
-        densities_dataframe = pd.DataFrame(
-            {"image": [image_name], "depth_percentage": None, "densities": None}
-        )
-        print(
-            f"ERROR there are  {len(cells_centroid_x) - total_used_cells } "
-            f"cells outside the grid for a total of {len(cells_centroid_x)} cells"
-        )
-        print(f'ERROR there are  {total_used_cells}/{len(cells_centroid_x)}  used cells')
-        return None
 
-    else:
-        densities_dataframe = pd.DataFrame(
-            {
-                "image": [image_name] * len(depth_percentage),
-                "depth_percentage": depth_percentage,
-                "densities": densities,
-            }
-        )
 
     if visualisation_flag or save_plot_flag:
         plot_split_polygons_and_cell_depth(
@@ -125,10 +107,31 @@ def compute_depth_density(image_name,
             save_plot_flag=save_plot_flag,
         )
 
+    total_used_cells = sum(nb_cells)
+    if total_used_cells != len(cells_centroid_x) :
+        densities_dataframe = pd.DataFrame(
+            {"image": [image_name], "depth_percentage": None, "densities": None}
+        )
+        print(
+            f"ERROR {image_name} there are  {len(cells_centroid_x) - total_used_cells } "
+            f"cells outside the grid for a total of {len(cells_centroid_x)} cells"
+        )
+        print(f'ERROR {image_name} there are  {total_used_cells}/{len(cells_centroid_x)}  used cells')
+        return None
+
+    else:
+        densities_dataframe = pd.DataFrame(
+            {
+                "image": [image_name] * len(depth_percentage),
+                "depth_percentage": depth_percentage,
+                "densities": densities,
+            }
+        )
+
     return densities_dataframe
 
 def single_image_process(image_name,
-                         cell_position_file_path,
+                        cell_position_file_path,
                         points_annotations_path,
                         s1hl_path,
                         output_path,
@@ -137,7 +140,8 @@ def single_image_process(image_name,
                         nb_row=10, nb_col=10,
                         visualisation_flag = False,
                         save_plot_flag = False,
-                        alpha = 0.001 ):
+                        alpha = 0.001,
+                        do_not_compute_per_layer = False ):
 
     if df_image_to_exclude is not None:
         images_to_exlude = get_image_to_exlude_list(df_image_to_exclude)
@@ -151,7 +155,7 @@ def single_image_process(image_name,
     assert 'exclude_for_density' in cells_features_df.columns
 
     per_layer_dataframe = None
-    if 'RF_prediction' in cells_features_df:
+    if not do_not_compute_per_layer and 'RF_prediction' in cells_features_df:
         layers = np.unique(cells_features_df.RF_prediction)
         layers_densities, cells_pos_list, polygons = densities_from_layers(cells_features_df, layers, thickness_cut, alpha=alpha)
         if visualisation_flag or save_plot_flag:

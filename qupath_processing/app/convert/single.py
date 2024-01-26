@@ -18,11 +18,7 @@ from qupath_processing.convert import single_image_conversion
     required=True,
     help="Path that will contain the converted data into two Dataframes",
 )
-@click.option(
-    "--qupath-project-path",
-    required=False,
-    help="qupath project path that contains images metadata",
-)
+
 @click.option(
     "--image-name", required=True, help="image name inside the qupath project"
 )
@@ -35,7 +31,6 @@ def cmd(
     cells_detection_path,
     annotations_path,
     output_path,
-    qupath_project_path,
     image_name,
     pixel_size,
     exclude

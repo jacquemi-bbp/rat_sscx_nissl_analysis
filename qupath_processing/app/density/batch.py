@@ -17,11 +17,13 @@ from qupath_processing.utilities import concat_dataframe, NotValidImage, stereol
 @click.option("--config-file-path", required=False, help="Configuration file path")
 @click.option("--visualisation-flag", is_flag=True)
 @click.option("--save-plot-flag", is_flag=True)
+@click.option("--do-not-compute-per-layer", is_flag=True)
 @click.option(
     "--image-to-exlude-path", help="exel files taht contan the list of image to exclude (xlsx).", required=False
 )
 
-def batch_density(config_file_path, visualisation_flag, save_plot_flag, image_to_exlude_path):
+def batch_density(config_file_path, visualisation_flag, save_plot_flag,
+                 image_to_exlude_path, do_not_compute_per_layer):
     config = configparser.ConfigParser()
     config.sections()
     config.read(config_file_path)
@@ -90,22 +92,24 @@ def batch_density(config_file_path, visualisation_flag, save_plot_flag, image_to
                              nb_row = nb_row,
                              visualisation_flag = visualisation_flag,
                              save_plot_flag = save_plot_flag,
-                            alpha = alpha
+                            alpha = alpha,
+                            do_not_compute_per_layer = do_not_compute_per_layer
                              )
         if densities_dataframe is None:
-            print("ERROR: The computed density is not valid")
+            print(f"ERROR: {image_name} The computed density is not valid")
         else:
             densities_dataframe_full_path = output_path + '/'+ image_name + '.csv'
 
             write_dataframe_to_file(densities_dataframe, densities_dataframe_full_path)
             print(f'INFO: Write density dataframe =to {densities_dataframe_full_path}')
 
-        if per_layer_dataframe is None:
-            print("ERROR: The computed density per layer is not valid")
-        else:
-            densities_per_layer_dataframe_full_path = output_path + '/' + image_name + '_per_layer.csv'
-            write_dataframe_to_file(per_layer_dataframe, densities_per_layer_dataframe_full_path)
-            print(f'INFO: Write density per layer dataframe =to {densities_per_layer_dataframe_full_path}')
+        if not do_not_compute_per_layer :
+            if  per_layer_dataframe is None:
+                print("ERROR: The computed density per layer is not valid")
+            else:
+                densities_per_layer_dataframe_full_path = output_path + '/' + image_name + '_per_layer.csv'
+                write_dataframe_to_file(per_layer_dataframe, densities_per_layer_dataframe_full_path)
+                print(f'INFO: Write density per layer dataframe =to {densities_per_layer_dataframe_full_path}')
 
 
 
