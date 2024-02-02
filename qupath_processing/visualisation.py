@@ -44,7 +44,7 @@ def plot_densities(
     if visualisation_flag:
         plt.show()
     elif save_plot_flag:
-        file_path = output_path + "/" + image_name + "_density_per_animal_.png"
+        file_path = output_path + "/" + image_name + "_density_per_animal_.svg"
         plt.savefig(file_path, dpi=150)
     plt.clf()
 
@@ -116,7 +116,7 @@ def plot_split_polygons_and_cell_depth(
     if visualisation_flag:
         plt.show()
     elif save_plot_flag:
-        file_path = output_path + "/" + image_name + "_split_polygons_per_animal_.png"
+        file_path = output_path + "/" + image_name + "_split_polygons_per_animal_.svg"
         print(f'plt.savefig {file_path}')
         plt.savefig(file_path)
     plt.clf()
@@ -252,7 +252,7 @@ def plot_layers_bounderies(
     if visualisation_flag:
         plt.show()
     else:
-        file_path = output_path + "/" + image_name + ".png"
+        file_path = output_path + "/" + image_name + ".svg"
         plt.savefig(file_path, dpi=150)
     plt.clf()
 
@@ -280,7 +280,7 @@ def plot_layer_per_image(
     if visualisation_flag:
         plt.show()
     else:
-        file_path = output_path + "/" + image_name + "layer_per_image_.png"
+        file_path = output_path + "/" + image_name + "layer_per_image_.svg"
         plt.savefig(file_path, dpi=150)
     plt.clf()
 
@@ -308,7 +308,7 @@ def plot_layer_per_animal(
     if visualisation_flag:
         plt.show()
     else:
-        file_path = output_path + "/" + image_name + "layer_per_animal_.png"
+        file_path = output_path + "/" + image_name + "layer_per_animal_.svg"
         plt.savefig(file_path, dpi=150)
     plt.clf()
 
@@ -322,7 +322,7 @@ def plot_densities_by_layer(layers, layers_densities, image_name, output_path, v
         if visualisation_flag:
             plt.show()
         else:
-            file_path = output_path + "/" + image_name + "_densities_by_layer.png"
+            file_path = output_path + "/" + image_name + "_densities_by_layer.svg"
             plt.savefig(file_path, dpi=150)
         plt.clf()
 
@@ -338,6 +338,6 @@ def plot_layers(cells_pos_list, polygons, image_name, alpha, output_path, visual
     if visualisation_flag:
         plt.show()
     else:
-        file_path = output_path + "/" + image_name + "_layer_from_points.png"
+        file_path = output_path + "/" + image_name + "_layer_from_points.svg"
         plt.savefig(file_path, dpi=150)
     plt.clf()

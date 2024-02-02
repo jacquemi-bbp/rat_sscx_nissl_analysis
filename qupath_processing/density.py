@@ -154,6 +154,7 @@ def single_image_process(image_name,
     cells_features_df = pd.read_csv(cell_position_file_path, index_col=0)
     assert 'exclude_for_density' in cells_features_df.columns
 
+
     per_layer_dataframe = None
     if not do_not_compute_per_layer and 'RF_prediction' in cells_features_df:
         layers = np.unique(cells_features_df.RF_prediction)
