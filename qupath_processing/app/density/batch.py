@@ -18,23 +18,26 @@ from qupath_processing.utilities import concat_dataframe, NotValidImage, stereol
 @click.option("--visualisation-flag", is_flag=True)
 @click.option("--save-plot-flag", is_flag=True)
 @click.option("--do-not-compute-per-layer", is_flag=True)
+@click.option("--do-not-compute-per-depth", is_flag=True)
 @click.option(
-    "--image-to-exlude-path", help="exel files taht contan the list of image to exclude (xlsx).", required=False
+    "--image-to-exlude-path", help="exel files that contains the list of image to exclude (xlsx).", required=False
 )
 
 def batch_density(config_file_path, visualisation_flag, save_plot_flag,
-                 image_to_exlude_path, do_not_compute_per_layer):
+                 image_to_exlude_path,
+                  do_not_compute_per_layer, do_not_compute_per_depth):
     config = configparser.ConfigParser()
     config.sections()
     config.read(config_file_path)
     cell_position_path = config["BATCH"]["cell_position_path"]
     cell_position_file_prefix = config["BATCH"]["cell_position_file_prefix"]
 
-    points_annotations_path = config["BATCH"]["points_annotations_path"]
-    points_annotations_file_prefix = config["BATCH"]["points_annotations_file_prefix"]
+    if not do_not_compute_per_depth:
+        points_annotations_path = config["BATCH"]["points_annotations_path"]
+        points_annotations_file_prefix = config["BATCH"]["points_annotations_file_prefix"]
 
-    s1hl_path = config["BATCH"]["s1hl_path"]
-    s1hl_file_prefix = config["BATCH"]["s1hl_file_prefix"]
+        s1hl_path = config["BATCH"]["s1hl_path"]
+        s1hl_file_prefix = config["BATCH"]["s1hl_file_prefix"]
 
     output_path = config["BATCH"]["output_path"]
     thickness_cut = float(config["BATCH"]["thickness_cut"])
@@ -76,9 +79,14 @@ def batch_density(config_file_path, visualisation_flag, save_plot_flag,
         print("INFO: Process single image ", image_name)
 
         cell_position_file_path = cell_position_path + '/' + cell_position_file_prefix + image_name + '.csv'
-        points_annotations_file_path = (points_annotations_path + '/' + points_annotations_file_prefix +
-                                        image_name + '_points_annotations.csv')
-        s1hl_file_path = s1hl_path + '/' + s1hl_file_prefix + image_name + '_S1HL_annotations.csv'
+
+        if not do_not_compute_per_depth:
+            points_annotations_file_path = (points_annotations_path + '/' + points_annotations_file_prefix +
+                                            image_name + '_points_annotations.csv')
+            s1hl_file_path = s1hl_path + '/' + s1hl_file_prefix + image_name + '_S1HL_annotations.csv'
+        else:
+            points_annotations_file_path = None
+            s1hl_file_path = None
 
 
         densities_dataframe, per_layer_dataframe = single_image_process(image_name,
@@ -92,16 +100,18 @@ def batch_density(config_file_path, visualisation_flag, save_plot_flag,
                              nb_row = nb_row,
                              visualisation_flag = visualisation_flag,
                              save_plot_flag = save_plot_flag,
-                            alpha = alpha,
-                            do_not_compute_per_layer = do_not_compute_per_layer
+                             alpha = alpha,
+                             do_not_compute_per_layer = do_not_compute_per_layer,
+                             do_not_compute_per_depth = do_not_compute_per_depth
                              )
-        if densities_dataframe is None:
-            print(f"ERROR: {image_name} The computed density is not valid")
-        else:
-            densities_dataframe_full_path = output_path + '/'+ image_name + '.csv'
+        if not do_not_compute_per_depth:
+            if densities_dataframe is None:
+                print(f"ERROR: {image_name} The computed density is not valid")
+            else:
+                densities_dataframe_full_path = output_path + '/'+ image_name + '.csv'
 
-            write_dataframe_to_file(densities_dataframe, densities_dataframe_full_path)
-            print(f'INFO: Write density dataframe =to {densities_dataframe_full_path}')
+                write_dataframe_to_file(densities_dataframe, densities_dataframe_full_path)
+                print(f'INFO: Write density dataframe =to {densities_dataframe_full_path}')
 
         if not do_not_compute_per_layer :
             if  per_layer_dataframe is None:

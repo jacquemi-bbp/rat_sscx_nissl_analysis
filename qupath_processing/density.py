@@ -141,7 +141,8 @@ def single_image_process(image_name,
                         visualisation_flag = False,
                         save_plot_flag = False,
                         alpha = 0.001,
-                        do_not_compute_per_layer = False ):
+                        do_not_compute_per_layer = False,
+                         do_not_compute_per_depth = False):
 
     if df_image_to_exclude is not None:
         images_to_exlude = get_image_to_exlude_list(df_image_to_exclude)
@@ -164,16 +165,18 @@ def single_image_process(image_name,
             plot_densities_by_layer(layers, layers_densities, image_name, output_path, visualisation_flag)
         per_layer_dataframe = pd.DataFrame([layers_densities],  columns=layers)
 
-    percentage_dataframe = compute_depth_density(image_name,
-                        cells_features_df,
-                        points_annotations_path,
-                        s1hl_path,
-                        output_path,
-                        df_image_to_exclude = df_image_to_exclude,
-                        thickness_cut=thickness_cut,
-                        nb_row=nb_row, nb_col=nb_col,
-                        visualisation_flag = visualisation_flag,
-                        save_plot_flag = save_plot_flag)
+    percentage_dataframe = None
+    if not do_not_compute_per_depth:
+        percentage_dataframe = compute_depth_density(image_name,
+                            cells_features_df,
+                            points_annotations_path,
+                            s1hl_path,
+                            output_path,
+                            df_image_to_exclude = df_image_to_exclude,
+                            thickness_cut=thickness_cut,
+                            nb_row=nb_row, nb_col=nb_col,
+                            visualisation_flag = visualisation_flag,
+                            save_plot_flag = save_plot_flag)
 
     return percentage_dataframe, per_layer_dataframe
 
