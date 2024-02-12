@@ -46,6 +46,8 @@ from qupath_processing.io import (
 )
 @click.option("--visualisation-flag", is_flag=True)
 @click.option("--save-plot-flag", is_flag=True)
+@click.option("--do-not-compute-per-layer", is_flag=True)
+@click.option("--do-not-compute-per-depth", is_flag=True)
 def density(
     config_file_path,
     cell_position_file_path,
@@ -58,7 +60,9 @@ def density(
     image_to_exlude_path,
     visualisation_flag,
     save_plot_flag,
-    alpha
+    alpha,
+    do_not_compute_per_depth,
+    do_not_compute_per_layer,
 ):
 
     if config_file_path:
@@ -66,8 +70,9 @@ def density(
         config = configparser.ConfigParser()
         config.read(config_file_path)
         cell_position_file_path = config["DEFAULT"]["cell_position_file_path"]
-        points_annotations_path = config["DEFAULT"]["points_annotations_file_path"]
-        s1hl_path = config["DEFAULT"]["s1hl_file_path"]
+        if not do_not_compute_per_depth:
+            points_annotations_path = config["DEFAULT"]["points_annotations_file_path"]
+            s1hl_path = config["DEFAULT"]["s1hl_file_path"]
 
         thickness_cut = float(config["DEFAULT"]["thickness_cut"])
         nb_row = int(config["DEFAULT"]["grid_nb_row"])
@@ -78,13 +83,14 @@ def density(
 
         image_to_exlude_path = config["DEFAULT"]["image_to_exlude_path"]
 
-    if points_annotations_path is None:
-        print('ERROR: points-annotations-path is mandatory')
-        return
+    if not do_not_compute_per_depth:
+        if points_annotations_path is None:
+            print('ERROR: points-annotations-path is mandatory')
+            return
 
-    if s1hl_path is None:
-        print('ERROR: s1hl-path is mandatory')
-        return    
+        if s1hl_path is None:
+            print('ERROR: s1hl-path is mandatory')
+            return
 
     image_name = cell_position_file_path[
         cell_position_file_path.rfind("/") + 1 : cell_position_file_path.rfind(".")
@@ -92,7 +98,8 @@ def density(
 
     # Verify that the image is not in the exlude images list
     if image_to_exlude_path:
-        df_image_to_exclude = pd.read_excel(image_to_exlude_path, index_col=0, skiprows=[0,1,2,3,4,5,6])
+        df_image_to_exclude = pd.read_excel(image_to_exlude_path, index_col=0, skiprows=[0,1,2,3,4,5,6,7])
+
 
     if not os.path.exists(output_path):
         # if the directory is not present then create it.
@@ -111,22 +118,27 @@ def density(
                          nb_row = nb_row,
                          visualisation_flag = visualisation_flag,
                          save_plot_flag = save_plot_flag,
-                         alpha=alpha
+                         alpha=alpha,
+                         do_not_compute_per_layer=do_not_compute_per_layer,
+                         do_not_compute_per_depth=do_not_compute_per_depth
                          )
-    if percentage_dataframe is None:
-        print("ERROR: The computed density percentage is not valid")
-    else:
-        print("INFO: Write density percentage dataframe")
-        densities_dataframe_full_path = output_path + '/'+ image_name + '.csv'
-        write_dataframe_to_file(percentage_dataframe, densities_dataframe_full_path)
-        print(f'INFO: Write density percentage dataframe =to {densities_dataframe_full_path}')
 
-    if per_layer_dataframe is None:
-        print("ERROR: The computed density per layer is not valid")
-    else:
-        print("INFO: Write density per layer dataframe")
-        densities_per_layer_dataframe_full_path = output_path + '/'+ image_name + '_per_layer.csv'
-        write_dataframe_to_file(per_layer_dataframe, densities_per_layer_dataframe_full_path)
-        print(f'INFO: Write density per layer dataframe =to {densities_per_layer_dataframe_full_path}')
+    if not do_not_compute_per_depth:
+        if percentage_dataframe is None:
+            print("ERROR: The computed density percentage is not valid")
+        else:
+            print("INFO: Write density percentage dataframe")
+            densities_dataframe_full_path = output_path + '/'+ image_name + '.csv'
+            write_dataframe_to_file(percentage_dataframe, densities_dataframe_full_path)
+            print(f'INFO: Write density percentage dataframe =to {densities_dataframe_full_path}')
+
+    if not do_not_compute_per_layer:
+        if per_layer_dataframe is None:
+            print("ERROR: The computed density per layer is not valid")
+        else:
+            print("INFO: Write density per layer dataframe")
+            densities_per_layer_dataframe_full_path = output_path + '/'+ image_name + '_per_layer.csv'
+            write_dataframe_to_file(per_layer_dataframe, densities_per_layer_dataframe_full_path)
+            print(f'INFO: Write density per layer dataframe =to {densities_per_layer_dataframe_full_path}')
 
 

@@ -72,7 +72,7 @@ def batch_density(config_file_path, visualisation_flag, save_plot_flag,
 
     # Verify that the image is not in the exlude images list
     if image_to_exlude_path:
-        df_image_to_exclude = pd.read_excel(image_to_exlude_path, index_col=0, skiprows=[0,1,2,3,4,5,6])
+        df_image_to_exclude = pd.read_excel(image_to_exlude_path, index_col=0, skiprows=[0,1,2,3,4,5,6,7])
 
 
     for image_name in image_list:
@@ -106,7 +106,7 @@ def batch_density(config_file_path, visualisation_flag, save_plot_flag,
                              )
         if not do_not_compute_per_depth:
             if densities_dataframe is None:
-                print(f"ERROR: {image_name} The computed density is not valid")
+                print(f"ERROR: {image_name} The computed density is not valid to compute the per depth density")
             else:
                 densities_dataframe_full_path = output_path + '/'+ image_name + '.csv'
 
@@ -115,7 +115,7 @@ def batch_density(config_file_path, visualisation_flag, save_plot_flag,
 
         if not do_not_compute_per_layer :
             if  per_layer_dataframe is None:
-                print("ERROR: The computed density per layer is not valid")
+                print("ERROR: The computed density per layer is not valid to compute the per depth density")
             else:
                 densities_per_layer_dataframe_full_path = output_path + '/' + image_name + '_per_layer.csv'
                 write_dataframe_to_file(per_layer_dataframe, densities_per_layer_dataframe_full_path)
