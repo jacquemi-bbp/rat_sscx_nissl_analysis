@@ -7,6 +7,23 @@ import numpy as np
 from qupath_processing.geometry import compute_cells_depth
 
 #plt.rcParams["font.family"] = "Arial"
+layers_color = {"Layer 1": "#ff0000"
+            , "Layer 2":"#ff0099"
+            , "Layer 3":"#cc00ff"
+            , "Layer 2/3":"#751402"
+            , "Layer 4":"#3300ff"
+            , "Layer 5":"#0066FF"
+            , "Layer 6 a":"#00ffff"
+            , "Layer 6 b":"#00ff66"
+           }
+def get_layer_colors(values):
+    colors = list(layers_color.values())
+
+    if len(values) == 6: # Merged 2/3
+        return np.take(colors, [0,3,4,5,6,7])
+
+    elif len(values) == 7: # distinguish 2 and 3
+        return np.take(colors, [0,1,2,4,5,6,7])
 
 def plot_segment(line, color='black'):
     pt1 = line[0]
@@ -98,7 +115,6 @@ def plot_split_polygons_and_cell_depth(
     if vertical_lines:
         for line in vertical_lines[1:-1]:
             line = line.coords
-            #plt.axline((line[0][0], line[0][1]), (line[1][0], line[1][1]), linewidth=.2, color="black")
             plot_segment(line)
     if horizontal_lines:
         for line in horizontal_lines:
@@ -329,10 +345,11 @@ def plot_densities_by_layer(layers, layers_densities, image_name, output_path, v
 
 
 def plot_layers(cells_pos_list, polygons, image_name, alpha, output_path, visualisation_flag=False):
-    for cells_pos, polygon in zip(cells_pos_list, polygons):
-        plt.scatter(cells_pos[:, 0], cells_pos[:, 1], s=1)
+    colors = get_layer_colors(polygons)
+    for cells_pos, polygon, color in zip(cells_pos_list, polygons, colors):
+        plt.scatter(cells_pos[:, 0], cells_pos[:, 1], s=1, color=color)
         x, y = polygon.exterior.xy
-        plt.plot(x, y)
+        plt.plot(x, y, color=color)
     plt.title(f'{image_name} Layer polygon for alpha={alpha}')
     plt.gca().invert_yaxis()
     if visualisation_flag:

@@ -10,14 +10,14 @@ import matplotlib.pyplot as plt
 
 
 layers_color = {"Layer 1": "#ff0000"
-        , "Layer 2": "#ff0099"
-        , "Layer 3": "#cc00ff"
-        , "Layer 2/3": "#ff9900"
-        , "Layer 4": "#ffcc00"
-        , "Layer 5": "#ffcc99"
-        , "Layer 6 a": "#ffcccc"
-        , "Layer 6 b": "#ffff00"
-                    }
+            , "Layer 2":"#ff0099"
+            , "Layer 3":"#cc00ff"
+            , "Layer 2/3":"#751402"
+            , "Layer 4":"#3300ff"
+            , "Layer 5":"#0066FF"
+            , "Layer 6 a":"#00ffff"
+            , "Layer 6 b":"#00ff66"
+           }
 
 @click.command()
 @click.option("--qupath-project-path", required=True, help="QuPath project file path (*.qpproj)")
