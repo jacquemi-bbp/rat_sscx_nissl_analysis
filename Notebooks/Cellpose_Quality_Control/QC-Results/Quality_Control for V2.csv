@@ -1,0 +1,1 @@
+model,image,Prediction v. GT Intersection over Union,false positive,true positive,false negative,precision,recall,accuracy,f1 score,n_true,n_pred,mean_true_score,mean_matched_score,panoptic_quality
