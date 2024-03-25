@@ -3,6 +3,7 @@ QuPath porcessing for rat somatosensory cortex Nissl data module
 """
 
 import pandas as pd
+import alphashape
 import numpy as np
 from shapely.geometry import Point
 from shapely.geometry.multipolygon import MultiPolygon
@@ -141,8 +142,8 @@ def single_image_process(image_name,
                         visualisation_flag = False,
                         save_plot_flag = False,
                         alpha = 0.001,
-                        do_not_compute_per_layer = False,
-                         do_not_compute_per_depth = False):
+                        compute_per_layer=False,
+                        compute_per_depth=True):
 
     if df_image_to_exclude is not None:
         images_to_exlude = get_image_to_exlude_list(df_image_to_exclude)
@@ -157,7 +158,7 @@ def single_image_process(image_name,
 
 
     per_layer_dataframe = None
-    if not do_not_compute_per_layer and 'RF_prediction' in cells_features_df:
+    if compute_per_layer and 'RF_prediction' in cells_features_df:
         layers = np.unique(cells_features_df.RF_prediction)
         layers_densities, cells_pos_list, polygons = densities_from_layers(cells_features_df, layers, thickness_cut, alpha=alpha)
         if visualisation_flag or save_plot_flag:
@@ -166,7 +167,7 @@ def single_image_process(image_name,
         per_layer_dataframe = pd.DataFrame([layers_densities],  columns=layers)
 
     percentage_dataframe = None
-    if not do_not_compute_per_depth:
+    if compute_per_depth:
         percentage_dataframe = compute_depth_density(image_name,
                             cells_features_df,
                             points_annotations_path,
@@ -196,13 +197,18 @@ def densities_from_layers(image_dataframe: pd.DataFrame, layers: list ,  thickne
     for layer in layers:
         df_layer = image_dataframe[image_dataframe.RF_prediction == layer]
         df_layer = df_layer[df_layer.exclude_for_density == False]
+
         cells_pos = df_layer[['Centroid X µm', 'Centroid Y µm']].to_numpy()
-        points = [Point([point[0], point[1]]) for point in cells_pos]
+        points = cells_pos
 
         if layer == 'Layer 1':
-            concave_hull, edge_points = alpha_shape(points, alpha=alpha/10)
+            concave_hull = alphashape.alphashape(points, alpha=alpha/10)
         else:
-            concave_hull, edge_points = alpha_shape(points, alpha=alpha)
+            #try:
+            concave_hull = alphashape.alphashape(points, alpha=alpha)
+            #except TypeError:
+            #    concave_hull = alphashape.alphashape(points, alpha=0)
+
         if type(concave_hull) is MultiPolygon:
             concave_hull = get_bigger_polygon(concave_hull)
         polygons.append(concave_hull)

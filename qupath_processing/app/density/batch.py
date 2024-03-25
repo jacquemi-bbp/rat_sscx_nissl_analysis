@@ -17,22 +17,26 @@ from qupath_processing.utilities import concat_dataframe, NotValidImage, stereol
 @click.option("--config-file-path", required=False, help="Configuration file path")
 @click.option("--visualisation-flag", is_flag=True)
 @click.option("--save-plot-flag", is_flag=True)
-@click.option("--do-not-compute-per-layer", is_flag=True)
-@click.option("--do-not-compute-per-depth", is_flag=True)
+@click.option("--compute-per-layer", is_flag=True)
+@click.option("--compute-per-depth", is_flag=True)
 @click.option(
     "--image-to-exlude-path", help="exel files that contains the list of image to exclude (xlsx).", required=False
 )
 
 def batch_density(config_file_path, visualisation_flag, save_plot_flag,
                  image_to_exlude_path,
-                  do_not_compute_per_layer, do_not_compute_per_depth):
+                  compute_per_layer, compute_per_depth):
+
+    if compute_per_layer ==  compute_per_depth:
+        raise ValueError('Please use compute-per-layer OR compute-per-depth')
+
     config = configparser.ConfigParser()
     config.sections()
     config.read(config_file_path)
     cell_position_path = config["BATCH"]["cell_position_path"]
     cell_position_file_prefix = config["BATCH"]["cell_position_file_prefix"]
 
-    if not do_not_compute_per_depth:
+    if compute_per_layer:
         points_annotations_path = config["BATCH"]["points_annotations_path"]
         points_annotations_file_prefix = config["BATCH"]["points_annotations_file_prefix"]
 
@@ -73,14 +77,18 @@ def batch_density(config_file_path, visualisation_flag, save_plot_flag,
     # Verify that the image is not in the exlude images list
     if image_to_exlude_path:
         df_image_to_exclude = pd.read_excel(image_to_exlude_path, index_col=0, skiprows=[0,1,2,3,4,5,6,7])
-
+        if compute_per_layer:
+            # Some image may be keep if we only compute the density per layer
+            df_image_to_exclude = df_image_to_exclude[
+            df_image_to_exclude['Exclusion reason (Cell density calculation)'].str.find(
+                'DistanceToMidline_3.05-3.25') == -1]
 
     for image_name in image_list:
         print("INFO: Process single image ", image_name)
 
         cell_position_file_path = cell_position_path + '/' + cell_position_file_prefix + image_name + '.csv'
 
-        if not do_not_compute_per_depth:
+        if compute_per_depth:
             points_annotations_file_path = (points_annotations_path + '/' + points_annotations_file_prefix +
                                             image_name + '_points_annotations.csv')
             s1hl_file_path = s1hl_path + '/' + s1hl_file_prefix + image_name + '_S1HL_annotations.csv'
@@ -101,10 +109,10 @@ def batch_density(config_file_path, visualisation_flag, save_plot_flag,
                              visualisation_flag = visualisation_flag,
                              save_plot_flag = save_plot_flag,
                              alpha = alpha,
-                             do_not_compute_per_layer = do_not_compute_per_layer,
-                             do_not_compute_per_depth = do_not_compute_per_depth
+                             compute_per_layer = compute_per_layer,
+                             compute_per_depth = compute_per_depth
                              )
-        if not do_not_compute_per_depth:
+        if compute_per_depth:
             if densities_dataframe is None:
                 print(f"ERROR: {image_name} The computed density is not valid to compute the per depth density")
             else:
@@ -113,7 +121,7 @@ def batch_density(config_file_path, visualisation_flag, save_plot_flag,
                 write_dataframe_to_file(densities_dataframe, densities_dataframe_full_path)
                 print(f'INFO: Write density dataframe =to {densities_dataframe_full_path}')
 
-        if not do_not_compute_per_layer :
+        if compute_per_layer :
             if  per_layer_dataframe is None:
                 print("ERROR: The computed density per layer is not valid to compute the per depth density")
             else:
