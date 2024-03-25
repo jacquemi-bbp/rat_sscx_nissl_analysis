@@ -13,7 +13,6 @@ from qupath_processing.geometry import (
     create_depth_polygons,
     create_grid,
     count_nb_cell_per_polygon,
-    alpha_shape,
     get_inside_points,
     get_bigger_polygon
 )
